@@ -35,18 +35,20 @@ const io = new Server(server, {
     origin: "*"
   }
 });
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
+  // receive message from client
   socket.on("sendMessage", (msg) => {
-    io.emit("receiveMessage", msg);
+    // send to ALL OTHER users (not sender)
+    socket.broadcast.emit("receiveMessage", msg);
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    console.log("User disconnected:", socket.id);
   });
 });
-
 // Start server
 const PORT = process.env.PORT || 10000;
 
