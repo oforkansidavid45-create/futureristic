@@ -16,11 +16,16 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+
 app.use("/api/auth", authRoutes);
+
 app.get("/", (req, res) => {
   res.send("Server is running 🚀");
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
 // Connect MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
