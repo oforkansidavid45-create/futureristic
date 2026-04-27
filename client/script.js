@@ -1,6 +1,5 @@
 const socket = io();
 
-// ask for username
 let username = prompt("Enter your name:");
 
 // send message
@@ -15,21 +14,24 @@ function send() {
     text: msg
   };
 
-  // send to server ONLY
   socket.emit("sendMessage", fullMessage);
 
   input.value = "";
 }
 
-// receive message (THIS handles display for ALL tabs)
+// receive message
 socket.on("receiveMessage", (data) => {
-  addMessage(data);
+  if (data.user === username) {
+    addMessage(data, "sent");
+  } else {
+    addMessage(data, "received");
+  }
 });
 
 // display message
-function addMessage(data) {
+function addMessage(data, type) {
   const div = document.createElement("div");
-  div.classList.add("message");
+  div.classList.add("message", type);
 
   div.textContent = `${data.user}: ${data.text}`;
 
