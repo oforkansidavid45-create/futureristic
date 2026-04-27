@@ -3,33 +3,33 @@ const socket = io();
 // ask for username
 let username = prompt("Enter your name:");
 
+// send message
 function send() {
   const input = document.getElementById("msg");
   const msg = input.value;
 
   if (msg.trim() === "") return;
 
-  // send username + message
   const fullMessage = {
     user: username,
     text: msg
   };
 
+  // send to server ONLY
   socket.emit("sendMessage", fullMessage);
 
-  addMessage(fullMessage, "sent");
   input.value = "";
 }
 
-// receive message
+// receive message (THIS handles display for ALL tabs)
 socket.on("receiveMessage", (data) => {
-  addMessage(data, "received");
+  addMessage(data);
 });
 
 // display message
-function addMessage(data, type) {
+function addMessage(data) {
   const div = document.createElement("div");
-  div.classList.add("message", type);
+  div.classList.add("message");
 
   div.textContent = `${data.user}: ${data.text}`;
 
