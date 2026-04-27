@@ -16,20 +16,19 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-
 app.use("/api/auth", authRoutes);
-
 app.use(express.static("client"));
 
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
+
 // Connect MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("DB Error:", err));
 
-// Socket setup (real-time chat)
+// Socket setup
 const io = new Server(server, {
   cors: {
     origin: "*"
@@ -39,16 +38,15 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  // receive message from client
-  socket.on("sendMessage", (msg) => {
-    // send to ALL OTHER users (not sender)
-    socket.broadcast.emit("receiveMessage", msg);
+  socket.on("sendMessage", (data) => {
+    socket.broadcast.emit("receiveMessage", data);
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
+
 // Start server
 const PORT = process.env.PORT || 10000;
 
