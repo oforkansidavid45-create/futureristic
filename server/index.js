@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 
 const authRoutes = require("./routes/auth");
+const Message = require("./models/message"); // ✅ ADD THIS
 
 const app = express();
 const server = http.createServer(app);
@@ -28,7 +29,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("DB Error:", err));
 
-// Socket setup
+// Socket setup (ONLY ONCE)
 const io = new Server(server, {
   cors: {
     origin: "*"
@@ -37,19 +38,19 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
+
   socket.on("loadMessages", async () => {
-  const messages = await Message.find().sort({ createdAt: 1 });
-  socket.emit("messageHistory", messages);
-});
+    const messages = await Message.find().sort({ createdAt: 1 });
+    socket.emit("messageHistory", messages);
+  });
 
- socket.on("sendMessage", async (data) => {
-  // save to DB
-  const newMessage = new Message(data);
-  await newMessage.save();
+  socket.on("sendMessage", async (data) => {
+    const newMessage = new Message(data);
+    await newMessage.save();
 
-  // send to everyone
-  io.emit("receiveMessage", data);
-});
+    io.emit("receiveMessage", data);
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });

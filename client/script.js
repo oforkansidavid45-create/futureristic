@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io("https://dave-whatsappmadeasy.onrender.com");
 
 // ask username
 let username = prompt("Enter your name:");
