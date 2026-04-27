@@ -1,6 +1,17 @@
 const socket = io();
 
+// ask username
 let username = prompt("Enter your name:");
+
+// display message
+function addMessage(data, type) {
+  const div = document.createElement("div");
+  div.classList.add("message", type);
+
+  div.textContent = `${data.user}: ${data.text}`;
+
+  document.getElementById("messages").appendChild(div);
+}
 
 // send message
 function send() {
@@ -19,7 +30,7 @@ function send() {
   input.value = "";
 }
 
-// receive message
+// receive new messages
 socket.on("receiveMessage", (data) => {
   if (data.user === username) {
     addMessage(data, "sent");
@@ -28,12 +39,15 @@ socket.on("receiveMessage", (data) => {
   }
 });
 
-// display message
-function addMessage(data, type) {
-  const div = document.createElement("div");
-  div.classList.add("message", type);
+// load chat history
+socket.emit("loadMessages");
 
-  div.textContent = `${data.user}: ${data.text}`;
-
-  document.getElementById("messages").appendChild(div);
-}
+socket.on("messageHistory", (messages) => {
+  messages.forEach((data) => {
+    if (data.user === username) {
+      addMessage(data, "sent");
+    } else {
+      addMessage(data, "received");
+    }
+  });
+});

@@ -37,11 +37,19 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
+  socket.on("loadMessages", async () => {
+  const messages = await Message.find().sort({ createdAt: 1 });
+  socket.emit("messageHistory", messages);
+});
 
-  socket.on("sendMessage", (data) => {
-    io.emit("receiveMessage", data); // sends to ALL users
-  });
+ socket.on("sendMessage", async (data) => {
+  // save to DB
+  const newMessage = new Message(data);
+  await newMessage.save();
 
+  // send to everyone
+  io.emit("receiveMessage", data);
+});
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
