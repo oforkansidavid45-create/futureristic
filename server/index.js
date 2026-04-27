@@ -29,7 +29,6 @@ const io = new Server(server, {
     origin: "*"
   }
 });
-
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
@@ -45,6 +44,6 @@ io.on("connection", (socket) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
