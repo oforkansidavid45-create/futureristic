@@ -18,17 +18,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("client"));
 
-// 🔥 ADD THIS (Render health check)
+// ✅ HEALTH CHECK (IMPORTANT FOR RENDER)
 app.get("/", (req, res) => {
-  res.send("Chat server is running 🚀");
+  res.status(200).send("Chat server is running 🚀");
 });
 
 // =========================
 // DB CONNECTION
 // =========================
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log("MongoDB Error:", err));
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log("MongoDB Error:", err));
 
 // =========================
 // SOCKET SETUP
@@ -56,7 +59,9 @@ io.on("connection", (socket) => {
 
   console.log("Connected:", socket.id);
 
+  // =========================
   // JOIN USER
+  // =========================
   socket.on("join", (username) => {
     if (!username) return;
 
@@ -66,22 +71,30 @@ io.on("connection", (socket) => {
     io.emit("updateOnlineUsers", Object.values(onlineUsers));
   });
 
+  // =========================
   // JOIN ROOM
+  // =========================
   socket.on("joinRoom", (roomId) => {
     socket.join(roomId);
   });
 
-  // LOAD MESSAGES
+  // =========================
+  // LOAD ROOM MESSAGES
+  // =========================
   socket.on("loadRoomMessages", async (roomId) => {
     try {
-      const messages = await Message.find({ roomId }).sort({ createdAt: 1 });
+      const messages = await Message.find({ roomId })
+        .sort({ createdAt: 1 });
+
       socket.emit("roomMessages", messages);
     } catch (err) {
       console.log("Load messages error:", err);
     }
   });
 
+  // =========================
   // SEND PRIVATE MESSAGE
+  // =========================
   socket.on("sendPrivateMessage", async ({ from, to, text }) => {
     try {
       if (!from || !to || !text) return;
@@ -92,7 +105,7 @@ io.on("connection", (socket) => {
         user: from,
         text,
         roomId,
-        status: "sent",
+        status: "delivered",
         createdAt: new Date()
       });
 
@@ -109,7 +122,9 @@ io.on("connection", (socket) => {
     }
   });
 
+  // =========================
   // TYPING
+  // =========================
   socket.on("typing", (name) => {
     socket.broadcast.emit("showTyping", name);
   });
@@ -118,9 +133,12 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("hideTyping");
   });
 
+  // =========================
   // DISCONNECT
+  // =========================
   socket.on("disconnect", () => {
     delete onlineUsers[socket.id];
+
     io.emit("updateOnlineUsers", Object.values(onlineUsers));
     console.log("Disconnected:", socket.id);
   });
@@ -128,9 +146,9 @@ io.on("connection", (socket) => {
 });
 
 // =========================
-// START SERVER (IMPORTANT FIX FOR RENDER)
+// START SERVER
 // =========================
-const PORT = process.env.PORT; // 🔥 FIXED (no fallback)
+const PORT = process.env.PORT || 10000;
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log("Server running on", PORT);

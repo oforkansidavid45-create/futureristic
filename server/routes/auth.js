@@ -3,51 +3,71 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const User = require("../models/user");
 
+// =========================
 // REGISTER
+// =========================
 router.post("/register", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    let { username, password } = req.body;
+
+    // basic validation
+    if (!username || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    username = username.trim().toLowerCase();
 
     // check if user exists
-    let user = await User.findOne({ username });
-    if (user) {
-      return res.status(400).json("User already exists");
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: "Username already taken" });
     }
 
     // hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // create user
-    user = new User({
+    const newUser = new User({
       username,
       password: hashedPassword
     });
 
-    await user.save();
+    await newUser.save();
 
-    res.json("User registered successfully");
+    res.json({
+      message: "User registered successfully",
+      username: newUser.username
+    });
 
   } catch (err) {
-    res.status(500).json(err.message);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
+
+// =========================
 // LOGIN
+// =========================
 router.post("/login", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    let { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    username = username.trim().toLowerCase();
 
     // find user
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(400).json("User not found");
+      return res.status(400).json({ error: "Invalid credentials" });
     }
 
     // compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json("Wrong password");
+      return res.status(400).json({ error: "Invalid credentials" });
     }
 
     res.json({
@@ -56,7 +76,7 @@ router.post("/login", async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json(err.message);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
