@@ -21,14 +21,14 @@ function addMessage(data, type) {
 
   let ticks = "";
 
-  // ticks only for your messages
+  // show ticks only for your messages
   if (data.user === username) {
     if (data.status === "sent") ticks = " ✔";
     if (data.status === "delivered") ticks = " ✔✔";
     if (data.status === "read") ticks = " ✔✔ (blue)";
   }
 
-  div.textContent = `${data.user}: ${data.text} ${ticks}`;
+  div.textContent = `${data.user}: ${data.text}${ticks}`;
 
   const messages = document.getElementById("messages");
   messages.appendChild(div);
@@ -66,13 +66,13 @@ socket.on("receiveMessage", (data) => {
 });
 
 // =========================
-// 📜 HISTORY
+// 📜 LOAD HISTORY
 // =========================
 socket.emit("loadMessages");
 
 socket.on("messageHistory", (messages) => {
-  const messagesDiv = document.getElementById("messages");
-  messagesDiv.innerHTML = "";
+  const box = document.getElementById("messages");
+  box.innerHTML = "";
 
   messages.forEach((data) => {
     const type = data.user === username ? "sent" : "received";
@@ -81,7 +81,7 @@ socket.on("messageHistory", (messages) => {
 });
 
 // =========================
-// ⌨️ TYPING
+// ⌨️ TYPING SYSTEM
 // =========================
 let typingTimeout;
 
@@ -116,7 +116,7 @@ socket.on("hideTyping", () => {
 });
 
 // =========================
-// 🟢 ONLINE USERS (FIXED + CLEAN UI)
+// 🟢 ONLINE USERS
 // =========================
 socket.on("updateOnlineUsers", (users) => {
   const onlineDiv = document.getElementById("onlineUsers");

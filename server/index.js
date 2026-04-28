@@ -12,34 +12,43 @@ const Message = require("./models/message");
 const app = express();
 const server = http.createServer(app);
 
-// Middleware
+// =========================
+// MIDDLEWARE
+// =========================
 app.use(cors());
 app.use(express.json());
-
-// Routes
-app.use("/api/auth", authRoutes);
 app.use(express.static("client"));
+
+// =========================
+// ROUTES
+// =========================
+app.use("/api/auth", authRoutes);
 
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
-// Connect MongoDB
+// =========================
+// DB CONNECT
+// =========================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("DB Error:", err));
 
-// Socket setup
+// =========================
+// SOCKET.IO SETUP
+// =========================
 const io = new Server(server, {
   cors: {
     origin: "*"
   }
 });
 
-// 👤 ONLINE USERS STORE
+// 👤 ONLINE USERS
 let onlineUsers = {};
 
 io.on("connection", (socket) => {
+
   console.log("User connected:", socket.id);
 
   // =========================
@@ -74,20 +83,37 @@ io.on("connection", (socket) => {
   });
 
   // =========================
-  // SEND MESSAGE
+  // SEND MESSAGE (PRO VERSION)
   // =========================
   socket.on("sendMessage", async (data) => {
-    const newMessage = new Message({
+
+    const message = new Message({
       user: data.user,
       text: data.text,
-      status: "sent"
+      status: "sent",
+      createdAt: new Date()
     });
 
-    await newMessage.save();
+    await message.save();
 
+    // send to everyone
     io.emit("receiveMessage", {
       ...data,
       status: "delivered"
+    });
+  });
+
+  // =========================
+  // READ RECEIPT (NEW PRO FEATURE)
+  // =========================
+  socket.on("messageRead", async (messageId) => {
+    await Message.findByIdAndUpdate(messageId, {
+      status: "read"
+    });
+
+    io.emit("messageUpdated", {
+      messageId,
+      status: "read"
     });
   });
 
@@ -101,9 +127,12 @@ io.on("connection", (socket) => {
 
     console.log("User disconnected:", socket.id);
   });
+
 });
 
-// Start server
+// =========================
+// START SERVER
+// =========================
 const PORT = process.env.PORT || 10000;
 
 server.listen(PORT, "0.0.0.0", () => {
