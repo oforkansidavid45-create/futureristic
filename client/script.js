@@ -46,7 +46,7 @@ function addMessage(data) {
   div.innerHTML = `
     <div class="bubble">
       <div class="text">${data.text}</div>
-      <div class="meta">${data.user || "Unknown"}</div>
+      <div class="meta">${data.user}</div>
     </div>
   `;
 
@@ -71,7 +71,7 @@ function send() {
 
   socket.emit("sendPrivateMessage", msgData);
 
-  // instant UI (IMPORTANT FIX)
+  // instant UI
   addMessage({
     user: username,
     text: text
@@ -100,7 +100,7 @@ socket.on("roomMessages", (messages) => {
 });
 
 // =========================
-// TYPING (FIXED SAFE)
+// TYPING
 // =========================
 document.getElementById("msg").addEventListener("input", () => {
   if (!currentChatUser) return;
@@ -119,6 +119,8 @@ document.getElementById("msg").addEventListener("input", () => {
 socket.on("updateOnlineUsers", (users) => {
   const box = document.getElementById("onlineUsers");
 
+  if (!box) return;
+
   box.innerHTML = users
     .filter(u => u !== username)
     .map(u => `<div class="user" onclick="openChat('${u}')">${u}</div>`)
@@ -126,7 +128,7 @@ socket.on("updateOnlineUsers", (users) => {
 });
 
 // =========================
-// TYPING UI (FIXED)
+// TYPING UI (SAFE FIX)
 // =========================
 socket.on("showTyping", (name) => {
   if (name !== currentChatUser) return;

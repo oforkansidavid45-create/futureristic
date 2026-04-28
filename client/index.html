@@ -1,29 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>WhatsApp Clone</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat App</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <div class="app">
 
-  <!-- LEFT SIDEBAR (CHAT LIST) -->
+  <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-
-    <div class="sidebar-header">
-      💬 Chats
-    </div>
+    <div class="sidebar-header">💬 Chats</div>
 
     <div id="onlineUsers" class="chat-list"></div>
-
   </div>
 
   <!-- RIGHT CHAT AREA -->
   <div class="chat-area">
 
     <div class="chat-header">
-      WhatsApp Web Clone
+      Select a user to start chatting
     </div>
 
     <div class="chat-messages" id="messages"></div>
@@ -39,6 +39,7 @@
 
 </div>
 
+<!-- SOCKET -->
 <script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
 

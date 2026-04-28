@@ -18,9 +18,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("client"));
 
-// 🔥 IMPORTANT: Render health route
+// =========================
+// HEALTH CHECK (RENDER SAFE)
+// =========================
 app.get("/", (req, res) => {
-  res.status(200).send("Chat server is alive 🚀");
+  res.status(200).json({
+    status: "ok",
+    message: "Chat server running 🚀"
+  });
 });
 
 // =========================
@@ -56,6 +61,7 @@ io.on("connection", (socket) => {
 
   console.log("Connected:", socket.id);
 
+  // JOIN USER
   socket.on("join", (username) => {
     if (!username) return;
 
@@ -65,19 +71,25 @@ io.on("connection", (socket) => {
     io.emit("updateOnlineUsers", Object.values(onlineUsers));
   });
 
+  // JOIN ROOM
   socket.on("joinRoom", (roomId) => {
     socket.join(roomId);
   });
 
+  // LOAD MESSAGES
   socket.on("loadRoomMessages", async (roomId) => {
     try {
-      const messages = await Message.find({ roomId }).sort({ createdAt: 1 });
+      const messages = await Message.find({ roomId })
+        .sort({ createdAt: 1 })
+        .lean();
+
       socket.emit("roomMessages", messages);
     } catch (err) {
-      console.log(err);
+      console.log("Load error:", err);
     }
   });
 
+  // SEND MESSAGE
   socket.on("sendPrivateMessage", async ({ from, to, text }) => {
     try {
       if (!from || !to || !text) return;
@@ -88,8 +100,7 @@ io.on("connection", (socket) => {
         user: from,
         text,
         roomId,
-        status: "sent",
-        createdAt: new Date()
+        status: "sent"
       });
 
       io.to(roomId).emit("receivePrivateMessage", {
@@ -101,10 +112,11 @@ io.on("connection", (socket) => {
       });
 
     } catch (err) {
-      console.log(err);
+      console.log("Send error:", err);
     }
   });
 
+  // TYPING
   socket.on("typing", (name) => {
     socket.broadcast.emit("showTyping", name);
   });
@@ -113,6 +125,7 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("hideTyping");
   });
 
+  // DISCONNECT
   socket.on("disconnect", () => {
     delete onlineUsers[socket.id];
     io.emit("updateOnlineUsers", Object.values(onlineUsers));
@@ -121,7 +134,7 @@ io.on("connection", (socket) => {
 });
 
 // =========================
-// IMPORTANT FIX FOR RENDER
+// START SERVER (RENDER SAFE)
 // =========================
 const PORT = process.env.PORT;
 
