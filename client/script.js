@@ -1,7 +1,7 @@
 const socket = io("https://dave-whatsappmadeasy.onrender.com");
 
 // =========================
-// 👤 USERNAME
+// 👤 USER
 // =========================
 let username = prompt("Enter your name:");
 
@@ -9,31 +9,44 @@ if (!username || username.trim() === "") {
   username = "Anonymous";
 }
 
-// join server
 socket.emit("join", username);
 
 // =========================
-// 💬 ADD MESSAGE
+// 📍 STATE
+// =========================
+let typingTimeout = null;
+
+// =========================
+// 💬 MESSAGE RENDER (WHATSAPP STYLE)
 // =========================
 function addMessage(data, type) {
-  const div = document.createElement("div");
-  div.classList.add("message", type);
+  const messages = document.getElementById("messages");
+
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("message", type);
+
+  // message bubble container (better UI structure)
+  const bubble = document.createElement("div");
+  bubble.classList.add("bubble");
 
   let ticks = "";
 
-  // show ticks only for your messages
+  // ticks only for your messages
   if (data.user === username) {
     if (data.status === "sent") ticks = " ✔";
     if (data.status === "delivered") ticks = " ✔✔";
-    if (data.status === "read") ticks = " ✔✔ (blue)";
+    if (data.status === "read") ticks = " ✔✔";
   }
 
-  div.textContent = `${data.user}: ${data.text}${ticks}`;
+  bubble.innerHTML = `
+    <span class="text">${data.text}</span>
+    <span class="meta">${data.user} ${ticks}</span>
+  `;
 
-  const messages = document.getElementById("messages");
-  messages.appendChild(div);
+  msgDiv.appendChild(bubble);
+  messages.appendChild(msgDiv);
 
-  // auto scroll
+  // auto scroll like WhatsApp
   messages.scrollTop = messages.scrollHeight;
 }
 
@@ -42,17 +55,17 @@ function addMessage(data, type) {
 // =========================
 function send() {
   const input = document.getElementById("msg");
-  const msg = input.value.trim();
+  const text = input.value.trim();
 
-  if (!msg) return;
+  if (!text) return;
 
-  const fullMessage = {
+  const message = {
     user: username,
-    text: msg,
+    text,
     status: "sent"
   };
 
-  socket.emit("sendMessage", fullMessage);
+  socket.emit("sendMessage", message);
 
   input.value = "";
 }
@@ -66,7 +79,7 @@ socket.on("receiveMessage", (data) => {
 });
 
 // =========================
-// 📜 LOAD HISTORY
+// 📜 MESSAGE HISTORY
 // =========================
 socket.emit("loadMessages");
 
@@ -74,18 +87,18 @@ socket.on("messageHistory", (messages) => {
   const box = document.getElementById("messages");
   box.innerHTML = "";
 
-  messages.forEach((data) => {
-    const type = data.user === username ? "sent" : "received";
-    addMessage(data, type);
+  messages.forEach((msg) => {
+    const type = msg.user === username ? "sent" : "received";
+    addMessage(msg, type);
   });
 });
 
 // =========================
-// ⌨️ TYPING SYSTEM
+// ⌨️ TYPING SYSTEM (WHATSAPP STYLE)
 // =========================
-let typingTimeout;
+const inputBox = document.getElementById("msg");
 
-document.getElementById("msg").addEventListener("input", () => {
+inputBox.addEventListener("input", () => {
   socket.emit("typing", username);
 
   clearTimeout(typingTimeout);
@@ -116,7 +129,7 @@ socket.on("hideTyping", () => {
 });
 
 // =========================
-// 🟢 ONLINE USERS
+// 🟢 ONLINE USERS PANEL
 // =========================
 socket.on("updateOnlineUsers", (users) => {
   const onlineDiv = document.getElementById("onlineUsers");
@@ -129,7 +142,7 @@ socket.on("updateOnlineUsers", (users) => {
   }
 
   onlineDiv.innerHTML = `
-    <b>🟢 Online</b><br>
-    ${users.map(user => `• ${user}`).join("<br>")}
+    <div class="online-title">🟢 Online Users</div>
+    ${users.map(u => `<div class="user">• ${u}</div>`).join("")}
   `;
 });
