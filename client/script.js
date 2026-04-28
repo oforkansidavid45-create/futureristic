@@ -10,7 +10,11 @@ function addMessage(data, type) {
 
   div.textContent = `${data.user}: ${data.text}`;
 
-  document.getElementById("messages").appendChild(div);
+  const messages = document.getElementById("messages");
+  messages.appendChild(div);
+
+  // 👇 ADD THIS HERE
+  messages.scrollTop = messages.scrollHeight;
 }
 
 // send message
