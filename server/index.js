@@ -56,9 +56,6 @@ function getRoomId(user1, user2) {
   return [user1, user2].sort().join("-");
 }
 
-// =========================
-// SOCKET CONNECTION
-// =========================
 io.on("connection", (socket) => {
 
   console.log("User connected:", socket.id);
@@ -95,7 +92,7 @@ io.on("connection", (socket) => {
   });
 
   // =========================
-  // PRIVATE MESSAGE
+  // SEND PRIVATE MESSAGE
   // =========================
   socket.on("sendPrivateMessage", async (data) => {
     try {
@@ -121,7 +118,7 @@ io.on("connection", (socket) => {
       });
 
     } catch (err) {
-      console.log("Private message error:", err);
+      console.log("Send message error:", err);
     }
   });
 
@@ -134,25 +131,6 @@ io.on("connection", (socket) => {
 
   socket.on("stopTyping", () => {
     socket.broadcast.emit("hideTyping");
-  });
-
-  // =========================
-  // READ RECEIPTS
-  // =========================
-  socket.on("messageRead", async (messageId) => {
-    try {
-      await Message.findByIdAndUpdate(messageId, {
-        status: "read"
-      });
-
-      io.emit("messageUpdated", {
-        messageId,
-        status: "read"
-      });
-
-    } catch (err) {
-      console.log("Read receipt error:", err);
-    }
   });
 
   // =========================
