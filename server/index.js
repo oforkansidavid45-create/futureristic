@@ -18,20 +18,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("client"));
 
-// 🔥 HEALTH CHECK (RENDER NEEDS THIS)
+// HEALTH CHECK (RENDER NEEDS THIS)
 app.get("/", (req, res) => {
   res.status(200).send("Chat server running 🚀");
 });
 
 // =========================
-// DB
+// DATABASE
 // =========================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log("MongoDB Error:", err));
 
 // =========================
-// SOCKET.IO
+// SOCKET
 // =========================
 const io = new Server(server, {
   cors: { origin: "*" }
@@ -47,6 +47,7 @@ io.on("connection", (socket) => {
 
   socket.on("join", (username) => {
     if (!username) return;
+
     socket.username = username;
     onlineUsers[socket.id] = username;
 
@@ -88,9 +89,9 @@ io.on("connection", (socket) => {
 });
 
 // =========================
-// IMPORTANT FIX FOR RENDER
+// START SERVER (RENDER SAFE)
 // =========================
-const PORT = process.env.PORT; // 🔥 MUST BE LIKE THIS
+const PORT = process.env.PORT;
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log("Server running on", PORT);
