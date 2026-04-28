@@ -25,13 +25,11 @@ function addMessage(data, type) {
   const msgDiv = document.createElement("div");
   msgDiv.classList.add("message", type);
 
-  // message bubble container (better UI structure)
   const bubble = document.createElement("div");
   bubble.classList.add("bubble");
 
   let ticks = "";
 
-  // ticks only for your messages
   if (data.user === username) {
     if (data.status === "sent") ticks = " ✔";
     if (data.status === "delivered") ticks = " ✔✔";
@@ -46,7 +44,7 @@ function addMessage(data, type) {
   msgDiv.appendChild(bubble);
   messages.appendChild(msgDiv);
 
-  // auto scroll like WhatsApp
+  // auto scroll
   messages.scrollTop = messages.scrollHeight;
 }
 
@@ -94,7 +92,7 @@ socket.on("messageHistory", (messages) => {
 });
 
 // =========================
-// ⌨️ TYPING SYSTEM (WHATSAPP STYLE)
+// ⌨️ TYPING SYSTEM
 // =========================
 const inputBox = document.getElementById("msg");
 
@@ -129,7 +127,7 @@ socket.on("hideTyping", () => {
 });
 
 // =========================
-// 🟢 ONLINE USERS PANEL
+// 🟢 ONLINE USERS (SIDEBAR)
 // =========================
 socket.on("updateOnlineUsers", (users) => {
   const onlineDiv = document.getElementById("onlineUsers");
@@ -137,12 +135,11 @@ socket.on("updateOnlineUsers", (users) => {
   if (!onlineDiv) return;
 
   if (!users || users.length === 0) {
-    onlineDiv.innerHTML = "🟢 No users online";
+    onlineDiv.innerHTML = `<div class="user">🟢 No users online</div>`;
     return;
   }
 
-  onlineDiv.innerHTML = `
-    <div class="online-title">🟢 Online Users</div>
-    ${users.map(u => `<div class="user">• ${u}</div>`).join("")}
-  `;
+  onlineDiv.innerHTML = users
+    .map(u => `<div class="user">🟢 ${u}</div>`)
+    .join("");
 });

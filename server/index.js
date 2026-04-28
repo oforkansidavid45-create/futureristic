@@ -29,14 +29,14 @@ app.get("/health", (req, res) => {
 });
 
 // =========================
-// DB CONNECT
+// DATABASE
 // =========================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("DB Error:", err));
 
 // =========================
-// SOCKET.IO SETUP
+// SOCKET.IO
 // =========================
 const io = new Server(server, {
   cors: {
@@ -44,9 +44,21 @@ const io = new Server(server, {
   }
 });
 
-// 👤 ONLINE USERS
+// =========================
+// ONLINE USERS
+// =========================
 let onlineUsers = {};
 
+// =========================
+// ROOM HELPER
+// =========================
+function getRoomId(user1, user2) {
+  return [user1, user2].sort().join("-");
+}
+
+// =========================
+// SOCKET CONNECTION
+// =========================
 io.on("connection", (socket) => {
 
   console.log("User connected:", socket.id);
@@ -64,6 +76,56 @@ io.on("connection", (socket) => {
   });
 
   // =========================
+  // JOIN ROOM (PRIVATE CHAT)
+  // =========================
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId);
+  });
+
+  // =========================
+  // LOAD ROOM MESSAGES
+  // =========================
+  socket.on("loadRoomMessages", async (roomId) => {
+    try {
+      const messages = await Message.find({ roomId }).sort({ createdAt: 1 });
+      socket.emit("roomMessages", messages);
+    } catch (err) {
+      console.log("Load room error:", err);
+    }
+  });
+
+  // =========================
+  // PRIVATE MESSAGE
+  // =========================
+  socket.on("sendPrivateMessage", async (data) => {
+    try {
+      const { from, to, text } = data;
+
+      const roomId = getRoomId(from, to);
+
+      const message = new Message({
+        user: from,
+        text,
+        roomId,
+        status: "sent",
+        createdAt: new Date()
+      });
+
+      await message.save();
+
+      io.to(roomId).emit("receivePrivateMessage", {
+        user: from,
+        text,
+        roomId,
+        status: "delivered"
+      });
+
+    } catch (err) {
+      console.log("Private message error:", err);
+    }
+  });
+
+  // =========================
   // TYPING
   // =========================
   socket.on("typing", (username) => {
@@ -75,46 +137,22 @@ io.on("connection", (socket) => {
   });
 
   // =========================
-  // LOAD MESSAGES
-  // =========================
-  socket.on("loadMessages", async () => {
-    const messages = await Message.find().sort({ createdAt: 1 });
-    socket.emit("messageHistory", messages);
-  });
-
-  // =========================
-  // SEND MESSAGE (PRO VERSION)
-  // =========================
-  socket.on("sendMessage", async (data) => {
-
-    const message = new Message({
-      user: data.user,
-      text: data.text,
-      status: "sent",
-      createdAt: new Date()
-    });
-
-    await message.save();
-
-    // send to everyone
-    io.emit("receiveMessage", {
-      ...data,
-      status: "delivered"
-    });
-  });
-
-  // =========================
-  // READ RECEIPT (NEW PRO FEATURE)
+  // READ RECEIPTS
   // =========================
   socket.on("messageRead", async (messageId) => {
-    await Message.findByIdAndUpdate(messageId, {
-      status: "read"
-    });
+    try {
+      await Message.findByIdAndUpdate(messageId, {
+        status: "read"
+      });
 
-    io.emit("messageUpdated", {
-      messageId,
-      status: "read"
-    });
+      io.emit("messageUpdated", {
+        messageId,
+        status: "read"
+      });
+
+    } catch (err) {
+      console.log("Read receipt error:", err);
+    }
   });
 
   // =========================
