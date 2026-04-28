@@ -3,22 +3,24 @@ const mongoose = require("mongoose");
 const MessageSchema = new mongoose.Schema({
   user: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
 
   text: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
 
-  // 🔥 IMPORTANT FOR PRIVATE CHAT
+  // 🔥 private chat room
   roomId: {
     type: String,
     required: true,
     index: true
   },
 
-  // 🔥 MESSAGE STATUS (WhatsApp-style)
+  // 🔥 message status
   status: {
     type: String,
     enum: ["sent", "delivered", "read"],
@@ -30,5 +32,8 @@ const MessageSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+// 🔥 IMPORTANT: improves fast sorting in chat history
+MessageSchema.index({ roomId: 1, createdAt: 1 });
 
 module.exports = mongoose.model("Message", MessageSchema);
