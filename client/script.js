@@ -1,158 +1,141 @@
 const socket = io("https://dave-whatsappmadeasy.onrender.com");
 
 // =========================
-// WAIT FOR DOM (IMPORTANT FIX)
+// USER
 // =========================
-window.addEventListener("DOMContentLoaded", () => {
+let username = prompt("Enter your name:") || "Anonymous";
+socket.emit("join", username);
 
-  // =========================
-  // USER
-  // =========================
-  let username = prompt("Enter your name:") || "Anonymous";
-  socket.emit("join", username);
+// =========================
+// STATE
+// =========================
+let currentChatUser = null;
+let currentRoom = null;
+let typingTimeout;
 
-  // =========================
-  // STATE
-  // =========================
-  let currentChatUser = null;
-  let currentRoom = null;
-  let typingTimeout;
+// =========================
+// ROOM ID
+// =========================
+function getRoomId(a, b) {
+  return [a, b].sort().join("-");
+}
 
-  const messagesBox = document.getElementById("messages");
+// =========================
+// OPEN CHAT
+// =========================
+function openChat(user) {
+  currentChatUser = user;
+  currentRoom = getRoomId(username, user);
+
+  document.getElementById("messages").innerHTML = "";
+  document.querySelector(".chat-header").innerText = "Chat with " + user;
+
+  socket.emit("joinRoom", currentRoom);
+  socket.emit("loadRoomMessages", currentRoom);
+}
+
+// =========================
+// RENDER MESSAGE
+// =========================
+function addMessage(data) {
+  const box = document.getElementById("messages");
+
+  const div = document.createElement("div");
+  div.className = "message " + (data.user === username ? "sent" : "received");
+
+  div.innerHTML = `
+    <div class="bubble">
+      <div class="text">${data.text}</div>
+      <div class="meta">${data.user}</div>
+    </div>
+  `;
+
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// =========================
+// SEND MESSAGE
+// =========================
+function send() {
   const input = document.getElementById("msg");
-  const typingDiv = document.getElementById("typing");
-  const onlineBox = document.getElementById("onlineUsers");
+  const text = input.value.trim();
 
-  // =========================
-  // ROOM ID
-  // =========================
-  function getRoomId(a, b) {
-    return [a, b].sort().join("-");
-  }
+  if (!text || !currentChatUser) return;
 
-  // =========================
-  // OPEN CHAT
-  // =========================
-  window.openChat = function(user) {
-    currentChatUser = user;
-    currentRoom = getRoomId(username, user);
-
-    messagesBox.innerHTML = "";
-    document.querySelector(".chat-header").innerText = "Chat with " + user;
-
-    socket.emit("joinRoom", currentRoom);
-    socket.emit("loadRoomMessages", currentRoom);
+  const msg = {
+    from: username,
+    to: currentChatUser,
+    text
   };
 
-  // =========================
-  // RENDER MESSAGE
-  // =========================
-  function addMessage(data) {
-    const div = document.createElement("div");
-    div.className = "message " + (data.user === username ? "sent" : "received");
+  socket.emit("sendPrivateMessage", msg);
 
-    let ticks = "";
-
-    if (data.user === username) {
-      if (data.status === "sent") ticks = " ✔";
-      if (data.status === "delivered") ticks = " ✔✔";
-      if (data.status === "read") ticks = " ✔✔✔";
-    }
-
-    div.innerHTML = `
-      <div class="bubble">
-        <div class="text">${data.text}</div>
-        <div class="meta">${ticks}</div>
-      </div>
-    `;
-
-    messagesBox.appendChild(div);
-    messagesBox.scrollTop = messagesBox.scrollHeight;
-  }
-
-  // =========================
-  // SEND MESSAGE
-  // =========================
-  window.send = function() {
-    const text = input.value.trim();
-
-    if (!text || !currentChatUser) return;
-
-    socket.emit("sendPrivateMessage", {
-      from: username,
-      to: currentChatUser,
-      text
-    });
-
-    input.value = "";
-  };
-
-  // =========================
-  // ENTER KEY SEND (NEW)
-  // =========================
-  input.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      send();
-    }
+  // show instantly
+  addMessage({
+    user: username,
+    text
   });
 
-  // =========================
-  // RECEIVE MESSAGE (FIXED)
-  // =========================
-  socket.on("receivePrivateMessage", (data) => {
-    if (!currentRoom || data.roomId !== currentRoom) return;
-    addMessage(data);
-  });
+  input.value = "";
+}
 
-  // =========================
-  // LOAD HISTORY
-  // =========================
-  socket.on("roomMessages", (messages) => {
-    messagesBox.innerHTML = "";
-    messages.forEach(addMessage);
-  });
+// =========================
+// RECEIVE MESSAGE
+// =========================
+socket.on("receivePrivateMessage", (data) => {
+  if (!currentRoom) return;
+  if (data.roomId !== currentRoom) return;
 
-  // =========================
-  // TYPING
-  // =========================
-  input.addEventListener("input", () => {
-    if (!currentChatUser) return;
+  addMessage(data);
+});
 
-    socket.emit("typing", username);
+// =========================
+// LOAD HISTORY
+// =========================
+socket.on("roomMessages", (messages) => {
+  const box = document.getElementById("messages");
+  box.innerHTML = "";
+  messages.forEach(addMessage);
+});
 
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      socket.emit("stopTyping");
-    }, 800);
-  });
+// =========================
+// TYPING
+// =========================
+document.getElementById("msg").addEventListener("input", () => {
+  if (!currentChatUser) return;
 
-  // =========================
-  // TYPING UI
-  // =========================
-  socket.on("showTyping", (name) => {
-    if (name !== currentChatUser) return;
-    typingDiv.innerText = `${name} is typing...`;
-  });
+  socket.emit("typing", username);
 
-  socket.on("hideTyping", () => {
-    typingDiv.innerText = "";
-  });
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    socket.emit("stopTyping");
+  }, 800);
+});
 
-  // =========================
-  // ONLINE USERS (SAFE CLICK)
-  // =========================
-  socket.on("updateOnlineUsers", (users) => {
-    onlineBox.innerHTML = "";
+// =========================
+// ONLINE USERS
+// =========================
+socket.on("updateOnlineUsers", (users) => {
+  const box = document.getElementById("onlineUsers");
 
-    users
-      .filter(u => u !== username)
-      .forEach(u => {
-        const div = document.createElement("div");
-        div.className = "user";
-        div.innerText = u;
-        div.onclick = () => openChat(u);
-        onlineBox.appendChild(div);
-      });
-  });
+  box.innerHTML = users
+    .filter(u => u !== username)
+    .map(u => `<div class="user" onclick="openChat('${u}')">${u}</div>`)
+    .join("");
+});
 
+// =========================
+// TYPING UI
+// =========================
+socket.on("showTyping", (name) => {
+  if (name !== currentChatUser) return;
+
+  const t = document.getElementById("typing");
+  if (t) t.innerText = `${name} is typing...`;
+});
+
+socket.on("hideTyping", () => {
+  const t = document.getElementById("typing");
+  if (t) t.innerText = "";
 });
