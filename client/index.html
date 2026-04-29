@@ -48,27 +48,5 @@
 </div>
 
 <script src="script.js"></script>
-
-<script>
-function createPost() {
-  const input = document.getElementById("postInput");
-  const text = input.value.trim();
-
-  if (!text) return;
-
-  const post = document.createElement("div");
-  post.className = "post";
-
-  post.innerHTML = `
-    <div class="post-user">You</div>
-    <div class="post-text">${text}</div>
-  `;
-
-  document.getElementById("posts").prepend(post);
-
-  input.value = "";
-}
-</script>
-
 </body>
 </html>

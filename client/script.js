@@ -1,3 +1,5 @@
+console.log("🔥 script.js loaded");
+
 // =========================
 // 👤 USER
 // =========================
@@ -8,25 +10,27 @@ if (!username) {
   localStorage.setItem("fb_username", username);
 }
 
+console.log("👤 Username:", username);
+
 // =========================
 // 🌐 API URL
 // =========================
 const API = "https://futureristic.onrender.com";
 
 // =========================
-// 🚀 LOAD POSTS FROM SERVER
+// 🚀 LOAD POSTS
 // =========================
 async function loadPosts() {
   try {
     const res = await fetch(`${API}/api/posts`);
 
-    if (!res.ok) {
-      throw new Error("Failed to fetch posts");
-    }
+    if (!res.ok) throw new Error("Failed to fetch posts");
 
     const posts = await res.json();
 
     const box = document.getElementById("posts");
+    if (!box) return;
+
     box.innerHTML = "";
 
     posts.forEach(post => {
@@ -51,11 +55,12 @@ async function loadPosts() {
 // =========================
 async function createPost() {
   const input = document.getElementById("postInput");
-  const text = input.value.trim();
+  if (!input) return;
 
+  const text = input.value.trim();
   if (!text) return;
 
-  console.log("🚀 Sending post:", username, text); // ✅ moved here
+  console.log("🚀 Sending post:", username, text);
 
   try {
     const res = await fetch(`${API}/api/posts`, {
@@ -69,9 +74,7 @@ async function createPost() {
       })
     });
 
-    if (!res.ok) {
-      throw new Error("Failed to create post");
-    }
+    if (!res.ok) throw new Error("Failed to create post");
 
     const data = await res.json();
     console.log("✅ Post saved:", data);
@@ -85,12 +88,13 @@ async function createPost() {
 }
 
 // =========================
-// 🟢 ONLINE USERS (FAKE UI)
+// 🟢 ONLINE USERS
 // =========================
 const onlineUsers = ["David", "Sarah", "John", "Amaka"];
 
 function renderOnlineUsers() {
   const box = document.getElementById("onlineUsers");
+  if (!box) return;
 
   box.innerHTML = onlineUsers
     .filter(u => u !== username)
@@ -99,7 +103,11 @@ function renderOnlineUsers() {
 }
 
 // =========================
-// INIT
+// INIT (IMPORTANT FIX)
 // =========================
-renderOnlineUsers();
-loadPosts();
+window.addEventListener("DOMContentLoaded", () => {
+  console.log("🚀 DOM ready");
+
+  renderOnlineUsers();
+  loadPosts();
+});
