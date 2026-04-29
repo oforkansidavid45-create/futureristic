@@ -8,12 +8,20 @@ if (!username) {
   localStorage.setItem("fb_username", username);
 }
 
+// 👉 IMPORTANT: force correct API URL (prevents Render issues)
+const API = window.location.origin;
+
 // =========================
 // 🚀 LOAD POSTS FROM SERVER
 // =========================
 async function loadPosts() {
   try {
-    const res = await fetch("/api/posts");
+    const res = await fetch(`${API}/api/posts`);
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch posts");
+    }
+
     const posts = await res.json();
 
     const box = document.getElementById("posts");
@@ -32,7 +40,7 @@ async function loadPosts() {
     });
 
   } catch (err) {
-    console.log("Error loading posts:", err);
+    console.log("❌ Error loading posts:", err);
   }
 }
 
@@ -46,7 +54,7 @@ async function createPost() {
   if (!text) return;
 
   try {
-    await fetch("/api/posts", {
+    const res = await fetch(`${API}/api/posts`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -57,16 +65,23 @@ async function createPost() {
       })
     });
 
+    if (!res.ok) {
+      throw new Error("Failed to create post");
+    }
+
+    const data = await res.json();
+    console.log("✅ Post saved:", data);
+
     input.value = "";
     loadPosts();
 
   } catch (err) {
-    console.log("Error creating post:", err);
+    console.log("❌ Error creating post:", err);
   }
 }
 
 // =========================
-// 🟢 ONLINE USERS (FAKE UI FOR NOW)
+// 🟢 ONLINE USERS (FAKE UI)
 // =========================
 const onlineUsers = ["David", "Sarah", "John", "Amaka"];
 

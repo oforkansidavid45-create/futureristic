@@ -15,18 +15,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve frontend
+// =========================
+// SERVE FRONTEND
+// =========================
 app.use(express.static(path.join(__dirname, "../client")));
 
-// =========================
-// ROUTES
-// =========================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/index.html"));
 });
 
 // =========================
-// CREATE POST (DEBUG ADDED)
+// CREATE POST
 // =========================
 app.post("/api/posts", async (req, res) => {
   try {
@@ -54,7 +53,7 @@ app.post("/api/posts", async (req, res) => {
 });
 
 // =========================
-// GET POSTS (DEBUG ADDED)
+// GET POSTS
 // =========================
 app.get("/api/posts", async (req, res) => {
   try {
@@ -83,5 +82,5 @@ mongoose.connect(process.env.MONGO_URI)
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("🚀 Server running on port", PORT);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
