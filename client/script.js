@@ -44,6 +44,16 @@ async function loadPosts() {
         <button onclick="likePost('${post._id}')">
           ❤️ ${post.likes || 0}
         </button>
+
+        <button onclick="commentPost('${post._id}')">
+          💬 Comment
+        </button>
+
+        <div class="comments">
+          ${(post.comments || []).map(c =>
+            `<div><b>${c.user}:</b> ${c.text}</div>`
+          ).join("")}
+        </div>
       `;
 
       box.appendChild(div);
@@ -105,6 +115,35 @@ async function likePost(id) {
 
   } catch (err) {
     console.log("❌ Error liking post:", err);
+  }
+}
+
+// =========================
+// 💬 COMMENT POST (NEW FEATURE)
+// =========================
+async function commentPost(id) {
+  const text = prompt("Write your comment:");
+
+  if (!text) return;
+
+  try {
+    const res = await fetch(`${API}/api/posts/comment/${id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        user: username,
+        text
+      })
+    });
+
+    if (!res.ok) throw new Error("Comment failed");
+
+    loadPosts();
+
+  } catch (err) {
+    console.log("❌ Error commenting:", err);
   }
 }
 

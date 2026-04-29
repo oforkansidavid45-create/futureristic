@@ -65,7 +65,7 @@ app.get("/api/posts", async (req, res) => {
 });
 
 // =========================
-// ❤️ LIKE POST (SAFE FIX)
+// ❤️ LIKE POST (IMPROVED)
 // =========================
 app.put("/api/posts/like/:id", async (req, res) => {
   try {
@@ -75,7 +75,7 @@ app.put("/api/posts/like/:id", async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    post.likes = (post.likes || 0) + 1;
+    post.likes = post.likes + 1;
 
     await post.save();
 
@@ -88,11 +88,15 @@ app.put("/api/posts/like/:id", async (req, res) => {
 });
 
 // =========================
-// 💬 ADD COMMENT (SAFE FIX)
+// 💬 ADD COMMENT (IMPROVED)
 // =========================
 app.post("/api/posts/comment/:id", async (req, res) => {
   try {
     const { user, text } = req.body;
+
+    if (!user || !text) {
+      return res.status(400).json({ error: "Missing user or text" });
+    }
 
     const post = await Post.findById(req.params.id);
 
@@ -100,12 +104,7 @@ app.post("/api/posts/comment/:id", async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    if (!post.comments) post.comments = [];
-
-    post.comments.push({
-      user,
-      text
-    });
+    post.comments.push({ user, text });
 
     await post.save();
 

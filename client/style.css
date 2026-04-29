@@ -6,6 +6,11 @@ body {
   color: white;
 }
 
+/* SMOOTH SCROLL */
+html {
+  scroll-behavior: smooth;
+}
+
 .app {
   display: flex;
   height: 100vh;
@@ -43,7 +48,7 @@ body {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
-  margin-top: 70px;
+  margin-top: 60px; /* FIXED */
 }
 
 /* TOPBAR */
@@ -69,6 +74,12 @@ body {
   outline: none;
   background: #1f2937;
   color: white;
+}
+
+/* INPUT FOCUS */
+.create-post input:focus,
+.search:focus {
+  outline: 1px solid #00e5ff;
 }
 
 /* CREATE POST */
@@ -100,6 +111,12 @@ body {
   color: black;
   font-weight: bold;
   cursor: pointer;
+  transition: 0.2s;
+}
+
+.create-post button:hover {
+  background: #00bcd4;
+  transform: scale(1.02);
 }
 
 /* POSTS */
@@ -109,6 +126,12 @@ body {
   border-radius: 12px;
   margin-bottom: 15px;
   box-shadow: 0 0 10px rgba(0, 229, 255, 0.08);
+  transition: 0.2s ease;
+}
+
+.post:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
 }
 
 .post-user {
@@ -135,10 +158,25 @@ body {
   margin-bottom: 8px;
   background: #1f2937;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 .online-user:hover {
   background: #374151;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00e5ff;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0f1c;
 }
 
 /* MOBILE */
