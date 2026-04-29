@@ -25,7 +25,9 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/index.html"));
 });
 
+// =========================
 // CREATE POST
+// =========================
 app.post("/api/posts", async (req, res) => {
   try {
     const { user, text } = req.body;
@@ -34,17 +36,22 @@ app.post("/api/posts", async (req, res) => {
       return res.status(400).json({ error: "Missing user or text" });
     }
 
-    const post = await Post.create({ user, text });
+    const post = await Post.create({
+      user,
+      text
+    });
 
     res.json(post);
 
   } catch (err) {
     console.log(err);
-    res.status(500).json(err.message);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
+// =========================
 // GET POSTS
+// =========================
 app.get("/api/posts", async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
@@ -52,25 +59,22 @@ app.get("/api/posts", async (req, res) => {
 
   } catch (err) {
     console.log(err);
-    res.status(500).json(err.message);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
 // =========================
-// DATABASE
+// DATABASE CONNECTION
 // =========================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log("MongoDB Error:", err));
 
 // =========================
-// START SERVER
+// START SERVER (IMPORTANT FIX)
 // =========================
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port", PORT);
-});
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Server running on port", PORT);
 });
