@@ -9,29 +9,32 @@ if (!username) {
 }
 
 // =========================
-// 📝 LOAD POSTS
+// 🚀 LOAD POSTS FROM SERVER
 // =========================
 async function loadPosts() {
-  const res = await fetch("/api/posts");
-  const posts = await res.json();
+  try {
+    const res = await fetch("/api/posts");
+    const posts = await res.json();
 
-  const box = document.getElementById("posts");
-  box.innerHTML = "";
+    const box = document.getElementById("posts");
+    box.innerHTML = "";
 
-  posts.forEach(post => {
-    const div = document.createElement("div");
-    div.className = "post";
+    posts.forEach(post => {
+      const div = document.createElement("div");
+      div.className = "post";
 
-    div.innerHTML = `
-      <div><b>${post.user}</b></div>
-      <div>${post.text}</div>
-    `;
+      div.innerHTML = `
+        <div class="post-user">${post.user}</div>
+        <div class="post-text">${post.text}</div>
+      `;
 
-    box.appendChild(div);
-  });
+      box.appendChild(div);
+    });
+
+  } catch (err) {
+    console.log("Error loading posts:", err);
+  }
 }
-
-loadPosts();
 
 // =========================
 // ➕ CREATE POST
@@ -42,17 +45,42 @@ async function createPost() {
 
   if (!text) return;
 
-  await fetch("/api/posts", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      user: username,
-      text
-    })
-  });
+  try {
+    await fetch("/api/posts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        user: username,
+        text
+      })
+    });
 
-  input.value = "";
-  loadPosts();
+    input.value = "";
+    loadPosts();
+
+  } catch (err) {
+    console.log("Error creating post:", err);
+  }
 }
+
+// =========================
+// 🟢 ONLINE USERS (FAKE UI FOR NOW)
+// =========================
+const onlineUsers = ["David", "Sarah", "John", "Amaka"];
+
+function renderOnlineUsers() {
+  const box = document.getElementById("onlineUsers");
+
+  box.innerHTML = onlineUsers
+    .filter(u => u !== username)
+    .map(u => `<div class="online-user">🟢 ${u}</div>`)
+    .join("");
+}
+
+// =========================
+// INIT
+// =========================
+renderOnlineUsers();
+loadPosts();
