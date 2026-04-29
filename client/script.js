@@ -1,5 +1,5 @@
 // =========================
-// 👤 USER SETUP
+// 👤 USER
 // =========================
 let username = localStorage.getItem("fb_username");
 
@@ -9,108 +9,8 @@ if (!username) {
 }
 
 // =========================
-// 📍 ONLINE USERS (FAKE FOR NOW)
+// 📝 LOAD POSTS
 // =========================
-const onlineUsers = [
-  "David",
-  "Sarah",
-  "John",
-  "Amaka",
-  "Daniel",
-  "Grace"
-];
-
-// render users
-function renderOnlineUsers() {
-  const box = document.getElementById("onlineUsers");
-
-  box.innerHTML = onlineUsers
-    .filter(u => u !== username)
-    .map(u => `<div class="online-user">🟢 ${u}</div>`)
-    .join("");
-}
-
-renderOnlineUsers();
-
-// =========================
-// 📝 POSTS SYSTEM
-// =========================
-let posts = JSON.parse(localStorage.getItem("fb_posts")) || [];
-
-function renderPosts() {
-  const container = document.getElementById("posts");
-  container.innerHTML = "";
-
-  posts.forEach((post, index) => {
-    const div = document.createElement("div");
-    div.className = "post";
-
-    div.innerHTML = `
-      <div class="post-user">${post.user}</div>
-      <div class="post-text">${post.text}</div>
-
-      <div class="post-actions">
-        <button onclick="likePost(${index})">❤️ ${post.likes}</button>
-        <button onclick="deletePost(${index})">🗑</button>
-      </div>
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-// =========================
-// ➕ CREATE POST
-// =========================
-function createPost() {
-  const input = document.getElementById("postInput");
-  const text = input.value.trim();
-
-  if (!text) return;
-
-  const newPost = {
-    user: username,
-    text,
-    likes: 0,
-    createdAt: new Date()
-  };
-
-  posts.unshift(newPost);
-  savePosts();
-  renderPosts();
-
-  input.value = "";
-}
-
-// =========================
-// ❤️ LIKE POST
-// =========================
-function likePost(index) {
-  posts[index].likes++;
-  savePosts();
-  renderPosts();
-}
-
-// =========================
-// 🗑 DELETE POST
-// =========================
-function deletePost(index) {
-  posts.splice(index, 1);
-  savePosts();
-  renderPosts();
-}
-
-// =========================
-// 💾 SAVE TO STORAGE
-// =========================
-function savePosts() {
-  localStorage.setItem("fb_posts", JSON.stringify(posts));
-}
-
-// =========================
-// 🚀 INIT
-// =========================
-renderPosts();
 async function loadPosts() {
   const res = await fetch("/api/posts");
   const posts = await res.json();
@@ -130,6 +30,12 @@ async function loadPosts() {
     box.appendChild(div);
   });
 }
+
+loadPosts();
+
+// =========================
+// ➕ CREATE POST
+// =========================
 async function createPost() {
   const input = document.getElementById("postInput");
   const text = input.value.trim();
@@ -150,5 +56,3 @@ async function createPost() {
   input.value = "";
   loadPosts();
 }
-
-loadPosts();
