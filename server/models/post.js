@@ -3,22 +3,18 @@ const mongoose = require("mongoose");
 const PostSchema = new mongoose.Schema({
   user: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
-
   text: {
     type: String,
     required: true,
     trim: true
   },
-
-  likes: {
-    type: Number,
-    default: 0
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
-
-}, {
-  timestamps: true
 });
 
 module.exports = mongoose.model("Post", PostSchema);

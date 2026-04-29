@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+const Post = require("./models/Post");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -21,6 +21,32 @@ app.use(express.static(path.join(__dirname, "../client")));
 // =========================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/index.html"));
+});
+// CREATE POST
+app.post("/api/posts", async (req, res) => {
+  try {
+    const { user, text } = req.body;
+
+    const post = await Post.create({
+      user,
+      text
+    });
+
+    res.json(post);
+
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+});
+// GET ALL POSTS
+app.get("/api/posts", async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ createdAt: -1 });
+    res.json(posts);
+
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
 });
 
 // =========================
