@@ -8,8 +8,10 @@ if (!username) {
   localStorage.setItem("fb_username", username);
 }
 
-// 👉 IMPORTANT: force correct API URL (prevents Render issues)
-const API = window.location.origin;
+// =========================
+// 🌐 API URL
+// =========================
+const API = "https://futureristic.onrender.com";
 
 // =========================
 // 🚀 LOAD POSTS FROM SERVER
@@ -52,6 +54,8 @@ async function createPost() {
   const text = input.value.trim();
 
   if (!text) return;
+
+  console.log("🚀 Sending post:", username, text); // ✅ moved here
 
   try {
     const res = await fetch(`${API}/api/posts`, {
