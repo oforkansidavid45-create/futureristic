@@ -1,12 +1,16 @@
 const mongoose = require("mongoose");
 
 const PostSchema = new mongoose.Schema({
-  user: String,
-  text: String,
-  createdAt: {
-    type: Date,
-    default: Date.now
+  user: {
+    type: String,
+    required: true
+  },
+  text: {
+    type: String,
+    required: true
   }
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model("Post", PostSchema);

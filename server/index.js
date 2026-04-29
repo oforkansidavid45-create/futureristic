@@ -26,11 +26,13 @@ app.get("/", (req, res) => {
 });
 
 // =========================
-// CREATE POST
+// CREATE POST (DEBUG ADDED)
 // =========================
 app.post("/api/posts", async (req, res) => {
   try {
     const { user, text } = req.body;
+
+    console.log("📩 Incoming post:", user, text);
 
     if (!user || !text) {
       return res.status(400).json({ error: "Missing user or text" });
@@ -41,24 +43,29 @@ app.post("/api/posts", async (req, res) => {
       text
     });
 
+    console.log("✅ Saved post:", post);
+
     res.json(post);
 
   } catch (err) {
-    console.log(err);
+    console.log("❌ ERROR saving post:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // =========================
-// GET POSTS
+// GET POSTS (DEBUG ADDED)
 // =========================
 app.get("/api/posts", async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
+
+    console.log("📤 Sending posts:", posts.length);
+
     res.json(posts);
 
   } catch (err) {
-    console.log(err);
+    console.log("❌ ERROR fetching posts:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -67,14 +74,14 @@ app.get("/api/posts", async (req, res) => {
 // DATABASE CONNECTION
 // =========================
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log("MongoDB Error:", err));
+  .then(() => console.log("🔥 MongoDB Connected"))
+  .catch(err => console.log("❌ MongoDB Error:", err));
 
 // =========================
-// START SERVER (IMPORTANT FIX)
+// START SERVER
 // =========================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port", PORT);
+  console.log("🚀 Server running on port", PORT);
 });
