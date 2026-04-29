@@ -3,45 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chat App</title>
+  <title>FutureBook</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
 
 <div class="app">
 
-  <!-- LEFT SIDEBAR -->
+  <!-- LEFT -->
   <div class="sidebar">
-    <div class="sidebar-header">💬 Chats</div>
+    <div class="logo">⚡ FutureBook</div>
 
-    <div id="onlineUsers" class="chat-list"></div>
+    <div class="menu-item">🏠 Home</div>
+    <div class="menu-item">👤 Profile</div>
+    <div class="menu-item">💬 Messages</div>
+    <div class="menu-item">🔔 Notifications</div>
+    <div class="menu-item">⚙️ Settings</div>
   </div>
 
-  <!-- RIGHT CHAT AREA -->
-  <div class="chat-area">
+  <!-- CENTER -->
+  <div class="feed">
 
-    <div class="chat-header">
-      Select a user to start chatting
+    <div class="topbar">
+      <input class="search" placeholder="Search FutureBook..." />
     </div>
 
-    <div class="chat-messages" id="messages"></div>
-
-    <div class="typing" id="typing"></div>
-
-    <div class="chat-input">
-      <input id="msg" placeholder="Type a message..." />
-      <button onclick="send()">➤</button>
+    <div class="create-post">
+      <input id="postInput" placeholder="What's on your mind?" />
+      <button onclick="createPost()">Post</button>
     </div>
 
+    <div id="posts"></div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="rightbar">
+    <h3>🟢 Online</h3>
+    <div id="onlineUsers"></div>
   </div>
 
 </div>
 
-<!-- SOCKET -->
-<script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
+
+<script>
+function createPost() {
+  const input = document.getElementById("postInput");
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  const post = document.createElement("div");
+  post.className = "post";
+
+  post.innerHTML = `
+    <div class="post-user">You</div>
+    <div class="post-text">${text}</div>
+  `;
+
+  document.getElementById("posts").prepend(post);
+
+  input.value = "";
+}
+</script>
 
 </body>
 </html>

@@ -1,143 +1,113 @@
-const socket = io("https://dave-whatsappmadeasy.onrender.com");
+// =========================
+// 👤 USER SETUP
+// =========================
+let username = localStorage.getItem("fb_username");
 
-// =========================
-// USER
-// =========================
-let username = prompt("Enter your name:") || "Anonymous";
-socket.emit("join", username);
-
-// =========================
-// STATE
-// =========================
-let currentChatUser = null;
-let currentRoom = null;
-let typingTimeout;
-
-// =========================
-// ROOM ID
-// =========================
-function getRoomId(a, b) {
-  return [a, b].sort().join("-");
+if (!username) {
+  username = prompt("Enter your name:") || "Anonymous";
+  localStorage.setItem("fb_username", username);
 }
 
 // =========================
-// OPEN CHAT
+// 📍 ONLINE USERS (FAKE FOR NOW)
 // =========================
-function openChat(user) {
-  currentChatUser = user;
-  currentRoom = getRoomId(username, user);
+const onlineUsers = [
+  "David",
+  "Sarah",
+  "John",
+  "Amaka",
+  "Daniel",
+  "Grace"
+];
 
-  document.getElementById("messages").innerHTML = "";
-  document.querySelector(".chat-header").innerText = "Chat with " + user;
+// render users
+function renderOnlineUsers() {
+  const box = document.getElementById("onlineUsers");
 
-  socket.emit("joinRoom", currentRoom);
-  socket.emit("loadRoomMessages", currentRoom);
+  box.innerHTML = onlineUsers
+    .filter(u => u !== username)
+    .map(u => `<div class="online-user">🟢 ${u}</div>`)
+    .join("");
+}
+
+renderOnlineUsers();
+
+// =========================
+// 📝 POSTS SYSTEM
+// =========================
+let posts = JSON.parse(localStorage.getItem("fb_posts")) || [];
+
+function renderPosts() {
+  const container = document.getElementById("posts");
+  container.innerHTML = "";
+
+  posts.forEach((post, index) => {
+    const div = document.createElement("div");
+    div.className = "post";
+
+    div.innerHTML = `
+      <div class="post-user">${post.user}</div>
+      <div class="post-text">${post.text}</div>
+
+      <div class="post-actions">
+        <button onclick="likePost(${index})">❤️ ${post.likes}</button>
+        <button onclick="deletePost(${index})">🗑</button>
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
 }
 
 // =========================
-// RENDER MESSAGE (FIXED)
+// ➕ CREATE POST
 // =========================
-function addMessage(data) {
-  const box = document.getElementById("messages");
-
-  const div = document.createElement("div");
-  div.className = "message " + (data.user === username ? "sent" : "received");
-
-  div.innerHTML = `
-    <div class="bubble">
-      <div class="text">${data.text}</div>
-      <div class="meta">${data.user}</div>
-    </div>
-  `;
-
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-}
-
-// =========================
-// SEND MESSAGE (FIXED)
-// =========================
-function send() {
-  const input = document.getElementById("msg");
+function createPost() {
+  const input = document.getElementById("postInput");
   const text = input.value.trim();
 
-  if (!text || !currentChatUser || !currentRoom) return;
+  if (!text) return;
 
-  const msgData = {
-    from: username,
-    to: currentChatUser,
-    text
+  const newPost = {
+    user: username,
+    text,
+    likes: 0,
+    createdAt: new Date()
   };
 
-  socket.emit("sendPrivateMessage", msgData);
-
-  // instant UI
-  addMessage({
-    user: username,
-    text: text
-  });
+  posts.unshift(newPost);
+  savePosts();
+  renderPosts();
 
   input.value = "";
 }
 
 // =========================
-// RECEIVE MESSAGE (FIXED)
+// ❤️ LIKE POST
 // =========================
-socket.on("receivePrivateMessage", (data) => {
-  if (!currentRoom) return;
-  if (data.roomId !== currentRoom) return;
-
-  addMessage(data);
-});
-
-// =========================
-// LOAD HISTORY
-// =========================
-socket.on("roomMessages", (messages) => {
-  const box = document.getElementById("messages");
-  box.innerHTML = "";
-  messages.forEach(addMessage);
-});
+function likePost(index) {
+  posts[index].likes++;
+  savePosts();
+  renderPosts();
+}
 
 // =========================
-// TYPING
+// 🗑 DELETE POST
 // =========================
-document.getElementById("msg").addEventListener("input", () => {
-  if (!currentChatUser) return;
-
-  socket.emit("typing", username);
-
-  clearTimeout(typingTimeout);
-  typingTimeout = setTimeout(() => {
-    socket.emit("stopTyping");
-  }, 800);
-});
+function deletePost(index) {
+  posts.splice(index, 1);
+  savePosts();
+  renderPosts();
+}
 
 // =========================
-// ONLINE USERS
+// 💾 SAVE TO STORAGE
 // =========================
-socket.on("updateOnlineUsers", (users) => {
-  const box = document.getElementById("onlineUsers");
-
-  if (!box) return;
-
-  box.innerHTML = users
-    .filter(u => u !== username)
-    .map(u => `<div class="user" onclick="openChat('${u}')">${u}</div>`)
-    .join("");
-});
+function savePosts() {
+  localStorage.setItem("fb_posts", JSON.stringify(posts));
+}
 
 // =========================
-// TYPING UI (SAFE FIX)
+// 🚀 INIT
 // =========================
-socket.on("showTyping", (name) => {
-  if (name !== currentChatUser) return;
-
-  const t = document.getElementById("typing");
-  if (t) t.innerText = `${name} is typing...`;
-});
-
-socket.on("hideTyping", () => {
-  const t = document.getElementById("typing");
-  if (t) t.innerText = "";
-});
+renderPosts();

@@ -5,21 +5,21 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true,
-    minlength: 3
+    trim: true
   },
 
   password: {
     type: String,
-    required: true,
-    minlength: 6
+    required: true
+  },
+
+  avatar: {
+    type: String, // profile picture (future)
+    default: ""
   }
 
 }, {
-  timestamps: true   // 🔥 auto adds createdAt & updatedAt
+  timestamps: true
 });
-
-// 🔥 prevent duplicate index issues
-UserSchema.index({ username: 1 });
 
 module.exports = mongoose.model("User", UserSchema);
