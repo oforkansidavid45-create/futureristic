@@ -40,6 +40,10 @@ async function loadPosts() {
       div.innerHTML = `
         <div class="post-user">${post.user}</div>
         <div class="post-text">${post.text}</div>
+
+        <button onclick="likePost('${post._id}')">
+          ❤️ ${post.likes || 0}
+        </button>
       `;
 
       box.appendChild(div);
@@ -88,6 +92,22 @@ async function createPost() {
 }
 
 // =========================
+// ❤️ LIKE POST (NEW)
+// =========================
+async function likePost(id) {
+  try {
+    await fetch(`${API}/api/posts/like/${id}`, {
+      method: "PUT"
+    });
+
+    loadPosts();
+
+  } catch (err) {
+    console.log("❌ Error liking post:", err);
+  }
+}
+
+// =========================
 // 🟢 ONLINE USERS
 // =========================
 const onlineUsers = ["David", "Sarah", "John", "Amaka"];
@@ -103,7 +123,7 @@ function renderOnlineUsers() {
 }
 
 // =========================
-// INIT (IMPORTANT FIX)
+// INIT
 // =========================
 window.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 DOM ready");
