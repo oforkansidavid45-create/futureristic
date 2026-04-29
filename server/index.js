@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Facebook Clone API Running 🚀");
+  res.sendFile(__dirname + "/../client/index.html");
 });
 
 // DB CONNECT
