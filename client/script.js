@@ -5,7 +5,7 @@ console.log("🔥 script.js loaded");
 // =========================
 let username = localStorage.getItem("fb_username");
 
-if (!username) {
+if (!username || username === "null") {
   username = prompt("Enter your name:") || "Anonymous";
   localStorage.setItem("fb_username", username);
 }
@@ -80,8 +80,7 @@ async function createPost() {
 
     if (!res.ok) throw new Error("Failed to create post");
 
-    const data = await res.json();
-    console.log("✅ Post saved:", data);
+    await res.json();
 
     input.value = "";
     loadPosts();
@@ -92,13 +91,15 @@ async function createPost() {
 }
 
 // =========================
-// ❤️ LIKE POST (NEW)
+// ❤️ LIKE POST
 // =========================
 async function likePost(id) {
   try {
-    await fetch(`${API}/api/posts/like/${id}`, {
+    const res = await fetch(`${API}/api/posts/like/${id}`, {
       method: "PUT"
     });
+
+    if (!res.ok) throw new Error("Like failed");
 
     loadPosts();
 

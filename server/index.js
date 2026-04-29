@@ -31,18 +31,16 @@ app.post("/api/posts", async (req, res) => {
   try {
     const { user, text } = req.body;
 
-    console.log("📩 Incoming post:", user, text);
-
     if (!user || !text) {
       return res.status(400).json({ error: "Missing user or text" });
     }
 
     const post = await Post.create({
       user,
-      text
+      text,
+      likes: 0,
+      comments: []
     });
-
-    console.log("✅ Saved post:", post);
 
     res.json(post);
 
@@ -58,9 +56,6 @@ app.post("/api/posts", async (req, res) => {
 app.get("/api/posts", async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
-
-    console.log("📤 Sending posts:", posts.length);
-
     res.json(posts);
 
   } catch (err) {
@@ -70,7 +65,7 @@ app.get("/api/posts", async (req, res) => {
 });
 
 // =========================
-// ❤️ LIKE POST (NEW UPDATE ADDED)
+// ❤️ LIKE POST (SAFE FIX)
 // =========================
 app.put("/api/posts/like/:id", async (req, res) => {
   try {
@@ -80,7 +75,8 @@ app.put("/api/posts/like/:id", async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    post.likes += 1;
+    post.likes = (post.likes || 0) + 1;
+
     await post.save();
 
     res.json(post);
@@ -92,7 +88,37 @@ app.put("/api/posts/like/:id", async (req, res) => {
 });
 
 // =========================
-// DATABASE CONNECTION
+// 💬 ADD COMMENT (SAFE FIX)
+// =========================
+app.post("/api/posts/comment/:id", async (req, res) => {
+  try {
+    const { user, text } = req.body;
+
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    if (!post.comments) post.comments = [];
+
+    post.comments.push({
+      user,
+      text
+    });
+
+    await post.save();
+
+    res.json(post);
+
+  } catch (err) {
+    console.log("❌ Comment error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// =========================
+// DATABASE
 // =========================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("🔥 MongoDB Connected"))
