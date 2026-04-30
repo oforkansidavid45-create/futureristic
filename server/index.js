@@ -16,48 +16,59 @@ const server = http.createServer(app);
 // SOCKET.IO SETUP
 // =========================
 const io = new Server(server, {
-  cors: {
-    origin: "*"
-  }
+  cors: { origin: "*" }
 });
 
 // =========================
-// 🧠 STORE CONNECTED USERS
+// 🧠 ONLINE USERS STORE
 // =========================
-let users = {}; // { username: socketId }
+let users = {}; // username -> socket.id
 
 // =========================
-// 🔌 SOCKET EVENTS (DM SYSTEM)
+// 🔌 SOCKET LOGIC
 // =========================
 io.on("connection", (socket) => {
-  console.log("⚡ User connected:", socket.id);
+  console.log("⚡ Connected:", socket.id);
 
+  // =========================
   // REGISTER USER
+  // =========================
   socket.on("register", (username) => {
+    if (!username) return;
+
+    socket.username = username;
     users[username] = socket.id;
+
     console.log("👤 Registered:", username);
+
+    io.emit("onlineUsers", Object.keys(users));
   });
 
-  // SEND PRIVATE MESSAGE
+  // =========================
+  // PRIVATE MESSAGE (DM FIXED)
+  // =========================
   socket.on("privateMessage", ({ to, from, message }) => {
-    const receiverSocket = users[to];
+    const receiverId = users[to];
 
-    if (receiverSocket) {
-      io.to(receiverSocket).emit("privateMessage", {
+    if (receiverId) {
+      io.to(receiverId).emit("privateMessage", {
         from,
         message
       });
     }
   });
 
-  // CLEANUP ON DISCONNECT
+  // =========================
+  // DISCONNECT CLEANUP
+  // =========================
   socket.on("disconnect", () => {
-    console.log("❌ User disconnected:", socket.id);
+    console.log("❌ Disconnected:", socket.id);
 
-    for (let user in users) {
-      if (users[user] === socket.id) {
-        delete users[user];
-      }
+    if (socket.username) {
+      delete users[socket.username];
+
+      // update all clients
+      io.emit("onlineUsers", Object.keys(users));
     }
   });
 });
@@ -69,7 +80,7 @@ app.use(cors());
 app.use(express.json());
 
 // =========================
-// SERVE FRONTEND
+// FRONTEND
 // =========================
 app.use(express.static(path.join(__dirname, "../client")));
 
@@ -98,7 +109,7 @@ app.post("/api/posts", async (req, res) => {
     res.json(post);
 
   } catch (err) {
-    console.log("❌ ERROR saving post:", err);
+    console.log("❌ POST ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -112,7 +123,7 @@ app.get("/api/posts", async (req, res) => {
     res.json(posts);
 
   } catch (err) {
-    console.log("❌ ERROR fetching posts:", err);
+    console.log("❌ GET POSTS ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -124,38 +135,33 @@ app.put("/api/posts/like/:id", async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
 
-    if (!post) {
-      return res.status(404).json({ error: "Post not found" });
-    }
+    if (!post) return res.status(404).json({ error: "Post not found" });
 
     post.likes = (post.likes || 0) + 1;
-
     await post.save();
 
     res.json(post);
 
   } catch (err) {
-    console.log("❌ ERROR liking post:", err);
+    console.log("❌ LIKE ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // =========================
-// 💬 ADD COMMENT
+// 💬 COMMENT
 // =========================
 app.post("/api/posts/comment/:id", async (req, res) => {
   try {
     const { user, text } = req.body;
 
     if (!user || !text) {
-      return res.status(400).json({ error: "Missing user or text" });
+      return res.status(400).json({ error: "Missing data" });
     }
 
     const post = await Post.findById(req.params.id);
 
-    if (!post) {
-      return res.status(404).json({ error: "Post not found" });
-    }
+    if (!post) return res.status(404).json({ error: "Post not found" });
 
     post.comments.push({ user, text });
 
@@ -164,7 +170,7 @@ app.post("/api/posts/comment/:id", async (req, res) => {
     res.json(post);
 
   } catch (err) {
-    console.log("❌ Comment error:", err);
+    console.log("❌ COMMENT ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });

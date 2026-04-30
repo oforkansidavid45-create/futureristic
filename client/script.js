@@ -1,12 +1,17 @@
 console.log("🔥 script.js loaded");
 
 // =========================
-// 👤 USER
+// 👤 USER (FIXED)
 // =========================
 let username = localStorage.getItem("fb_username");
 
-if (!username || username === "null") {
-  username = prompt("Enter your name:") || "Anonymous";
+if (!username || username === "null" || username === "undefined") {
+  username = prompt("Enter your name:")?.trim();
+
+  if (!username) {
+    username = "Anonymous";
+  }
+
   localStorage.setItem("fb_username", username);
 }
 
@@ -18,36 +23,34 @@ console.log("👤 Username:", username);
 const API = "https://futureristic.onrender.com";
 
 // =========================
-// 🔌 SOCKET (DM SYSTEM)
+// 🔌 SOCKET
 // =========================
 const socket = io(API);
 
-// REGISTER USER (VERY IMPORTANT)
+let currentChatUser = null;
+
+// register user
 socket.emit("register", username);
 
 // =========================
-// 💬 CURRENT CHAT USER
-// =========================
-let currentChatUser = null;
-
-// =========================
-// 🟢 OPEN CHAT
+// 💬 OPEN CHAT (DM)
 // =========================
 function openChat(user) {
   currentChatUser = user;
 
-  const box = document.getElementById("chatBox");
-  if (box) box.innerHTML = "";
+  document.getElementById("chatBox").innerHTML = "";
+  document.getElementById("chatTitle").innerText = "💬 Chat with " + user;
 
-  // update title
-  const title = document.getElementById("chatTitle");
-  if (title) title.innerText = "💬 Chat with " + user;
+  socket.emit("joinPrivateRoom", {
+    user1: username,
+    user2: user
+  });
 
-  console.log("💬 Chatting with:", user);
+  console.log("💬 Chat opened with:", user);
 }
 
 // =========================
-// 📤 SEND DM
+// 📤 SEND MESSAGE (DM)
 // =========================
 function sendMessage() {
   const input = document.getElementById("chatInput");
@@ -57,8 +60,8 @@ function sendMessage() {
   if (!message || !currentChatUser) return;
 
   socket.emit("privateMessage", {
-    to: currentChatUser,
     from: username,
+    to: currentChatUser,
     message
   });
 
@@ -67,20 +70,19 @@ function sendMessage() {
 }
 
 // =========================
-// 📩 RECEIVE DM
+// 📩 RECEIVE MESSAGE
 // =========================
 socket.on("privateMessage", (data) => {
-  if (data.from === currentChatUser) {
+  if (data.from === currentChatUser || data.to === username) {
     addMessage(data.from, data.message);
   }
 });
 
 // =========================
-// 🧾 ADD MESSAGE TO UI
+// 🧾 UI MESSAGE
 // =========================
 function addMessage(user, message) {
   const box = document.getElementById("chatBox");
-  if (!box) return;
 
   const div = document.createElement("div");
   div.className = "chat-msg";
@@ -95,13 +97,9 @@ function addMessage(user, message) {
 async function loadPosts() {
   try {
     const res = await fetch(`${API}/api/posts`);
-    if (!res.ok) throw new Error("Failed to fetch posts");
-
     const posts = await res.json();
 
     const box = document.getElementById("posts");
-    if (!box) return;
-
     box.innerHTML = "";
 
     posts.forEach(post => {
@@ -109,27 +107,23 @@ async function loadPosts() {
       div.className = "post";
 
       const commentsHTML = (post.comments || [])
-        .map(c => `<div class="comment"><b>${c.user}:</b> ${c.text}</div>`)
+        .map(c => `<div><b>${c.user}:</b> ${c.text}</div>`)
         .join("");
 
       div.innerHTML = `
         <div class="post-user">${post.user}</div>
         <div class="post-text">${post.text}</div>
 
-        <div class="post-actions">
-          <button onclick="likePost('${post._id}')">
-            ❤️ ${post.likes || 0}
-          </button>
-        </div>
+        <button onclick="likePost('${post._id}')">
+          ❤️ ${post.likes || 0}
+        </button>
 
-        <div class="comment-box">
-          <input id="c-${post._id}" placeholder="Write a comment..." />
+        <div>
+          <input id="c-${post._id}" placeholder="Comment..." />
           <button onclick="commentPost('${post._id}')">Send</button>
         </div>
 
-        <div class="comments">
-          ${commentsHTML}
-        </div>
+        <div>${commentsHTML}</div>
       `;
 
       box.appendChild(div);
@@ -141,91 +135,66 @@ async function loadPosts() {
 }
 
 // =========================
-// ➕ CREATE POST
+// ➕ POST
 // =========================
 async function createPost() {
   const input = document.getElementById("postInput");
-  if (!input) return;
-
   const text = input.value.trim();
+
   if (!text) return;
 
-  try {
-    const res = await fetch(`${API}/api/posts`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        user: username,
-        text
-      })
-    });
+  await fetch(`${API}/api/posts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user: username, text })
+  });
 
-    if (!res.ok) throw new Error("Failed to create post");
-
-    input.value = "";
-    loadPosts();
-
-  } catch (err) {
-    console.log("❌ Error creating post:", err);
-  }
+  input.value = "";
+  loadPosts();
 }
 
 // =========================
-// ❤️ LIKE POST
+// ❤️ LIKE
 // =========================
 async function likePost(id) {
-  try {
-    const res = await fetch(`${API}/api/posts/like/${id}`, {
-      method: "PUT"
-    });
+  await fetch(`${API}/api/posts/like/${id}`, {
+    method: "PUT"
+  });
 
-    if (!res.ok) throw new Error("Like failed");
-
-    loadPosts();
-
-  } catch (err) {
-    console.log("❌ Error liking post:", err);
-  }
+  loadPosts();
 }
 
 // =========================
-// 💬 COMMENT POST
+// 💬 COMMENT
 // =========================
 async function commentPost(id) {
   const input = document.getElementById(`c-${id}`);
-  if (!input) return;
-
   const text = input.value.trim();
+
   if (!text) return;
 
-  try {
-    const res = await fetch(`${API}/api/posts/comment/${id}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        user: username,
-        text
-      })
-    });
+  await fetch(`${API}/api/posts/comment/${id}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user: username,
+      text
+    })
+  });
 
-    if (!res.ok) throw new Error("Comment failed");
-
-    input.value = "";
-    loadPosts();
-
-  } catch (err) {
-    console.log("❌ Error commenting:", err);
-  }
+  input.value = "";
+  loadPosts();
 }
 
 // =========================
-// 🟢 ONLINE USERS (CLICKABLE)
+// 🟢 REAL ONLINE USERS (IMPORTANT FIX)
 // =========================
-const onlineUsers = ["David", "Sarah", "John", "Amaka"];
+let onlineUsers = [];
+
+socket.on("onlineUsers", (users) => {
+  onlineUsers = users;
+  renderOnlineUsers();
+});
 
 function renderOnlineUsers() {
   const box = document.getElementById("onlineUsers");
@@ -245,8 +214,6 @@ function renderOnlineUsers() {
 // INIT
 // =========================
 window.addEventListener("DOMContentLoaded", () => {
-  console.log("🚀 DOM ready");
-
   renderOnlineUsers();
   loadPosts();
 });
