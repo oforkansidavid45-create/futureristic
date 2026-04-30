@@ -6,33 +6,23 @@
   <title>FutureBook ⚡</title>
 
   <link rel="stylesheet" href="style.css"/>
-
-  <!-- safety: basic styling for chat -->
-  <style>
-    .chat-box {
-      height: 300px;
-      overflow-y: auto;
-      background: #111827;
-      padding: 10px;
-      border-radius: 10px;
-    }
-
-    .chat-msg {
-      margin-bottom: 8px;
-      color: white;
-    }
-
-    .online-user {
-      cursor: pointer;
-      padding: 5px;
-      color: #00ff99;
-    }
-  </style>
 </head>
 
 <body>
 
-<div class="app">
+<!-- ================= AUTH SCREEN ================= -->
+<div id="authScreen">
+  <h2>⚡ FutureBook</h2>
+
+  <input id="nameInput" placeholder="Enter your name" />
+  <input id="passwordInput" type="password" placeholder="Password" />
+
+  <button onclick="signup()">Create Account</button>
+  <button onclick="login()">Login</button>
+</div>
+
+<!-- ================= MAIN APP ================= -->
+<div class="app" style="display:none;">
 
   <!-- LEFT -->
   <div class="sidebar">
@@ -82,7 +72,7 @@
 
 </div>
 
-<!-- SOCKET.IO (IMPORTANT: must come first) -->
+<!-- SOCKET.IO -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 <!-- SCRIPT -->

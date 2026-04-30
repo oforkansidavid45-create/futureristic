@@ -22,6 +22,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "client")));
 
 // ================= USERS =================
+// username_with_tabId -> socket.id
 let users = {};
 
 // ================= HELPERS =================
@@ -33,24 +34,20 @@ function emitOnlineUsers() {
 io.on("connection", (socket) => {
   console.log("⚡ connected:", socket.id);
 
-  // REGISTER USER (FIXED FOR GUEST + LOGIN + TAB UNIQUE)
+  // ================= REGISTER =================
   socket.on("register", (username) => {
     if (!username) return;
 
     username = username.trim();
 
-    // remove old socket mapping
+    // remove old mapping for THIS socket
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
       }
     }
 
-    // allow same name only if old socket disconnected
-    if (users[username]) {
-      delete users[username];
-    }
-
+    // store user
     socket.username = username;
     users[username] = socket.id;
 
@@ -59,9 +56,12 @@ io.on("connection", (socket) => {
     emitOnlineUsers();
   });
 
-  // PRIVATE MESSAGE (FIXED SAFETY)
+  // ================= PRIVATE MESSAGE =================
   socket.on("privateMessage", ({ from, to, message }) => {
     if (!from || !to || !message) return;
+
+    message = message.trim();
+    if (!message) return;
 
     const receiverSocketId = users[to];
 
@@ -78,11 +78,11 @@ io.on("connection", (socket) => {
     }
   });
 
-  // DISCONNECT CLEANUP
+  // ================= DISCONNECT =================
   socket.on("disconnect", () => {
     console.log("❌ disconnected:", socket.id);
 
-    if (socket.username && users[socket.username]) {
+    if (socket.username) {
       delete users[socket.username];
       emitOnlineUsers();
     }
@@ -94,13 +94,13 @@ app.post("/api/posts", async (req, res) => {
   try {
     const { user, text } = req.body;
 
-    if (!user || !text) {
+    if (!user || !text || !text.trim()) {
       return res.status(400).json({ error: "Missing user or text" });
     }
 
     const post = await Post.create({
-      user,
-      text,
+      user: user.trim(),
+      text: text.trim(),
       likes: 0,
       comments: []
     });
@@ -108,7 +108,7 @@ app.post("/api/posts", async (req, res) => {
     res.json(post);
 
   } catch (err) {
-    console.log("POST ERROR:", err);
+    console.log("❌ POST ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -118,7 +118,7 @@ app.get("/api/posts", async (req, res) => {
     const posts = await Post.find().sort({ createdAt: -1 });
     res.json(posts);
   } catch (err) {
-    console.log("GET ERROR:", err);
+    console.log("❌ GET ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -126,7 +126,7 @@ app.get("/api/posts", async (req, res) => {
 // ================= DB =================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("🔥 MongoDB connected"))
-  .catch(err => console.log("Mongo error:", err));
+  .catch(err => console.log("❌ Mongo error:", err));
 
 // ================= START =================
 const PORT = process.env.PORT || 5000;
