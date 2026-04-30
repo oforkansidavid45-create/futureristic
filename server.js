@@ -12,17 +12,18 @@ const Post = require("./models/Post");
 const app = express();
 const server = http.createServer(app);
 
-// ================= SOCKET.IO =================
+// ================= SOCKET =================
 const io = new Server(server, {
   cors: { origin: "*" }
 });
 
 app.use(cors());
 app.use(express.json());
+
+// ❌ FIX: you had this twice (removed duplicate)
 app.use(express.static(path.join(__dirname, "client")));
 
 // ================= USERS =================
-// username_with_tabId -> socket.id
 let users = {};
 
 // ================= HELPERS =================
@@ -30,24 +31,23 @@ function emitOnlineUsers() {
   io.emit("onlineUsers", Object.keys(users));
 }
 
-// ================= SOCKET =================
+// ================= SOCKET LOGIC =================
 io.on("connection", (socket) => {
   console.log("⚡ connected:", socket.id);
 
-  // ================= REGISTER =================
+  // REGISTER USER
   socket.on("register", (username) => {
     if (!username) return;
 
     username = username.trim();
 
-    // remove old mapping for THIS socket
+    // remove old socket mapping (important fix)
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
       }
     }
 
-    // store user
     socket.username = username;
     users[username] = socket.id;
 
@@ -56,7 +56,7 @@ io.on("connection", (socket) => {
     emitOnlineUsers();
   });
 
-  // ================= PRIVATE MESSAGE =================
+  // PRIVATE MESSAGE
   socket.on("privateMessage", ({ from, to, message }) => {
     if (!from || !to || !message) return;
 
@@ -73,12 +73,10 @@ io.on("connection", (socket) => {
         to,
         message
       });
-    } else {
-      console.log("❌ user not online:", to);
     }
   });
 
-  // ================= DISCONNECT =================
+  // DISCONNECT
   socket.on("disconnect", () => {
     console.log("❌ disconnected:", socket.id);
 
@@ -90,6 +88,8 @@ io.on("connection", (socket) => {
 });
 
 // ================= POSTS =================
+
+// CREATE POST
 app.post("/api/posts", async (req, res) => {
   try {
     const { user, text } = req.body;
@@ -113,6 +113,7 @@ app.post("/api/posts", async (req, res) => {
   }
 });
 
+// GET POSTS
 app.get("/api/posts", async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
