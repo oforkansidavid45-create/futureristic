@@ -4,7 +4,6 @@ console.log("🔥 script loaded");
 let username = null;
 let currentChatUser = null;
 
-// unique tab id (multi-tab fix)
 const TAB_ID = Math.random().toString(36).substring(2);
 
 // ================= CLEAN NAME =================
@@ -41,9 +40,8 @@ function login() {
     document.getElementById("authScreen").style.display = "none";
     document.querySelector(".app").style.display = "flex";
 
-    console.log("👤 Logged in as:", username);
-
     socket.emit("register", username);
+
     loadPosts();
   } else {
     alert("Wrong login details");
@@ -52,10 +50,10 @@ function login() {
 
 // ================= SOCKET =================
 socket.on("connect", () => {
-  console.log("🔌 connected:", socket.id);
+  console.log("🔌 connected");
 });
 
-// ================= CREATE POST =================
+// ================= POSTS =================
 async function createPost() {
   if (!username) return alert("Login first!");
 
@@ -66,7 +64,7 @@ async function createPost() {
 
   await fetch(`${API}/api/posts`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       user: cleanName(username),
       text
@@ -77,7 +75,6 @@ async function createPost() {
   loadPosts();
 }
 
-// ================= LOAD POSTS =================
 async function loadPosts() {
   const res = await fetch(`${API}/api/posts`);
   const posts = await res.json();
@@ -113,10 +110,7 @@ async function loadPosts() {
 
 // ================= LIKE =================
 async function likePost(id) {
-  await fetch(`${API}/api/posts/like/${id}`, {
-    method: "PUT"
-  });
-
+  await fetch(`${API}/api/posts/like/${id}`, { method: "PUT" });
   loadPosts();
 }
 
@@ -131,7 +125,7 @@ async function addComment(id) {
 
   await fetch(`${API}/api/posts/comment/${id}`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       user: cleanName(username),
       text
@@ -150,6 +144,10 @@ function openChat(user) {
     "Chat with " + cleanName(user);
 
   document.getElementById("chatBox").innerHTML = "";
+
+  // MOBILE FIX → show chat panel
+  const chatPanel = document.querySelector(".rightbar");
+  if (chatPanel) chatPanel.classList.add("active");
 }
 
 function sendMessage() {
@@ -210,7 +208,15 @@ socket.on("onlineUsers", (users) => {
     .join("");
 });
 
-// ================= AUTO-FILL LOGIN =================
+// ================= MOBILE CHAT TOGGLE FIX =================
+function toggleChat() {
+  const chat = document.querySelector(".rightbar");
+  if (!chat) return;
+
+  chat.classList.toggle("active");
+}
+
+// ================= AUTO LOGIN FILL =================
 window.addEventListener("DOMContentLoaded", () => {
   const saved = JSON.parse(localStorage.getItem("fb_user"));
 
