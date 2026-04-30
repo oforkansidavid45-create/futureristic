@@ -21,6 +21,12 @@
     <div class="menu-item">💬 Messages</div>
     <div class="menu-item">🔔 Notifications</div>
     <div class="menu-item">⚙️ Settings</div>
+
+    <!-- CHAT ROOMS -->
+    <hr>
+    <div class="menu-item" onclick="joinRoom('general')">💬 General</div>
+    <div class="menu-item" onclick="joinRoom('tech')">💻 Tech</div>
+    <div class="menu-item" onclick="joinRoom('games')">🎮 Games</div>
   </div>
 
   <!-- CENTER -->
@@ -44,11 +50,25 @@
   <div class="rightbar">
     <h3>🟢 Online</h3>
     <div id="onlineUsers"></div>
+
+    <!-- CHAT BOX -->
+    <hr>
+    <h3>💬 Live Chat</h3>
+
+    <div id="chatBox" class="chat-box"></div>
+
+    <div class="chat-input">
+      <input id="chatInput" placeholder="Type message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
   </div>
 
 </div>
 
-<!-- SCRIPT -->
+<!-- SOCKET.IO (IMPORTANT) -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<!-- YOUR SCRIPT -->
 <script src="script.js"></script>
 
 </body>

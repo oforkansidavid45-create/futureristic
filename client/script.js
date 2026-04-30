@@ -18,12 +18,64 @@ console.log("👤 Username:", username);
 const API = "https://futureristic.onrender.com";
 
 // =========================
+// 🔌 SOCKET (REAL-TIME CHAT)
+// =========================
+const socket = io(API);
+
+let currentRoom = "general";
+
+// =========================
+// 🏠 JOIN ROOM
+// =========================
+function joinRoom(room) {
+  currentRoom = room;
+  socket.emit("joinRoom", room);
+
+  const box = document.getElementById("chatBox");
+  if (box) box.innerHTML = "";
+
+  console.log("📥 Joined room:", room);
+}
+
+// =========================
+// 💬 RECEIVE MESSAGE
+// =========================
+socket.on("receiveMessage", (data) => {
+  const box = document.getElementById("chatBox");
+  if (!box) return;
+
+  const div = document.createElement("div");
+  div.className = "chat-msg";
+  div.innerHTML = `<b>${data.user}:</b> ${data.message}`;
+
+  box.appendChild(div);
+});
+
+// =========================
+// 📤 SEND MESSAGE
+// =========================
+function sendMessage() {
+  const input = document.getElementById("chatInput");
+  if (!input) return;
+
+  const message = input.value.trim();
+  if (!message) return;
+
+  socket.emit("sendMessage", {
+    room: currentRoom,
+    user: username,
+    message
+  });
+
+  input.value = "";
+}
+
+// =========================
 // 🚀 LOAD POSTS
 // =========================
 async function loadPosts() {
   try {
     const res = await fetch(`${API}/api/posts`);
-
     if (!res.ok) throw new Error("Failed to fetch posts");
 
     const posts = await res.json();
@@ -37,22 +89,29 @@ async function loadPosts() {
       const div = document.createElement("div");
       div.className = "post";
 
+      const commentsHTML = (post.comments || [])
+        .map(c => `<div class="comment"><b>${c.user}:</b> ${c.text}</div>`)
+        .join("");
+
       div.innerHTML = `
         <div class="post-user">${post.user}</div>
         <div class="post-text">${post.text}</div>
 
-        <button onclick="likePost('${post._id}')">
-          ❤️ ${post.likes || 0}
-        </button>
+        <div class="post-actions">
+          <button onclick="likePost('${post._id}')">
+            ❤️ ${post.likes || 0}
+          </button>
+        </div>
 
-        <button onclick="commentPost('${post._id}')">
-          💬 Comment
-        </button>
+        <!-- COMMENT INPUT -->
+        <div class="comment-box">
+          <input id="c-${post._id}" placeholder="Write a comment..." />
+          <button onclick="commentPost('${post._id}')">Send</button>
+        </div>
 
+        <!-- COMMENTS -->
         <div class="comments">
-          ${(post.comments || []).map(c =>
-            `<div><b>${c.user}:</b> ${c.text}</div>`
-          ).join("")}
+          ${commentsHTML}
         </div>
       `;
 
@@ -74,14 +133,10 @@ async function createPost() {
   const text = input.value.trim();
   if (!text) return;
 
-  console.log("🚀 Sending post:", username, text);
-
   try {
     const res = await fetch(`${API}/api/posts`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user: username,
         text
@@ -89,8 +144,6 @@ async function createPost() {
     });
 
     if (!res.ok) throw new Error("Failed to create post");
-
-    await res.json();
 
     input.value = "";
     loadPosts();
@@ -119,11 +172,13 @@ async function likePost(id) {
 }
 
 // =========================
-// 💬 COMMENT POST (NEW FEATURE)
+// 💬 COMMENT POST
 // =========================
 async function commentPost(id) {
-  const text = prompt("Write your comment:");
+  const input = document.getElementById(`c-${id}`);
+  if (!input) return;
 
+  const text = input.value.trim();
   if (!text) return;
 
   try {
@@ -140,6 +195,7 @@ async function commentPost(id) {
 
     if (!res.ok) throw new Error("Comment failed");
 
+    input.value = "";
     loadPosts();
 
   } catch (err) {
@@ -170,4 +226,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   renderOnlineUsers();
   loadPosts();
+
+  // AUTO JOIN DEFAULT ROOM
+  joinRoom("general");
 });

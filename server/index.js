@@ -4,10 +4,47 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const Post = require("./models/Post");
 
 const app = express();
+const server = http.createServer(app);
+
+// =========================
+// SOCKET.IO SETUP
+// =========================
+const io = new Server(server, {
+  cors: {
+    origin: "*"
+  }
+});
+
+// =========================
+// SOCKET EVENTS (REAL-TIME CHAT)
+// =========================
+io.on("connection", (socket) => {
+  console.log("⚡ User connected:", socket.id);
+
+  // JOIN ROOM
+  socket.on("joinRoom", (room) => {
+    socket.join(room);
+    console.log(`📥 Joined room: ${room}`);
+  });
+
+  // SEND MESSAGE
+  socket.on("sendMessage", ({ room, user, message }) => {
+    io.to(room).emit("receiveMessage", {
+      user,
+      message
+    });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ User disconnected:", socket.id);
+  });
+});
 
 // =========================
 // MIDDLEWARE
@@ -65,7 +102,7 @@ app.get("/api/posts", async (req, res) => {
 });
 
 // =========================
-// ❤️ LIKE POST (IMPROVED)
+// ❤️ LIKE POST (SAFE FIX)
 // =========================
 app.put("/api/posts/like/:id", async (req, res) => {
   try {
@@ -75,7 +112,7 @@ app.put("/api/posts/like/:id", async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    post.likes = post.likes + 1;
+    post.likes = (post.likes || 0) + 1;
 
     await post.save();
 
@@ -88,7 +125,7 @@ app.put("/api/posts/like/:id", async (req, res) => {
 });
 
 // =========================
-// 💬 ADD COMMENT (IMPROVED)
+// 💬 ADD COMMENT
 // =========================
 app.post("/api/posts/comment/:id", async (req, res) => {
   try {
@@ -124,10 +161,10 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.log("❌ MongoDB Error:", err));
 
 // =========================
-// START SERVER
+// START SERVER (IMPORTANT FIX)
 // =========================
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

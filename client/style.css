@@ -194,3 +194,37 @@ html {
     right: 0;
   }
 }
+.comment-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.comment-box input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  background: #1f2937;
+  color: white;
+}
+
+.comment-box button {
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #00e5ff;
+  cursor: pointer;
+}
+
+.comments {
+  margin-top: 10px;
+}
+
+.comment {
+  font-size: 13px;
+  margin-top: 5px;
+  padding: 6px;
+  background: #1f2937;
+  border-radius: 6px;
+}
