@@ -1,69 +1,48 @@
 console.log("🔥 script loaded");
 
-// ================= GLOBAL =================
-let username = null;
-let currentChatUser = null;
-
-// unique tab id (for multi-tab chat fix)
+// ================= TAB ID =================
 const TAB_ID = Math.random().toString(36).substring(2);
 
-// ================= CLEAN NAME =================
+// ================= USER =================
+function getUsername() {
+  let name = localStorage.getItem("fb_username");
+
+  if (!name || name === "null" || name === "undefined") {
+    name = prompt("Enter your name:");
+
+    if (!name || name.trim() === "") {
+      name = "User" + Math.floor(Math.random() * 9999);
+    }
+
+    name = name.trim();
+    localStorage.setItem("fb_username", name);
+  }
+
+  return name;
+}
+
+const baseUsername = getUsername();
+const username = baseUsername + "_" + TAB_ID;
+
 function cleanName(name) {
-  if (!name) return "";
   return name.split("_")[0];
 }
 
-// ================= API + SOCKET =================
+// ================= API =================
 const API = "https://futureristic.onrender.com";
 const socket = io(API);
 
-// ================= AUTH SYSTEM =================
-function signup() {
-  const name = document.getElementById("nameInput").value.trim();
-  const pass = document.getElementById("passwordInput").value;
+let currentChatUser = null;
 
-  if (!name || !pass) return alert("Fill all fields");
-
-  localStorage.setItem("fb_user", JSON.stringify({ name, pass }));
-
-  alert("Account created! Now login.");
-}
-
-function login() {
-  const name = document.getElementById("nameInput").value.trim();
-  const pass = document.getElementById("passwordInput").value;
-
-  const saved = JSON.parse(localStorage.getItem("fb_user"));
-
-  if (!saved) return alert("No account found");
-
-  if (saved.name === name && saved.pass === pass) {
-    username = name + "_" + TAB_ID;
-
-    // hide login, show app
-    document.getElementById("authScreen").style.display = "none";
-    document.querySelector(".app").style.display = "flex";
-
-    console.log("👤 Logged in as:", username);
-
-    socket.emit("register", username);
-    loadPosts();
-  } else {
-    alert("Wrong login details");
-  }
-}
-
-// ================= SOCKET CONNECT =================
+// ================= CONNECT =================
 socket.on("connect", () => {
-  console.log("🔌 connected:", socket.id);
+  socket.emit("register", username);
+  loadPosts();
 });
 
 // ================= CREATE POST =================
 async function createPost() {
   const input = document.getElementById("postInput");
-  if (!input) return;
-
-  if (!username) return alert("Login first!");
 
   const text = input.value.trim();
   if (!text) return alert("Write something!");
@@ -87,38 +66,73 @@ async function loadPosts() {
   const posts = await res.json();
 
   const box = document.getElementById("posts");
-  if (!box) return;
 
-  box.innerHTML = posts
-    .map(p => `
-      <div class="post">
-        <b>${p.user}</b>
-        <p>${p.text}</p>
-        <small>❤️ ${p.likes || 0}</small>
+  box.innerHTML = posts.map(p => `
+    <div class="post">
+      <b>${p.user}</b>
+      <p>${p.text}</p>
+
+      <div>
+        ❤️ ${p.likes}
+        <button onclick="likePost('${p._id}')">Like</button>
       </div>
-    `)
-    .join("");
+
+      <div class="comments">
+        ${p.comments.map(c => `
+          <div class="comment">
+            <b>${c.user}:</b> ${c.text}
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="comment-box">
+        <input id="c-${p._id}" placeholder="Write comment..." />
+        <button onclick="addComment('${p._id}')">Send</button>
+      </div>
+    </div>
+  `).join("");
 }
 
-// ================= OPEN CHAT =================
+// ================= LIKE =================
+async function likePost(id) {
+  await fetch(`${API}/api/posts/like/${id}`, {
+    method: "PUT"
+  });
+
+  loadPosts();
+}
+
+// ================= COMMENT =================
+async function addComment(id) {
+  const input = document.getElementById(`c-${id}`);
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  await fetch(`${API}/api/posts/comment/${id}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user: cleanName(username),
+      text
+    })
+  });
+
+  input.value = "";
+  loadPosts();
+}
+
+// ================= CHAT =================
 function openChat(user) {
   currentChatUser = user;
-
-  const title = document.getElementById("chatTitle");
-  const box = document.getElementById("chatBox");
-
-  if (title) title.innerText = "Chat with " + cleanName(user);
-  if (box) box.innerHTML = "";
-
-  console.log("💬 chatting with:", user);
+  document.getElementById("chatTitle").innerText = "Chat with " + cleanName(user);
+  document.getElementById("chatBox").innerHTML = "";
 }
 
-// ================= SEND MESSAGE =================
 function sendMessage() {
   const input = document.getElementById("chatInput");
 
-  if (!username) return alert("Login first!");
-  if (!input || !input.value.trim() || !currentChatUser) return;
+  if (!input.value.trim() || !currentChatUser) return;
 
   const message = input.value.trim();
 
@@ -132,24 +146,18 @@ function sendMessage() {
   input.value = "";
 }
 
-// ================= RECEIVE MESSAGE =================
 socket.on("privateMessage", (data) => {
-  if (!data || !data.from || !data.message) return;
-  if (!currentChatUser) return;
+  if (!data) return;
 
-  const fromClean = cleanName(data.from);
-  const toClean = cleanName(data.to);
-  const activeUser = cleanName(currentChatUser);
+  const from = cleanName(data.from);
 
-  if (fromClean === activeUser || toClean === activeUser) {
-    addMessage(fromClean, data.message);
+  if (cleanName(currentChatUser) === from) {
+    addMessage(from, data.message);
   }
 });
 
-// ================= ADD MESSAGE =================
 function addMessage(user, msg) {
   const box = document.getElementById("chatBox");
-  if (!box) return;
 
   const div = document.createElement("div");
   div.className = "chat-msg";
@@ -162,24 +170,12 @@ function addMessage(user, msg) {
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
   const box = document.getElementById("onlineUsers");
-  if (!box) return;
 
   box.innerHTML = users
-    .filter(u => u && u !== username)
-    .map(u => {
-      const clean = cleanName(u);
-      return `<div class="online-user" onclick="openChat('${u}')">🟢 ${clean}</div>`;
-    })
+    .filter(u => u !== username)
+    .map(u => `<div class="online-user" onclick="openChat('${u}')">🟢 ${cleanName(u)}</div>`)
     .join("");
 });
 
-// ================= AUTO LOGIN (OPTIONAL NICE TOUCH) =================
-window.addEventListener("DOMContentLoaded", () => {
-  const saved = JSON.parse(localStorage.getItem("fb_user"));
-
-  if (saved) {
-    // auto fill inputs
-    document.getElementById("nameInput").value = saved.name;
-    document.getElementById("passwordInput").value = saved.pass;
-  }
-});
+// ================= INIT =================
+window.onload = loadPosts;
