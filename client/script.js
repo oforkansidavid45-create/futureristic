@@ -26,7 +26,52 @@ let currentChatUser = null;
 socket.on("connect", () => {
   console.log("🔌 connected");
   socket.emit("register", username);
+
+  loadPosts(); // 🔥 load posts when connected
 });
+
+// ================= CREATE POST =================
+async function createPost() {
+  const input = document.getElementById("postInput");
+
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return alert("Write something first!");
+
+  await fetch(`${API}/api/posts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user: username,
+      text
+    })
+  });
+
+  input.value = "";
+  loadPosts();
+}
+
+// ================= LOAD POSTS =================
+async function loadPosts() {
+  const res = await fetch(`${API}/api/posts`);
+  const posts = await res.json();
+
+  const box = document.getElementById("posts");
+  if (!box) return;
+
+  box.innerHTML = posts
+    .map(p => `
+      <div class="post">
+        <b>${p.user}</b>
+        <p>${p.text}</p>
+        <small>❤️ ${p.likes || 0}</small>
+      </div>
+    `)
+    .join("");
+}
 
 // ================= OPEN CHAT =================
 function openChat(user) {
@@ -65,9 +110,6 @@ socket.on("privateMessage", (data) => {
 
   const { from, to, message } = data;
 
-  if (!currentChatUser) return;
-
-  // show only current chat OR self
   if (
     (from === currentChatUser && to === username) ||
     (from === username && to === currentChatUser)
@@ -98,4 +140,9 @@ socket.on("onlineUsers", (users) => {
     .filter(u => u && u !== username)
     .map(u => `<div onclick="openChat('${u}')">🟢 ${u}</div>`)
     .join("");
+});
+
+// ================= INIT =================
+window.addEventListener("DOMContentLoaded", () => {
+  loadPosts();
 });
