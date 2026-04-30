@@ -6,6 +6,28 @@
   <title>FutureBook ⚡</title>
 
   <link rel="stylesheet" href="style.css"/>
+
+  <!-- safety: basic styling for chat -->
+  <style>
+    .chat-box {
+      height: 300px;
+      overflow-y: auto;
+      background: #111827;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .chat-msg {
+      margin-bottom: 8px;
+      color: white;
+    }
+
+    .online-user {
+      cursor: pointer;
+      padding: 5px;
+      color: #00ff99;
+    }
+  </style>
 </head>
 
 <body>
@@ -60,7 +82,7 @@
 
 </div>
 
-<!-- SOCKET.IO -->
+<!-- SOCKET.IO (IMPORTANT: must come first) -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 <!-- SCRIPT -->

@@ -1,19 +1,26 @@
 console.log("🔥 script.js loaded");
 
 // =========================
-// 👤 USER (FORCE FIX)
+// 👤 USER (ROBUST FIX)
 // =========================
 function getUsername() {
   let name = localStorage.getItem("fb_username");
 
   if (!name || name === "null" || name === "undefined") {
-    name = prompt("Enter your name:");
+    name = null;
 
-    if (!name || name.trim() === "") {
-      name = "User" + Math.floor(Math.random() * 1000);
+    while (!name) {
+      name = prompt("Enter your name:");
+
+      if (name) {
+        name = name.trim();
+      }
+
+      if (!name) {
+        alert("Name is required!");
+      }
     }
 
-    name = name.trim();
     localStorage.setItem("fb_username", name);
   }
 
@@ -36,7 +43,7 @@ const socket = io(API);
 let currentChatUser = null;
 
 // =========================
-// CONNECT + REGISTER
+// CONNECT + REGISTER (SAFE)
 // =========================
 socket.on("connect", () => {
   console.log("🔌 Connected:", socket.id);
@@ -80,17 +87,21 @@ function sendMessage() {
 }
 
 // =========================
-// RECEIVE MESSAGE (FIXED)
+// RECEIVE MESSAGE (FIXED LOGIC)
 // =========================
 socket.on("privateMessage", (data) => {
-  if (!data || !data.from || !data.message) return;
+  if (!data) return;
 
-  // show ONLY if it's the active chat
+  const { from, to, message } = data;
+
+  if (!from || !to || !message) return;
+
+  // only show messages in active chat
   if (
-    (data.from === currentChatUser && data.to === username) ||
-    (data.from === username && data.to === currentChatUser)
+    (from === currentChatUser && to === username) ||
+    (from === username && to === currentChatUser)
   ) {
-    addMessage(data.from, data.message);
+    addMessage(from, message);
   }
 });
 
@@ -121,7 +132,7 @@ function renderOnlineUsers(users) {
   if (!box) return;
 
   box.innerHTML = users
-    .filter(u => u !== username)
+    .filter(u => u && u !== username)
     .map(u => `
       <div class="online-user" onclick="openChat('${u}')">
         🟢 ${u}
