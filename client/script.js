@@ -1,20 +1,36 @@
 console.log("🔥 script loaded");
 
+// ================= TAB ID (IMPORTANT FIX) =================
+const TAB_ID = Math.random().toString(36).substring(2);
+
 // ================= USER SYSTEM =================
-let username = localStorage.getItem("fb_username");
+function getUsername() {
+  let name = localStorage.getItem("fb_username");
 
-if (!username || username === "null" || username === "undefined") {
-  username = prompt("Enter your name:");
+  if (!name || name === "null" || name === "undefined") {
+    name = prompt("Enter your name:");
 
-  if (!username || username.trim() === "") {
-    username = "User" + Math.floor(Math.random() * 9999);
+    if (!name || name.trim() === "") {
+      name = "User" + Math.floor(Math.random() * 9999);
+    }
+
+    name = name.trim();
+    localStorage.setItem("fb_username", name);
   }
 
-  username = username.trim();
-  localStorage.setItem("fb_username", username);
+  return name;
 }
 
+const baseUsername = getUsername();
+const username = baseUsername + "_" + TAB_ID;
+
 console.log("👤 Username:", username);
+
+// ================= CLEAN NAME =================
+function cleanName(name) {
+  if (!name) return "";
+  return name.split("_")[0];
+}
 
 // ================= API + SOCKET =================
 const API = "https://futureristic.onrender.com";
@@ -25,15 +41,15 @@ let currentChatUser = null;
 // ================= CONNECT =================
 socket.on("connect", () => {
   console.log("🔌 connected");
+
   socket.emit("register", username);
 
-  loadPosts(); // 🔥 load posts when connected
+  loadPosts();
 });
 
 // ================= CREATE POST =================
 async function createPost() {
   const input = document.getElementById("postInput");
-
   if (!input) return;
 
   const text = input.value.trim();
@@ -41,11 +57,9 @@ async function createPost() {
 
   await fetch(`${API}/api/posts`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      user: username,
+      user: cleanName(username),
       text
     })
   });
@@ -80,7 +94,7 @@ function openChat(user) {
   const title = document.getElementById("chatTitle");
   const box = document.getElementById("chatBox");
 
-  if (title) title.innerText = "Chat with " + user;
+  if (title) title.innerText = "Chat with " + cleanName(user);
   if (box) box.innerHTML = "";
 
   console.log("💬 chatting with:", user);
@@ -108,17 +122,18 @@ function sendMessage() {
 socket.on("privateMessage", (data) => {
   if (!data || !data.from || !data.message) return;
 
-  const { from, to, message } = data;
+  if (!currentChatUser) return;
 
-  if (
-    (from === currentChatUser && to === username) ||
-    (from === username && to === currentChatUser)
-  ) {
-    addMessage(from, message);
+  const fromClean = cleanName(data.from);
+  const toClean = cleanName(data.to);
+  const activeUser = cleanName(currentChatUser);
+
+  if (fromClean === activeUser || toClean === activeUser) {
+    addMessage(fromClean, data.message);
   }
 });
 
-// ================= UI MESSAGE =================
+// ================= ADD MESSAGE UI =================
 function addMessage(user, msg) {
   const box = document.getElementById("chatBox");
   if (!box) return;
@@ -138,7 +153,10 @@ socket.on("onlineUsers", (users) => {
 
   box.innerHTML = users
     .filter(u => u && u !== username)
-    .map(u => `<div onclick="openChat('${u}')">🟢 ${u}</div>`)
+    .map(u => {
+      const clean = cleanName(u);
+      return `<div onclick="openChat('${u}')">🟢 ${clean}</div>`;
+    })
     .join("");
 });
 

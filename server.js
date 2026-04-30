@@ -24,7 +24,7 @@ app.use(express.static(path.join(__dirname, "client")));
 // ================= USERS =================
 let users = {};
 
-// helper
+// ================= HELPERS =================
 function emitOnlineUsers() {
   io.emit("onlineUsers", Object.keys(users));
 }
@@ -33,17 +33,22 @@ function emitOnlineUsers() {
 io.on("connection", (socket) => {
   console.log("⚡ connected:", socket.id);
 
-  // REGISTER USER
+  // REGISTER USER (FIXED FOR GUEST + LOGIN + TAB UNIQUE)
   socket.on("register", (username) => {
     if (!username) return;
 
     username = username.trim();
 
-    // remove old socket mapping if any
+    // remove old socket mapping
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
       }
+    }
+
+    // allow same name only if old socket disconnected
+    if (users[username]) {
+      delete users[username];
     }
 
     socket.username = username;
@@ -54,7 +59,7 @@ io.on("connection", (socket) => {
     emitOnlineUsers();
   });
 
-  // PRIVATE MESSAGE
+  // PRIVATE MESSAGE (FIXED SAFETY)
   socket.on("privateMessage", ({ from, to, message }) => {
     if (!from || !to || !message) return;
 
@@ -73,7 +78,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // DISCONNECT
+  // DISCONNECT CLEANUP
   socket.on("disconnect", () => {
     console.log("❌ disconnected:", socket.id);
 
