@@ -1,22 +1,30 @@
 console.log("🔥 script.js loaded");
 
 // =========================
-// 👤 USER (SAFE FIXED)
+// 👤 USER (FORCE FIX)
 // =========================
-let username = localStorage.getItem("fb_username");
+function getUsername() {
+  let name = localStorage.getItem("fb_username");
 
-if (!username || username === "null" || username === "undefined") {
-  username = prompt("Enter your name:")?.trim();
+  if (!name || name === "null" || name === "undefined") {
+    name = prompt("Enter your name:");
 
-  if (!username) username = "Anonymous";
+    if (!name || name.trim() === "") {
+      name = "User" + Math.floor(Math.random() * 1000);
+    }
 
-  localStorage.setItem("fb_username", username);
+    name = name.trim();
+    localStorage.setItem("fb_username", name);
+  }
+
+  return name;
 }
 
+const username = getUsername();
 console.log("👤 Username:", username);
 
 // =========================
-// 🌐 API URL
+// 🌐 API
 // =========================
 const API = "https://futureristic.onrender.com";
 
@@ -31,12 +39,13 @@ let currentChatUser = null;
 // CONNECT + REGISTER
 // =========================
 socket.on("connect", () => {
-  console.log("🔌 Connected to server");
+  console.log("🔌 Connected:", socket.id);
+
   socket.emit("register", username);
 });
 
 // =========================
-// 💬 OPEN CHAT
+// OPEN CHAT
 // =========================
 function openChat(user) {
   currentChatUser = user;
@@ -47,17 +56,11 @@ function openChat(user) {
   if (box) box.innerHTML = "";
   if (title) title.innerText = "💬 Chat with " + user;
 
-  console.log("💬 Chat opened with:", user);
-
-  // ask server for chat history (if backend supports it later)
-  socket.emit("openChat", {
-    from: username,
-    to: user
-  });
+  console.log("💬 Chat opened:", user);
 }
 
 // =========================
-// 📤 SEND MESSAGE
+// SEND MESSAGE
 // =========================
 function sendMessage() {
   const input = document.getElementById("chatInput");
@@ -77,19 +80,22 @@ function sendMessage() {
 }
 
 // =========================
-// 📩 RECEIVE MESSAGE (FIXED)
+// RECEIVE MESSAGE (FIXED)
 // =========================
 socket.on("privateMessage", (data) => {
-  if (!data || !data.from) return;
+  if (!data || !data.from || !data.message) return;
 
-  // show only current chat OR if you're the receiver
-  if (data.from === currentChatUser || data.to === username) {
+  // show ONLY if it's the active chat
+  if (
+    (data.from === currentChatUser && data.to === username) ||
+    (data.from === username && data.to === currentChatUser)
+  ) {
     addMessage(data.from, data.message);
   }
 });
 
 // =========================
-// 🧾 ADD MESSAGE UI (SAFE)
+// UI MESSAGE
 // =========================
 function addMessage(user, message) {
   const box = document.getElementById("chatBox");
@@ -100,41 +106,21 @@ function addMessage(user, message) {
   div.innerHTML = `<b>${user}:</b> ${message}`;
 
   box.appendChild(div);
-
   box.scrollTop = box.scrollHeight;
 }
 
 // =========================
-// ⌨️ TYPING INDICATOR (CLIENT SIDE)
+// ONLINE USERS
 // =========================
-const chatInput = document.getElementById("chatInput");
-
-if (chatInput) {
-  chatInput.addEventListener("input", () => {
-    if (!currentChatUser) return;
-
-    socket.emit("typing", {
-      from: username,
-      to: currentChatUser
-    });
-  });
-}
-
-// =========================
-// 🟢 ONLINE USERS
-// =========================
-let onlineUsers = [];
-
 socket.on("onlineUsers", (users) => {
-  onlineUsers = users || [];
-  renderOnlineUsers();
+  renderOnlineUsers(users || []);
 });
 
-function renderOnlineUsers() {
+function renderOnlineUsers(users) {
   const box = document.getElementById("onlineUsers");
   if (!box) return;
 
-  box.innerHTML = onlineUsers
+  box.innerHTML = users
     .filter(u => u !== username)
     .map(u => `
       <div class="online-user" onclick="openChat('${u}')">
@@ -148,5 +134,5 @@ function renderOnlineUsers() {
 // INIT
 // =========================
 window.addEventListener("DOMContentLoaded", () => {
-  renderOnlineUsers();
+  console.log("🚀 UI ready");
 });

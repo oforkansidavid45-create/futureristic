@@ -14,6 +14,7 @@ const MessageSchema = new mongoose.Schema(
       trim: true
     },
 
+    // 🔥 FIX: must always be consistent (important for DM history)
     roomId: {
       type: String,
       required: true,
@@ -33,7 +34,7 @@ const MessageSchema = new mongoose.Schema(
       default: "sent"
     },
 
-    // 🔥 NEW: for real "read receipts"
+    // 🔥 read receipt support
     seenAt: {
       type: Date,
       default: null
@@ -46,7 +47,7 @@ const MessageSchema = new mongoose.Schema(
 );
 
 // =========================
-// ⚡ PERFORMANCE INDEXES
+// ⚡ INDEXES (GOOD)
 // =========================
 MessageSchema.index({ roomId: 1, createdAt: 1 });
 MessageSchema.index({ from: 1, to: 1, createdAt: -1 });

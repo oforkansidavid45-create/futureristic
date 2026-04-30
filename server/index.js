@@ -13,34 +13,48 @@ const app = express();
 const server = http.createServer(app);
 
 // =========================
-// SOCKET.IO SETUP
+// SOCKET.IO
 // =========================
 const io = new Server(server, {
   cors: { origin: "*" }
 });
 
 // =========================
-// ONLINE USERS (SAFE MAP)
+// USERS MAP
 // =========================
 let users = {}; // username -> socket.id
 
 // =========================
-// SOCKET LOGIC
+// HELPERS
+// =========================
+function emitOnlineUsers() {
+  io.emit("onlineUsers", Object.keys(users));
+}
+
+// =========================
+// SOCKET CONNECTION
 // =========================
 io.on("connection", (socket) => {
   console.log("⚡ Connected:", socket.id);
 
   // =========================
-  // REGISTER USER (FIXED)
+  // REGISTER USER (CLEAN FIX)
   // =========================
   socket.on("register", (username) => {
     if (!username) return;
 
-    // remove old socket if user reconnects
+    username = username.trim();
+
+    // remove old socket entry if exists
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
       }
+    }
+
+    // prevent duplicate usernames
+    if (users[username] && users[username] !== socket.id) {
+      delete users[username];
     }
 
     socket.username = username;
@@ -48,16 +62,18 @@ io.on("connection", (socket) => {
 
     console.log("👤 Registered:", username);
 
-    io.emit("onlineUsers", Object.keys(users));
+    emitOnlineUsers();
   });
 
   // =========================
-  // PRIVATE MESSAGE (SAFE DM)
+  // PRIVATE MESSAGE
   // =========================
   socket.on("privateMessage", ({ to, from, message }) => {
     if (!to || !from || !message) return;
 
     const receiverSocketId = users[to];
+
+    console.log(`💬 ${from} → ${to}: ${message}`);
 
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("privateMessage", {
@@ -69,14 +85,14 @@ io.on("connection", (socket) => {
   });
 
   // =========================
-  // DISCONNECT CLEANUP (FIXED)
+  // DISCONNECT
   // =========================
   socket.on("disconnect", () => {
     console.log("❌ Disconnected:", socket.id);
 
-    if (socket.username) {
+    if (socket.username && users[socket.username]) {
       delete users[socket.username];
-      io.emit("onlineUsers", Object.keys(users));
+      emitOnlineUsers();
     }
   });
 });
@@ -97,7 +113,7 @@ app.get("/", (req, res) => {
 });
 
 // =========================
-// CREATE POST
+// POSTS API
 // =========================
 app.post("/api/posts", async (req, res) => {
   try {
@@ -122,9 +138,6 @@ app.post("/api/posts", async (req, res) => {
   }
 });
 
-// =========================
-// GET POSTS
-// =========================
 app.get("/api/posts", async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
@@ -137,7 +150,7 @@ app.get("/api/posts", async (req, res) => {
 });
 
 // =========================
-// LIKE POST
+// LIKE
 // =========================
 app.put("/api/posts/like/:id", async (req, res) => {
   try {
@@ -156,7 +169,7 @@ app.put("/api/posts/like/:id", async (req, res) => {
 });
 
 // =========================
-// COMMENT POST
+// COMMENT
 // =========================
 app.post("/api/posts/comment/:id", async (req, res) => {
   try {
@@ -185,7 +198,7 @@ app.post("/api/posts/comment/:id", async (req, res) => {
 // =========================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("🔥 MongoDB Connected"))
-  .catch(err => console.log("❌ MongoDB Error:", err));
+  .catch(err => console.log("❌ Mongo Error:", err));
 
 // =========================
 // START SERVER
