@@ -18,56 +18,75 @@ console.log("👤 Username:", username);
 const API = "https://futureristic.onrender.com";
 
 // =========================
-// 🔌 SOCKET (REAL-TIME CHAT)
+// 🔌 SOCKET (DM SYSTEM)
 // =========================
 const socket = io(API);
 
-let currentRoom = "general";
+// REGISTER USER (VERY IMPORTANT)
+socket.emit("register", username);
 
 // =========================
-// 🏠 JOIN ROOM
+// 💬 CURRENT CHAT USER
 // =========================
-function joinRoom(room) {
-  currentRoom = room;
-  socket.emit("joinRoom", room);
+let currentChatUser = null;
+
+// =========================
+// 🟢 OPEN CHAT
+// =========================
+function openChat(user) {
+  currentChatUser = user;
 
   const box = document.getElementById("chatBox");
   if (box) box.innerHTML = "";
 
-  console.log("📥 Joined room:", room);
+  // update title
+  const title = document.getElementById("chatTitle");
+  if (title) title.innerText = "💬 Chat with " + user;
+
+  console.log("💬 Chatting with:", user);
 }
 
 // =========================
-// 💬 RECEIVE MESSAGE
-// =========================
-socket.on("receiveMessage", (data) => {
-  const box = document.getElementById("chatBox");
-  if (!box) return;
-
-  const div = document.createElement("div");
-  div.className = "chat-msg";
-  div.innerHTML = `<b>${data.user}:</b> ${data.message}`;
-
-  box.appendChild(div);
-});
-
-// =========================
-// 📤 SEND MESSAGE
+// 📤 SEND DM
 // =========================
 function sendMessage() {
   const input = document.getElementById("chatInput");
   if (!input) return;
 
   const message = input.value.trim();
-  if (!message) return;
+  if (!message || !currentChatUser) return;
 
-  socket.emit("sendMessage", {
-    room: currentRoom,
-    user: username,
+  socket.emit("privateMessage", {
+    to: currentChatUser,
+    from: username,
     message
   });
 
+  addMessage("You", message);
   input.value = "";
+}
+
+// =========================
+// 📩 RECEIVE DM
+// =========================
+socket.on("privateMessage", (data) => {
+  if (data.from === currentChatUser) {
+    addMessage(data.from, data.message);
+  }
+});
+
+// =========================
+// 🧾 ADD MESSAGE TO UI
+// =========================
+function addMessage(user, message) {
+  const box = document.getElementById("chatBox");
+  if (!box) return;
+
+  const div = document.createElement("div");
+  div.className = "chat-msg";
+  div.innerHTML = `<b>${user}:</b> ${message}`;
+
+  box.appendChild(div);
 }
 
 // =========================
@@ -103,13 +122,11 @@ async function loadPosts() {
           </button>
         </div>
 
-        <!-- COMMENT INPUT -->
         <div class="comment-box">
           <input id="c-${post._id}" placeholder="Write a comment..." />
           <button onclick="commentPost('${post._id}')">Send</button>
         </div>
 
-        <!-- COMMENTS -->
         <div class="comments">
           ${commentsHTML}
         </div>
@@ -136,7 +153,9 @@ async function createPost() {
   try {
     const res = await fetch(`${API}/api/posts`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
         user: username,
         text
@@ -204,7 +223,7 @@ async function commentPost(id) {
 }
 
 // =========================
-// 🟢 ONLINE USERS
+// 🟢 ONLINE USERS (CLICKABLE)
 // =========================
 const onlineUsers = ["David", "Sarah", "John", "Amaka"];
 
@@ -214,7 +233,11 @@ function renderOnlineUsers() {
 
   box.innerHTML = onlineUsers
     .filter(u => u !== username)
-    .map(u => `<div class="online-user">🟢 ${u}</div>`)
+    .map(u => `
+      <div class="online-user" onclick="openChat('${u}')">
+        🟢 ${u}
+      </div>
+    `)
     .join("");
 }
 
@@ -226,7 +249,4 @@ window.addEventListener("DOMContentLoaded", () => {
 
   renderOnlineUsers();
   loadPosts();
-
-  // AUTO JOIN DEFAULT ROOM
-  joinRoom("general");
 });

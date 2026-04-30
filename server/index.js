@@ -22,27 +22,43 @@ const io = new Server(server, {
 });
 
 // =========================
-// SOCKET EVENTS (REAL-TIME CHAT)
+// 🧠 STORE CONNECTED USERS
+// =========================
+let users = {}; // { username: socketId }
+
+// =========================
+// 🔌 SOCKET EVENTS (DM SYSTEM)
 // =========================
 io.on("connection", (socket) => {
   console.log("⚡ User connected:", socket.id);
 
-  // JOIN ROOM
-  socket.on("joinRoom", (room) => {
-    socket.join(room);
-    console.log(`📥 Joined room: ${room}`);
+  // REGISTER USER
+  socket.on("register", (username) => {
+    users[username] = socket.id;
+    console.log("👤 Registered:", username);
   });
 
-  // SEND MESSAGE
-  socket.on("sendMessage", ({ room, user, message }) => {
-    io.to(room).emit("receiveMessage", {
-      user,
-      message
-    });
+  // SEND PRIVATE MESSAGE
+  socket.on("privateMessage", ({ to, from, message }) => {
+    const receiverSocket = users[to];
+
+    if (receiverSocket) {
+      io.to(receiverSocket).emit("privateMessage", {
+        from,
+        message
+      });
+    }
   });
 
+  // CLEANUP ON DISCONNECT
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
+
+    for (let user in users) {
+      if (users[user] === socket.id) {
+        delete users[user];
+      }
+    }
   });
 });
 
@@ -102,7 +118,7 @@ app.get("/api/posts", async (req, res) => {
 });
 
 // =========================
-// ❤️ LIKE POST (SAFE FIX)
+// ❤️ LIKE POST
 // =========================
 app.put("/api/posts/like/:id", async (req, res) => {
   try {
@@ -161,7 +177,7 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.log("❌ MongoDB Error:", err));
 
 // =========================
-// START SERVER (IMPORTANT FIX)
+// START SERVER
 // =========================
 const PORT = process.env.PORT || 5000;
 
