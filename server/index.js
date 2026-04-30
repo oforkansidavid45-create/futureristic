@@ -13,30 +13,30 @@ const app = express();
 const server = http.createServer(app);
 
 // =========================
-// SOCKET.IO
+// SOCKET.IO SETUP
 // =========================
 const io = new Server(server, {
   cors: { origin: "*" }
 });
 
 // =========================
-// ONLINE USERS
+// ONLINE USERS (SAFE MAP)
 // =========================
 let users = {}; // username -> socket.id
 
 // =========================
-// SOCKET CONNECTION
+// SOCKET LOGIC
 // =========================
 io.on("connection", (socket) => {
   console.log("⚡ Connected:", socket.id);
 
   // =========================
-  // REGISTER USER (FIXED SAFE VERSION)
+  // REGISTER USER (FIXED)
   // =========================
   socket.on("register", (username) => {
     if (!username) return;
 
-    // remove old entry if duplicate
+    // remove old socket if user reconnects
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
@@ -52,16 +52,17 @@ io.on("connection", (socket) => {
   });
 
   // =========================
-  // PRIVATE MESSAGE (SAFE FIX)
+  // PRIVATE MESSAGE (SAFE DM)
   // =========================
   socket.on("privateMessage", ({ to, from, message }) => {
     if (!to || !from || !message) return;
 
-    const receiverId = users[to];
+    const receiverSocketId = users[to];
 
-    if (receiverId) {
-      io.to(receiverId).emit("privateMessage", {
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("privateMessage", {
         from,
+        to,
         message
       });
     }
@@ -73,11 +74,10 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("❌ Disconnected:", socket.id);
 
-    if (socket.username && users[socket.username]) {
+    if (socket.username) {
       delete users[socket.username];
+      io.emit("onlineUsers", Object.keys(users));
     }
-
-    io.emit("onlineUsers", Object.keys(users));
   });
 });
 
@@ -97,7 +97,7 @@ app.get("/", (req, res) => {
 });
 
 // =========================
-// POSTS API
+// CREATE POST
 // =========================
 app.post("/api/posts", async (req, res) => {
   try {
@@ -122,6 +122,9 @@ app.post("/api/posts", async (req, res) => {
   }
 });
 
+// =========================
+// GET POSTS
+// =========================
 app.get("/api/posts", async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
@@ -134,7 +137,7 @@ app.get("/api/posts", async (req, res) => {
 });
 
 // =========================
-// LIKE
+// LIKE POST
 // =========================
 app.put("/api/posts/like/:id", async (req, res) => {
   try {
@@ -153,7 +156,7 @@ app.put("/api/posts/like/:id", async (req, res) => {
 });
 
 // =========================
-// COMMENT
+// COMMENT POST
 // =========================
 app.post("/api/posts/comment/:id", async (req, res) => {
   try {

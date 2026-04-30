@@ -1,7 +1,7 @@
 console.log("🔥 script.js loaded");
 
 // =========================
-// 👤 USER (FIXED)
+// 👤 USER (SAFE FIXED)
 // =========================
 let username = localStorage.getItem("fb_username");
 
@@ -27,10 +27,11 @@ const socket = io(API);
 
 let currentChatUser = null;
 
-// IMPORTANT: register only after connect
+// =========================
+// CONNECT + REGISTER
+// =========================
 socket.on("connect", () => {
   console.log("🔌 Connected to server");
-
   socket.emit("register", username);
 });
 
@@ -40,10 +41,19 @@ socket.on("connect", () => {
 function openChat(user) {
   currentChatUser = user;
 
-  document.getElementById("chatBox").innerHTML = "";
-  document.getElementById("chatTitle").innerText = "💬 Chat with " + user;
+  const box = document.getElementById("chatBox");
+  const title = document.getElementById("chatTitle");
+
+  if (box) box.innerHTML = "";
+  if (title) title.innerText = "💬 Chat with " + user;
 
   console.log("💬 Chat opened with:", user);
+
+  // ask server for chat history (if backend supports it later)
+  socket.emit("openChat", {
+    from: username,
+    to: user
+  });
 }
 
 // =========================
@@ -51,8 +61,9 @@ function openChat(user) {
 // =========================
 function sendMessage() {
   const input = document.getElementById("chatInput");
-  const message = input.value.trim();
+  if (!input) return;
 
+  const message = input.value.trim();
   if (!message || !currentChatUser) return;
 
   socket.emit("privateMessage", {
@@ -69,36 +80,59 @@ function sendMessage() {
 // 📩 RECEIVE MESSAGE (FIXED)
 // =========================
 socket.on("privateMessage", (data) => {
-  if (data.from === currentChatUser) {
+  if (!data || !data.from) return;
+
+  // show only current chat OR if you're the receiver
+  if (data.from === currentChatUser || data.to === username) {
     addMessage(data.from, data.message);
   }
 });
 
 // =========================
-// 🧾 ADD MESSAGE UI
+// 🧾 ADD MESSAGE UI (SAFE)
 // =========================
 function addMessage(user, message) {
   const box = document.getElementById("chatBox");
+  if (!box) return;
 
   const div = document.createElement("div");
   div.className = "chat-msg";
   div.innerHTML = `<b>${user}:</b> ${message}`;
 
   box.appendChild(div);
+
+  box.scrollTop = box.scrollHeight;
 }
 
 // =========================
-// 🟢 ONLINE USERS (REAL)
+// ⌨️ TYPING INDICATOR (CLIENT SIDE)
+// =========================
+const chatInput = document.getElementById("chatInput");
+
+if (chatInput) {
+  chatInput.addEventListener("input", () => {
+    if (!currentChatUser) return;
+
+    socket.emit("typing", {
+      from: username,
+      to: currentChatUser
+    });
+  });
+}
+
+// =========================
+// 🟢 ONLINE USERS
 // =========================
 let onlineUsers = [];
 
 socket.on("onlineUsers", (users) => {
-  onlineUsers = users;
+  onlineUsers = users || [];
   renderOnlineUsers();
 });
 
 function renderOnlineUsers() {
   const box = document.getElementById("onlineUsers");
+  if (!box) return;
 
   box.innerHTML = onlineUsers
     .filter(u => u !== username)
