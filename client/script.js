@@ -5,7 +5,7 @@ let username = null;
 let currentChatUser = null;
 
 // unique tab id (multi-tab fix)
-const TAB_ID = Math.random().toString(36).substring(2);
+
 
 // ================= CLEAN NAME =================
 function cleanName(name) {
