@@ -20,28 +20,25 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// ❌ FIX: you had this twice (removed duplicate)
+// ✅ FIX: only ONE static folder line
 app.use(express.static(path.join(__dirname, "client")));
 
 // ================= USERS =================
 let users = {};
 
-// ================= HELPERS =================
 function emitOnlineUsers() {
   io.emit("onlineUsers", Object.keys(users));
 }
 
-// ================= SOCKET LOGIC =================
+// ================= SOCKET =================
 io.on("connection", (socket) => {
   console.log("⚡ connected:", socket.id);
 
-  // REGISTER USER
   socket.on("register", (username) => {
     if (!username) return;
 
     username = username.trim();
 
-    // remove old socket mapping (important fix)
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
@@ -51,21 +48,13 @@ io.on("connection", (socket) => {
     socket.username = username;
     users[username] = socket.id;
 
-    console.log("👤 registered:", username);
-
     emitOnlineUsers();
   });
 
-  // PRIVATE MESSAGE
   socket.on("privateMessage", ({ from, to, message }) => {
     if (!from || !to || !message) return;
 
-    message = message.trim();
-    if (!message) return;
-
     const receiverSocketId = users[to];
-
-    console.log(`💬 ${from} → ${to}: ${message}`);
 
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("privateMessage", {
@@ -76,10 +65,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // DISCONNECT
   socket.on("disconnect", () => {
-    console.log("❌ disconnected:", socket.id);
-
     if (socket.username) {
       delete users[socket.username];
       emitOnlineUsers();
@@ -88,14 +74,12 @@ io.on("connection", (socket) => {
 });
 
 // ================= POSTS =================
-
-// CREATE POST
 app.post("/api/posts", async (req, res) => {
   try {
     const { user, text } = req.body;
 
-    if (!user || !text || !text.trim()) {
-      return res.status(400).json({ error: "Missing user or text" });
+    if (!user || !text) {
+      return res.status(400).json({ error: "Missing data" });
     }
 
     const post = await Post.create({
@@ -106,32 +90,21 @@ app.post("/api/posts", async (req, res) => {
     });
 
     res.json(post);
-
   } catch (err) {
-    console.log("❌ POST ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// GET POSTS
 app.get("/api/posts", async (req, res) => {
-  try {
-    const posts = await Post.find().sort({ createdAt: -1 });
-    res.json(posts);
-  } catch (err) {
-    console.log("❌ GET ERROR:", err);
-    res.status(500).json({ error: "Server error" });
-  }
+  const posts = await Post.find().sort({ createdAt: -1 });
+  res.json(posts);
 });
 
 // ================= DB =================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("🔥 MongoDB connected"))
-  .catch(err => console.log("❌ Mongo error:", err));
+  .catch(err => console.log(err));
 
 // ================= START =================
 const PORT = process.env.PORT || 5000;
-
-server.listen(PORT, () => {
-  console.log("🚀 Server running on", PORT);
-});
+server.listen(PORT, () => console.log("🚀 Server running on", PORT));
