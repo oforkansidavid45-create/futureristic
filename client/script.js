@@ -1,5 +1,5 @@
 console.log("🔥 script loaded");
-
+const TAB_ID = Math.random().toString(36).substring(2);
 // ================= GLOBAL =================
 let username = null;
 let currentChatUser = null;
@@ -225,6 +225,8 @@ function addMessage(user, msg) {
 
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
+  console.log("ONLINE USERS:", users); // 🔥 DEBUG
+
   const box = document.getElementById("onlineUsers");
   if (!box) return;
 
