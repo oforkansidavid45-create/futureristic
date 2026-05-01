@@ -33,11 +33,17 @@ function emitOnlineUsers() {
 io.on("connection", (socket) => {
   console.log("⚡ connected:", socket.id);
 
+  // 🔥 FIX: send users immediately on connect
+  emitOnlineUsers();
+
   // ================= REGISTER =================
   socket.on("register", (username) => {
     if (!username) return;
 
     username = username.trim();
+
+    // 🔥 FIX: prevent duplicate usernames
+    if (users[username]) delete users[username];
 
     // remove old socket mapping if exists
     for (let key in users) {
