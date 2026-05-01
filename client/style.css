@@ -14,6 +14,7 @@ html {
   box-sizing: border-box;
 }
 
+/* ================= LAYOUT ================= */
 .app {
   display: flex;
   height: 100vh;
@@ -74,7 +75,6 @@ html {
   padding: 10px;
   border-radius: 8px;
   border: none;
-  outline: none;
   background: #1f2937;
   color: white;
 }
@@ -82,9 +82,15 @@ html {
 /* ================= POSTS ================= */
 .post {
   background: #111827;
+  border-radius: 15px;
   padding: 15px;
-  border-radius: 12px;
   margin-bottom: 15px;
+  transition: 0.2s;
+}
+
+.post:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(0,229,255,0.2);
 }
 
 /* ================= CREATE POST ================= */
@@ -126,7 +132,7 @@ html {
   flex-direction: column;
 }
 
-/* CHAT BOX */
+/* ================= CHAT ================= */
 .chat-box {
   flex: 1;
   overflow-y: auto;
@@ -136,7 +142,19 @@ html {
   margin-bottom: 10px;
 }
 
-/* CHAT INPUT */
+.chat-msg {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #1f2937;
+  margin-bottom: 6px;
+  width: fit-content;
+}
+
+.chat-msg b {
+  color: #00e5ff;
+}
+
+/* ================= CHAT INPUT ================= */
 .chat-input {
   display: flex;
   gap: 5px;
@@ -159,7 +177,7 @@ html {
   cursor: pointer;
 }
 
-/* ONLINE USERS */
+/* ================= ONLINE USERS ================= */
 .online-user {
   padding: 10px;
   border-radius: 8px;
@@ -196,10 +214,6 @@ html {
   cursor: pointer;
 }
 
-.comments {
-  margin-top: 10px;
-}
-
 .comment {
   font-size: 13px;
   margin-top: 5px;
@@ -218,16 +232,15 @@ html {
   border-radius: 10px;
 }
 
-/* ================= MOBILE FIX (CLEAN MERGED VERSION) ================= */
+/* ================= MOBILE ================= */
+.mobile-nav {
+  display: none;
+}
+
 @media (max-width: 768px) {
 
   .sidebar {
     display: none;
-  }
-
-  .feed {
-    width: 100%;
-    padding-bottom: 70px;
   }
 
   .topbar {
@@ -235,27 +248,58 @@ html {
     right: 0;
   }
 
-  /* CHAT OVERLAY (FIXED VERSION) */
+  .feed {
+    width: 100%;
+    padding-bottom: 80px;
+  }
+
+  /* CHAT OVERLAY */
   .rightbar {
     position: fixed;
     top: 60px;
     left: 0;
     right: 0;
-    bottom: 0;
-
+    bottom: 60px;
     width: 100%;
-    height: calc(100vh - 60px);
-
+    height: calc(100vh - 120px);
     display: none;
     z-index: 100;
   }
 
   .rightbar.active {
     display: flex;
-    flex-direction: column;
   }
 
-  .chat-box {
-    flex: 1;
+  /* MOBILE NAV */
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #111827;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #1f2937;
+    z-index: 200;
   }
+
+  .mobile-nav div {
+    font-size: 22px;
+    cursor: pointer;
+  }
+}
+
+/* ================= SMALL POLISH ================= */
+button {
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: scale(1.03);
+}
+
+input {
+  outline: none;
 }

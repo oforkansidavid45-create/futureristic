@@ -4,6 +4,7 @@ console.log("🔥 script loaded");
 let username = null;
 let currentChatUser = null;
 
+// unique tab id (multi-tab fix)
 const TAB_ID = Math.random().toString(36).substring(2);
 
 // ================= CLEAN NAME =================
@@ -40,8 +41,9 @@ function login() {
     document.getElementById("authScreen").style.display = "none";
     document.querySelector(".app").style.display = "flex";
 
-    socket.emit("register", username);
+    console.log("👤 Logged in as:", username);
 
+    socket.emit("register", username);
     loadPosts();
   } else {
     alert("Wrong login details");
@@ -50,21 +52,22 @@ function login() {
 
 // ================= SOCKET =================
 socket.on("connect", () => {
-  console.log("🔌 connected");
+  console.log("🔌 connected:", socket.id);
 });
 
-// ================= POSTS =================
+// ================= CREATE POST =================
 async function createPost() {
   if (!username) return alert("Login first!");
 
   const input = document.getElementById("postInput");
-  const text = input.value.trim();
+  if (!input) return;
 
+  const text = input.value.trim();
   if (!text) return alert("Write something!");
 
   await fetch(`${API}/api/posts`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
       user: cleanName(username),
       text
@@ -75,43 +78,55 @@ async function createPost() {
   loadPosts();
 }
 
+// ================= LOAD POSTS =================
 async function loadPosts() {
-  const res = await fetch(`${API}/api/posts`);
-  const posts = await res.json();
+  try {
+    const res = await fetch(`${API}/api/posts`);
+    const posts = await res.json();
 
-  const box = document.getElementById("posts");
-  if (!box) return;
+    const box = document.getElementById("posts");
+    if (!box) return;
 
-  box.innerHTML = posts.map(p => `
-    <div class="post">
-      <b>${p.user}</b>
-      <p>${p.text}</p>
+    box.innerHTML = posts.map(p => `
+      <div class="post">
+        <b>${p.user}</b>
+        <p>${p.text}</p>
 
-      <div>
-        ❤️ ${p.likes || 0}
-        <button onclick="likePost('${p._id}')">Like</button>
+        <div>
+          ❤️ ${p.likes || 0}
+          <button onclick="likePost('${p._id}')">Like</button>
+        </div>
+
+        <div class="comments">
+          ${(p.comments || []).map(c => `
+            <div class="comment">
+              <b>${c.user}:</b> ${c.text}
+            </div>
+          `).join("")}
+        </div>
+
+        <div class="comment-box">
+          <input id="c-${p._id}" placeholder="Write comment..." />
+          <button onclick="addComment('${p._id}')">Send</button>
+        </div>
       </div>
+    `).join("");
 
-      <div class="comments">
-        ${(p.comments || []).map(c => `
-          <div class="comment">
-            <b>${c.user}:</b> ${c.text}
-          </div>
-        `).join("")}
-      </div>
-
-      <div class="comment-box">
-        <input id="c-${p._id}" placeholder="Write comment..." />
-        <button onclick="addComment('${p._id}')">Send</button>
-      </div>
-    </div>
-  `).join("");
+  } catch (err) {
+    console.log("❌ loadPosts error:", err);
+  }
 }
 
 // ================= LIKE =================
 async function likePost(id) {
-  await fetch(`${API}/api/posts/like/${id}`, { method: "PUT" });
-  loadPosts();
+  try {
+    await fetch(`${API}/api/posts/like/${id}`, {
+      method: "PUT"
+    });
+    loadPosts();
+  } catch (err) {
+    console.log("❌ like error:", err);
+  }
 }
 
 // ================= COMMENT =================
@@ -119,43 +134,58 @@ async function addComment(id) {
   if (!username) return alert("Login first!");
 
   const input = document.getElementById(`c-${id}`);
-  const text = input.value.trim();
+  if (!input) return;
 
+  const text = input.value.trim();
   if (!text) return;
 
-  await fetch(`${API}/api/posts/comment/${id}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user: cleanName(username),
-      text
-    })
-  });
+  try {
+    await fetch(`${API}/api/posts/comment/${id}`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        user: cleanName(username),
+        text
+      })
+    });
 
-  input.value = "";
-  loadPosts();
+    input.value = "";
+    loadPosts();
+  } catch (err) {
+    console.log("❌ comment error:", err);
+  }
 }
 
 // ================= CHAT =================
 function openChat(user) {
   currentChatUser = user;
 
-  document.getElementById("chatTitle").innerText =
-    "Chat with " + cleanName(user);
+  const title = document.getElementById("chatTitle");
+  const box = document.getElementById("chatBox");
+  const rightbar = document.querySelector(".rightbar");
 
-  document.getElementById("chatBox").innerHTML = "";
+  if (title) title.innerText = "Chat with " + cleanName(user);
+  if (box) box.innerHTML = "";
 
-  // MOBILE FIX → show chat panel
-  const chatPanel = document.querySelector(".rightbar");
-  if (chatPanel) chatPanel.classList.add("active");
+  // ✅ MOBILE FIX (IMPORTANT)
+  if (window.innerWidth <= 768 && rightbar) {
+    rightbar.classList.add("active");
+  }
 }
 
+function closeChat() {
+  const rightbar = document.querySelector(".rightbar");
+  if (rightbar) rightbar.classList.remove("active");
+}
+
+// ================= SEND MESSAGE =================
 function sendMessage() {
   if (!username) return alert("Login first!");
 
   const input = document.getElementById("chatInput");
-  const message = input.value.trim();
+  if (!input) return;
 
+  const message = input.value.trim();
   if (!message || !currentChatUser) return;
 
   socket.emit("privateMessage", {
@@ -208,15 +238,7 @@ socket.on("onlineUsers", (users) => {
     .join("");
 });
 
-// ================= MOBILE CHAT TOGGLE FIX =================
-function toggleChat() {
-  const chat = document.querySelector(".rightbar");
-  if (!chat) return;
-
-  chat.classList.toggle("active");
-}
-
-// ================= AUTO LOGIN FILL =================
+// ================= AUTO-FILL LOGIN =================
 window.addEventListener("DOMContentLoaded", () => {
   const saved = JSON.parse(localStorage.getItem("fb_user"));
 

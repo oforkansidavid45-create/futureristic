@@ -10,7 +10,7 @@
 
 <body>
 
-<!-- ================= AUTH SCREEN ================= -->
+<!-- AUTH -->
 <div id="authScreen">
   <h2>⚡ FutureBook</h2>
 
@@ -21,7 +21,7 @@
   <button onclick="login()">Login</button>
 </div>
 
-<!-- ================= MAIN APP ================= -->
+<!-- APP -->
 <div class="app" style="display:none;">
 
   <!-- LEFT -->
@@ -35,9 +35,8 @@
     <div class="menu-item">⚙️ Settings</div>
   </div>
 
-  <!-- CENTER -->
+  <!-- FEED -->
   <div class="feed">
-
     <div class="topbar">
       <input class="search" placeholder="Search FutureBook..." />
     </div>
@@ -48,17 +47,10 @@
     </div>
 
     <div id="posts"></div>
-
   </div>
 
-  <!-- RIGHT (CHAT PANEL) -->
+  <!-- CHAT -->
   <div class="rightbar" id="chatPanel">
-
-    <h3>🟢 Online Users</h3>
-    <div id="onlineUsers"></div>
-
-    <hr>
-
     <h3 id="chatTitle">💬 Select a user</h3>
 
     <div id="chatBox" class="chat-box"></div>
@@ -67,30 +59,18 @@
       <input id="chatInput" placeholder="Type message..." />
       <button onclick="sendMessage()">Send</button>
     </div>
-
   </div>
 
 </div>
 
-<!-- ================= MOBILE NAV ================= -->
+<!-- MOBILE NAV -->
 <div class="mobile-nav">
-
-  <button onclick="scrollToTop()">🏠</button>
-
-  <button onclick="toggleChat()">💬</button>
-
-  <button onclick="focusPost()">➕</button>
-
-  <button onclick="alert('Profile coming')">👤</button>
-
-  <button onclick="alert('Settings coming')">⚙️</button>
-
+  <div onclick="showFeed()">🏠</div>
+  <div onclick="toggleChat()">💬</div>
+  <div onclick="logout()">🚪</div>
 </div>
 
-<!-- SOCKET.IO -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
-<!-- SCRIPT -->
 <script src="script.js"></script>
 
 </body>
