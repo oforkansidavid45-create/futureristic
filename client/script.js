@@ -225,7 +225,7 @@ function addMessage(user, msg) {
 
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
-  console.log("ONLINE USERS:", users); // 🔥 DEBUG
+  console.log("ONLINE USERS FROM SERVER:", users); // 🔥 DEBUG
 
   const box = document.getElementById("onlineUsers");
   if (!box) return;
@@ -234,12 +234,11 @@ socket.on("onlineUsers", (users) => {
     .filter(u => u && u !== username)
     .map(u => `
       <div class="online-user" onclick="openChat('${u}')">
-        🟢 ${cleanName(u)}
+        🟢 ${u.split("_")[0]}
       </div>
     `)
     .join("");
 });
-
 // ================= AUTO-FILL LOGIN =================
 window.addEventListener("DOMContentLoaded", () => {
   const saved = JSON.parse(localStorage.getItem("fb_user"));
