@@ -52,7 +52,7 @@ function login() {
 socket.on("connect", () => {
   console.log("🔌 connected:", socket.id);
 
-  // 🔥 ADDED FIX: re-register after reconnect
+  // 🔥 re-register after reconnect
   if (username) {
     socket.emit("register", username);
   }
@@ -240,6 +240,36 @@ socket.on("onlineUsers", (users) => {
       </div>
     `)
     .join("");
+});
+
+// ================= TYPING INDICATOR (NEW) =================
+
+// SEND typing
+document.addEventListener("DOMContentLoaded", () => {
+  const chatInput = document.getElementById("chatInput");
+
+  if (chatInput) {
+    chatInput.addEventListener("input", () => {
+      if (currentChatUser) {
+        socket.emit("typing", {
+          from: username,
+          to: currentChatUser
+        });
+      }
+    });
+  }
+});
+
+// RECEIVE typing
+socket.on("typing", (data) => {
+  if (!currentChatUser) return;
+
+  if (cleanName(data.from) === cleanName(currentChatUser)) {
+    const title = document.getElementById("chatTitle");
+    if (title) {
+      title.innerText = cleanName(data.from) + " is typing...";
+    }
+  }
 });
 
 // ================= AUTO-FILL LOGIN =================
