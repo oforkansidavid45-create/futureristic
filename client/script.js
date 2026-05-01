@@ -1,11 +1,9 @@
 console.log("🔥 script loaded");
 const TAB_ID = Math.random().toString(36).substring(2);
+
 // ================= GLOBAL =================
 let username = null;
 let currentChatUser = null;
-
-// unique tab id (multi-tab fix)
-
 
 // ================= CLEAN NAME =================
 function cleanName(name) {
@@ -53,6 +51,11 @@ function login() {
 // ================= SOCKET =================
 socket.on("connect", () => {
   console.log("🔌 connected:", socket.id);
+
+  // 🔥 ADDED FIX: re-register after reconnect
+  if (username) {
+    socket.emit("register", username);
+  }
 });
 
 // ================= CREATE POST =================
@@ -167,7 +170,6 @@ function openChat(user) {
   if (title) title.innerText = "Chat with " + cleanName(user);
   if (box) box.innerHTML = "";
 
-  // ✅ MOBILE FIX (IMPORTANT)
   if (window.innerWidth <= 768 && rightbar) {
     rightbar.classList.add("active");
   }
@@ -225,7 +227,7 @@ function addMessage(user, msg) {
 
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
-  console.log("ONLINE USERS FROM SERVER:", users); // 🔥 DEBUG
+  console.log("ONLINE USERS FROM SERVER:", users);
 
   const box = document.getElementById("onlineUsers");
   if (!box) return;
@@ -239,6 +241,7 @@ socket.on("onlineUsers", (users) => {
     `)
     .join("");
 });
+
 // ================= AUTO-FILL LOGIN =================
 window.addEventListener("DOMContentLoaded", () => {
   const saved = JSON.parse(localStorage.getItem("fb_user"));
