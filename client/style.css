@@ -253,36 +253,45 @@ html {
     padding-bottom: 80px;
   }
 
-  /* CHAT OVERLAY */
+  /* ================= CHAT OVERLAY FIXED ================= */
   .rightbar {
     position: fixed;
     top: 60px;
     left: 0;
     right: 0;
     bottom: 60px;
+
     width: 100%;
     height: calc(100vh - 120px);
+
     display: none;
-    z-index: 100;
+    flex-direction: column;
+
+    z-index: 999; /* 🔥 FIX: must be above everything */
+    background: #111827;
   }
 
+  /* IMPORTANT: show chat when active */
   .rightbar.active {
-    display: flex;
+    display: flex !important;  /* 🔥 FIX: forces visibility */
   }
 
-  /* MOBILE NAV */
+  /* ================= MOBILE NAV ================= */
   .mobile-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+
     height: 60px;
     background: #111827;
+
     display: flex;
     justify-content: space-around;
     align-items: center;
+
     border-top: 1px solid #1f2937;
-    z-index: 200;
+    z-index: 1000;
   }
 
   .mobile-nav div {

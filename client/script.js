@@ -52,7 +52,7 @@ function login() {
 socket.on("connect", () => {
   console.log("🔌 connected:", socket.id);
 
-  // 🔥 re-register after reconnect
+  // 🔥 FIX: re-register after reconnect
   if (username) {
     socket.emit("register", username);
   }
@@ -165,18 +165,29 @@ function openChat(user) {
 
   const title = document.getElementById("chatTitle");
   const box = document.getElementById("chatBox");
-  const rightbar = document.querySelector(".rightbar");
+
+  // ✅ FIX ADDED: safer selector for mobile
+  const rightbar = document.getElementById("chatPanel");
 
   if (title) title.innerText = "Chat with " + cleanName(user);
   if (box) box.innerHTML = "";
 
+  // MOBILE FIX
   if (window.innerWidth <= 768 && rightbar) {
     rightbar.classList.add("active");
   }
 }
 
+// ✅ FIX ADDED: missing function for mobile nav button
+function toggleChat() {
+  const rightbar = document.getElementById("chatPanel");
+  if (!rightbar) return;
+
+  rightbar.classList.toggle("active");
+}
+
 function closeChat() {
-  const rightbar = document.querySelector(".rightbar");
+  const rightbar = document.getElementById("chatPanel");
   if (rightbar) rightbar.classList.remove("active");
 }
 
@@ -240,36 +251,6 @@ socket.on("onlineUsers", (users) => {
       </div>
     `)
     .join("");
-});
-
-// ================= TYPING INDICATOR (NEW) =================
-
-// SEND typing
-document.addEventListener("DOMContentLoaded", () => {
-  const chatInput = document.getElementById("chatInput");
-
-  if (chatInput) {
-    chatInput.addEventListener("input", () => {
-      if (currentChatUser) {
-        socket.emit("typing", {
-          from: username,
-          to: currentChatUser
-        });
-      }
-    });
-  }
-});
-
-// RECEIVE typing
-socket.on("typing", (data) => {
-  if (!currentChatUser) return;
-
-  if (cleanName(data.from) === cleanName(currentChatUser)) {
-    const title = document.getElementById("chatTitle");
-    if (title) {
-      title.innerText = cleanName(data.from) + " is typing...";
-    }
-  }
 });
 
 // ================= AUTO-FILL LOGIN =================

@@ -50,22 +50,23 @@
   </div>
 
   <!-- CHAT -->
-<div class="rightbar" id="chatPanel">
+  <div class="rightbar" id="chatPanel">
 
-  <h3>🟢 Online Users</h3>
-  <div id="onlineUsers"></div>
+    <h3>🟢 Online Users</h3>
+    <div id="onlineUsers"></div>
 
-  <hr>
+    <hr>
 
-  <h3 id="chatTitle">💬 Select a user</h3>
+    <h3 id="chatTitle">💬 Select a user</h3>
 
-  <div id="chatBox" class="chat-box"></div>
+    <div id="chatBox" class="chat-box"></div>
 
-  <div class="chat-input">
-    <input id="chatInput" placeholder="Type message..." />
-    <button onclick="sendMessage()">Send</button>
+    <div class="chat-input">
+      <input id="chatInput" placeholder="Type message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
   </div>
-
 </div>
 
 <!-- MOBILE NAV -->
@@ -77,6 +78,18 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="script.js"></script>
+
+<!-- ================= FIXED SAFETY FUNCTIONS ================= -->
+<script>
+function showFeed() {
+  document.querySelector(".feed").style.display = "block";
+}
+
+function logout() {
+  localStorage.removeItem("fb_user");
+  location.reload();
+}
+</script>
 
 </body>
 </html>
