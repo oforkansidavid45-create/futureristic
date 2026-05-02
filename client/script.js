@@ -174,6 +174,12 @@ function openChat(user) {
   if (title) title.innerText = "Chat with " + cleanName(user);
   if (box) box.innerHTML = "";
 
+  // ✅ NEW: mark messages as seen
+  socket.emit("messageSeen", {
+    from: username,
+    to: user
+  });
+
   if (window.innerWidth <= 768 && rightbar) {
     rightbar.classList.add("active");
 
@@ -183,14 +189,19 @@ function openChat(user) {
     }, 300);
   }
 }
-function addMessage(user, msg) {
+
+// ================= MESSAGE UI =================
+function addMessage(user, msg, status = "") {
   const box = document.getElementById("chatBox");
   if (!box) return;
 
   const div = document.createElement("div");
   div.className = "chat-msg";
 
-  div.innerHTML = `<b>${user}:</b> ${msg}`;
+  div.innerHTML = `
+    <b>${user}:</b> ${msg}
+    ${user === "You" ? `<span class="status">${status}</span>` : ""}
+  `;
 
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
@@ -217,7 +228,9 @@ function sendMessage() {
     to: currentChatUser
   });
 
-  addMessage("You", message);
+  // ✅ NEW: message status
+  addMessage("You", message, "✔ Sent");
+
   input.value = "";
 }
 
@@ -231,6 +244,15 @@ socket.on("privateMessage", (data) => {
   if (fromClean === activeUser) {
     addMessage(fromClean, data.message);
   }
+});
+
+// ================= SEEN STATUS =================
+socket.on("messageSeen", () => {
+  const statuses = document.querySelectorAll(".status");
+
+  statuses.forEach(s => {
+    s.innerText = "✔✔ Seen";
+  });
 });
 
 // ================= ONLINE USERS =================
@@ -248,7 +270,7 @@ socket.on("onlineUsers", (users) => {
     .join("");
 });
 
-// ================= HANDLE TYPING (SAFE) =================
+// ================= HANDLE TYPING =================
 function handleTyping() {
   if (!username || !currentChatUser) return;
 
@@ -285,7 +307,7 @@ socket.on("stopTyping", () => {
   }
 });
 
-// ================= AUTO LOGIN FILL =================
+// ================= AUTO LOGIN =================
 window.addEventListener("DOMContentLoaded", () => {
   const saved = JSON.parse(localStorage.getItem("fb_user"));
 

@@ -329,4 +329,8 @@ button:hover {
 
 input {
   outline: none;
+}.status {
+  font-size: 10px;
+  margin-left: 8px;
+  color: #00e5ff;
 }

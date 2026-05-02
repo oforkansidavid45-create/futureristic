@@ -35,6 +35,7 @@ io.on("connection", (socket) => {
 
   emitOnlineUsers();
 
+  // 🔥 ASK CLIENT TO REGISTER AGAIN (IMPORTANT)
   socket.emit("requestRegister");
 
   // ================= REGISTER =================
@@ -43,10 +44,10 @@ io.on("connection", (socket) => {
 
     username = username.trim();
 
-    // remove old same username
+    // remove duplicate username
     if (users[username]) delete users[username];
 
-    // clean old socket mapping
+    // remove old mapping for this socket
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
@@ -87,7 +88,7 @@ io.on("connection", (socket) => {
 
   // ================= 🔥 TYPING =================
   socket.on("typing", ({ from, to }) => {
-    if (!from || !to) return; // 🔥 FIX
+    if (!from || !to) return;
 
     const receiverSocketId = users[to];
     if (!receiverSocketId) return;
@@ -96,7 +97,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("stopTyping", ({ from, to }) => {
-    if (!from || !to) return; // 🔥 FIX
+    if (!from || !to) return;
 
     const receiverSocketId = users[to];
     if (!receiverSocketId) return;
