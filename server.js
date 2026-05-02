@@ -35,7 +35,37 @@ io.on("connection", (socket) => {
 
   emitOnlineUsers();
 
-  // 🔥 ASK CLIENT TO REGISTER AGAIN (IMPORTANT)
+  // ================= DELIVERED =================
+  socket.on("delivered", ({ from, to }) => {
+    if (!from || !to) return;
+
+    const senderSocket = users[from];
+    if (senderSocket) {
+      io.to(senderSocket).emit("delivered", { from: to });
+    }
+  });
+
+  // ================= SEEN =================
+  socket.on("seen", ({ from, to }) => {
+    if (!from || !to) return;
+
+    const senderSocket = users[from];
+    if (senderSocket) {
+      io.to(senderSocket).emit("seen", { from: to });
+    }
+  });
+
+  // 🔥 FIX: support OLD frontend event (messageSeen)
+  socket.on("messageSeen", ({ from, to }) => {
+    if (!from || !to) return;
+
+    const senderSocket = users[from];
+    if (senderSocket) {
+      io.to(senderSocket).emit("messageSeen", { from: to });
+    }
+  });
+
+  // 🔥 ASK CLIENT TO REGISTER AGAIN
   socket.emit("requestRegister");
 
   // ================= REGISTER =================
@@ -44,10 +74,8 @@ io.on("connection", (socket) => {
 
     username = username.trim();
 
-    // remove duplicate username
     if (users[username]) delete users[username];
 
-    // remove old mapping for this socket
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
@@ -81,12 +109,19 @@ io.on("connection", (socket) => {
         to,
         message
       });
+
+      // 🔥 NEW: notify sender that message is delivered
+      const senderSocket = users[from];
+      if (senderSocket) {
+        io.to(senderSocket).emit("delivered", { from: to });
+      }
+
     } else {
       console.log("⚠️ User not online:", to);
     }
   });
 
-  // ================= 🔥 TYPING =================
+  // ================= TYPING =================
   socket.on("typing", ({ from, to }) => {
     if (!from || !to) return;
 

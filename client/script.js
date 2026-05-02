@@ -174,8 +174,8 @@ function openChat(user) {
   if (title) title.innerText = "Chat with " + cleanName(user);
   if (box) box.innerHTML = "";
 
-  // ✅ NEW: mark messages as seen
-  socket.emit("messageSeen", {
+  // ✅ FIX: send SEEN
+  socket.emit("seen", {
     from: username,
     to: user
   });
@@ -200,11 +200,19 @@ function addMessage(user, msg, status = "") {
 
   div.innerHTML = `
     <b>${user}:</b> ${msg}
-    ${user === "You" ? `<span class="status">${status}</span>` : ""}
+    <span class="msg-status">${status}</span>
   `;
 
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
+}
+
+// ================= UPDATE STATUS =================
+function updateLastMessageStatus(status) {
+  const msgs = document.querySelectorAll(".msg-status");
+  if (!msgs.length) return;
+
+  msgs[msgs.length - 1].innerText = status;
 }
 
 // ================= SEND MESSAGE =================
@@ -228,31 +236,37 @@ function sendMessage() {
     to: currentChatUser
   });
 
-  // ✅ NEW: message status
-  addMessage("You", message, "✔ Sent");
+  // ✅ FIX: show sent
+  addMessage("You", message, "✔");
 
   input.value = "";
 }
 
 // ================= RECEIVE MESSAGE =================
 socket.on("privateMessage", (data) => {
-  if (!data || !currentChatUser) return;
+  if (!data) return;
 
   const fromClean = cleanName(data.from);
-  const activeUser = cleanName(currentChatUser);
 
-  if (fromClean === activeUser) {
+  if (currentChatUser && fromClean === cleanName(currentChatUser)) {
     addMessage(fromClean, data.message);
+
+    // ✅ SEND DELIVERED
+    socket.emit("delivered", {
+      from: username,
+      to: data.from
+    });
   }
 });
 
-// ================= SEEN STATUS =================
-socket.on("messageSeen", () => {
-  const statuses = document.querySelectorAll(".status");
+// ================= DELIVERED =================
+socket.on("delivered", () => {
+  updateLastMessageStatus("✔✔");
+});
 
-  statuses.forEach(s => {
-    s.innerText = "✔✔ Seen";
-  });
+// ================= SEEN =================
+socket.on("seen", () => {
+  updateLastMessageStatus("✔✔ Seen");
 });
 
 // ================= ONLINE USERS =================

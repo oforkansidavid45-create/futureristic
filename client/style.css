@@ -334,3 +334,8 @@ input {
   margin-left: 8px;
   color: #00e5ff;
 }
+.msg-status {
+  font-size: 11px;
+  margin-left: 6px;
+  color: #00e5ff;
+}
