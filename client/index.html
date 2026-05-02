@@ -6,6 +6,13 @@
   <title>FutureBook ⚡</title>
 
   <link rel="stylesheet" href="style.css"/>
+
+  <!-- 🔥 FIX: helps mobile toggle animations work better -->
+  <style>
+    .rightbar {
+      transition: transform 0.3s ease;
+    }
+  </style>
 </head>
 
 <body>
@@ -62,7 +69,6 @@
     <div id="chatBox" class="chat-box"></div>
 
     <div class="chat-input">
-      <!-- ✅ FIX: only ONE chat input -->
       <input id="chatInput" placeholder="Type message..." oninput="handleTyping()" />
       <button onclick="sendMessage()">Send</button>
     </div>
@@ -89,6 +95,14 @@ function showFeed() {
 function logout() {
   localStorage.removeItem("fb_user");
   location.reload();
+}
+
+/* 🔥 FIX: prevents “nothing happens” feeling if JS not loaded yet */
+function toggleChat() {
+  const panel = document.getElementById("chatPanel");
+  if (!panel) return;
+
+  panel.classList.toggle("active");
 }
 </script>
 

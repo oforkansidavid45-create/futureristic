@@ -232,7 +232,7 @@ html {
   border-radius: 10px;
 }
 
-/* ================= MOBILE ================= */
+/* ================= MOBILE (FIXED - ONLY ONE BLOCK) ================= */
 .mobile-nav {
   display: none;
 }
@@ -250,30 +250,48 @@ html {
 
   .feed {
     width: 100%;
-    padding-bottom: 80px;
+    padding-bottom: 90px;
   }
 
-  /* ================= CHAT OVERLAY FIXED ================= */
+  /* ================= CHAT FIX ================= */
   .rightbar {
     position: fixed;
-    top: 60px;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 60px;
 
     width: 100%;
-    height: calc(100vh - 120px);
+    height: 100vh;
 
     display: none;
     flex-direction: column;
 
-    z-index: 999; /* 🔥 FIX: must be above everything */
     background: #111827;
+    z-index: 999;
   }
 
-  /* IMPORTANT: show chat when active */
   .rightbar.active {
-    display: flex !important;  /* 🔥 FIX: forces visibility */
+    display: flex !important;
+  }
+
+  /* ================= CHAT BOX ================= */
+  .chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 90px;
+  }
+
+  /* ================= CHAT INPUT ================= */
+  .chat-input {
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+
+    padding: 10px;
+    background: #111827;
+    z-index: 1000;
   }
 
   /* ================= MOBILE NAV ================= */
@@ -291,7 +309,7 @@ html {
     align-items: center;
 
     border-top: 1px solid #1f2937;
-    z-index: 1000;
+    z-index: 1001;
   }
 
   .mobile-nav div {
@@ -311,22 +329,4 @@ button:hover {
 
 input {
   outline: none;
-}
-/* ================= MOBILE CHAT INPUT FIX ================= */
-@media (max-width: 768px) {
-
-  .chat-input {
-    position: fixed;
-    bottom: 70px; /* 🔥 ABOVE mobile nav */
-    left: 0;
-    right: 0;
-
-    padding: 10px;
-    background: #111827;
-    z-index: 1000;
-  }
-
-  .chat-box {
-    padding-bottom: 80px; /* space for input */
-  }
 }
