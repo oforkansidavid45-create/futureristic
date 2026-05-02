@@ -33,8 +33,10 @@ function emitOnlineUsers() {
 io.on("connection", (socket) => {
   console.log("⚡ connected:", socket.id);
 
-  // 🔥 FIX: send users immediately on connect
   emitOnlineUsers();
+
+  // 🔥 NEW: request client to re-register
+  socket.emit("requestRegister");
 
   // ================= REGISTER =================
   socket.on("register", (username) => {
@@ -42,10 +44,8 @@ io.on("connection", (socket) => {
 
     username = username.trim();
 
-    // 🔥 FIX: prevent duplicate usernames
     if (users[username]) delete users[username];
 
-    // remove old socket mapping if exists
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
@@ -58,6 +58,9 @@ io.on("connection", (socket) => {
     console.log("👤 ONLINE USERS:", Object.keys(users));
 
     emitOnlineUsers();
+
+    // 🔥 NEW
+    socket.emit("registered", username);
   });
 
   // ================= PRIVATE MESSAGE =================
@@ -77,7 +80,31 @@ io.on("connection", (socket) => {
         to,
         message
       });
+    } else {
+      console.log("⚠️ User not online:", to); // 🔥 NEW
     }
+  });
+
+  // ================= 🔥 TYPING INDICATOR =================
+  socket.on("typing", ({ from, to }) => {
+    const receiverSocketId = users[to];
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("typing", { from });
+    }
+  });
+
+  socket.on("stopTyping", ({ from, to }) => {
+    const receiverSocketId = users[to];
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("stopTyping", { from });
+    }
+  });
+
+  // 🔥 NEW: keep connection alive
+  socket.on("pingCheck", () => {
+    socket.emit("pongCheck");
   });
 
   // ================= DISCONNECT =================

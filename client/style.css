@@ -312,3 +312,21 @@ button:hover {
 input {
   outline: none;
 }
+/* ================= MOBILE CHAT INPUT FIX ================= */
+@media (max-width: 768px) {
+
+  .chat-input {
+    position: fixed;
+    bottom: 70px; /* 🔥 ABOVE mobile nav */
+    left: 0;
+    right: 0;
+
+    padding: 10px;
+    background: #111827;
+    z-index: 1000;
+  }
+
+  .chat-box {
+    padding-bottom: 80px; /* space for input */
+  }
+}

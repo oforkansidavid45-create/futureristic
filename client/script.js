@@ -4,6 +4,7 @@ const TAB_ID = Math.random().toString(36).substring(2);
 // ================= GLOBAL =================
 let username = null;
 let currentChatUser = null;
+let typingTimeout = null;
 
 // ================= CLEAN NAME =================
 function cleanName(name) {
@@ -52,7 +53,6 @@ function login() {
 socket.on("connect", () => {
   console.log("🔌 connected:", socket.id);
 
-  // 🔥 FIX: re-register after reconnect
   if (username) {
     socket.emit("register", username);
   }
@@ -165,30 +165,19 @@ function openChat(user) {
 
   const title = document.getElementById("chatTitle");
   const box = document.getElementById("chatBox");
-
-  // ✅ FIX ADDED: safer selector for mobile
   const rightbar = document.getElementById("chatPanel");
 
   if (title) title.innerText = "Chat with " + cleanName(user);
   if (box) box.innerHTML = "";
 
-  // MOBILE FIX
   if (window.innerWidth <= 768 && rightbar) {
     rightbar.classList.add("active");
+
+    setTimeout(() => {
+      const input = document.getElementById("chatInput");
+      if (input) input.focus();
+    }, 300);
   }
-}
-
-// ✅ FIX ADDED: missing function for mobile nav button
-function toggleChat() {
-  const rightbar = document.getElementById("chatPanel");
-  if (!rightbar) return;
-
-  rightbar.classList.toggle("active");
-}
-
-function closeChat() {
-  const rightbar = document.getElementById("chatPanel");
-  if (rightbar) rightbar.classList.remove("active");
 }
 
 // ================= SEND MESSAGE =================
@@ -207,6 +196,12 @@ function sendMessage() {
     message
   });
 
+  // 🔥 NEW: stop typing when message is sent
+  socket.emit("stopTyping", {
+    from: username,
+    to: currentChatUser
+  });
+
   addMessage("You", message);
   input.value = "";
 }
@@ -223,23 +218,8 @@ socket.on("privateMessage", (data) => {
   }
 });
 
-// ================= UI MESSAGE =================
-function addMessage(user, msg) {
-  const box = document.getElementById("chatBox");
-  if (!box) return;
-
-  const div = document.createElement("div");
-  div.className = "chat-msg";
-  div.innerHTML = `<b>${user}:</b> ${msg}`;
-
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-}
-
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
-  console.log("ONLINE USERS FROM SERVER:", users);
-
   const box = document.getElementById("onlineUsers");
   if (!box) return;
 
@@ -251,6 +231,53 @@ socket.on("onlineUsers", (users) => {
       </div>
     `)
     .join("");
+});
+
+// ================= TYPING =================
+document.addEventListener("DOMContentLoaded", () => {
+  const chatInput = document.getElementById("chatInput");
+
+  if (chatInput) {
+    chatInput.addEventListener("input", () => {
+      if (!username || !currentChatUser) return;
+
+      socket.emit("typing", {
+        from: username,
+        to: currentChatUser
+      });
+
+      // 🔥 NEW: stopTyping after delay
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        socket.emit("stopTyping", {
+          from: username,
+          to: currentChatUser
+        });
+      }, 1000);
+    });
+  }
+});
+
+// ================= SHOW TYPING =================
+socket.on("typing", (data) => {
+  if (!currentChatUser) return;
+
+  if (cleanName(data.from) === cleanName(currentChatUser)) {
+    const title = document.getElementById("chatTitle");
+
+    if (title) {
+      title.innerText = cleanName(data.from) + " is typing...";
+    }
+  }
+});
+
+// ================= STOP TYPING =================
+socket.on("stopTyping", (data) => {
+  const title = document.getElementById("chatTitle");
+
+  if (title && currentChatUser) {
+    title.innerText = "Chat with " + cleanName(currentChatUser);
+  }
 });
 
 // ================= AUTO-FILL LOGIN =================
