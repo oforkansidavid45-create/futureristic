@@ -16,10 +16,16 @@ function cleanName(name) {
 const API = "https://futureristic.onrender.com";
 const socket = io(API);
 
+// ================= SAFE GET INPUT =================
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : "";
+}
+
 // ================= AUTH =================
 function signup() {
-  const name = document.getElementById("nameInput").value.trim();
-  const pass = document.getElementById("passwordInput").value;
+  const name = getVal("nameInput").trim();
+  const pass = getVal("passwordInput");
 
   if (!name || !pass) return alert("Fill all fields");
 
@@ -28,8 +34,8 @@ function signup() {
 }
 
 function login() {
-  const name = document.getElementById("nameInput").value.trim();
-  const pass = document.getElementById("passwordInput").value;
+  const name = getVal("nameInput").trim();
+  const pass = getVal("passwordInput");
 
   const saved = JSON.parse(localStorage.getItem("fb_user"));
   if (!saved) return alert("No account found");
@@ -70,7 +76,7 @@ async function createPost() {
 
   await fetch(`${API}/api/posts`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       user: cleanName(username),
       text
@@ -123,9 +129,7 @@ async function loadPosts() {
 // ================= LIKE =================
 async function likePost(id) {
   try {
-    await fetch(`${API}/api/posts/like/${id}`, {
-      method: "PUT"
-    });
+    await fetch(`${API}/api/posts/like/${id}`, { method: "PUT" });
     loadPosts();
   } catch (err) {
     console.log("❌ like error:", err);
@@ -145,7 +149,7 @@ async function addComment(id) {
   try {
     await fetch(`${API}/api/posts/comment/${id}`, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user: cleanName(username),
         text
@@ -196,7 +200,6 @@ function sendMessage() {
     message
   });
 
-  // 🔥 NEW: stop typing when message is sent
   socket.emit("stopTyping", {
     from: username,
     to: currentChatUser
@@ -233,30 +236,24 @@ socket.on("onlineUsers", (users) => {
     .join("");
 });
 
-// ================= TYPING =================
-document.addEventListener("DOMContentLoaded", () => {
-  const chatInput = document.getElementById("chatInput");
+// ================= HANDLE TYPING (SAFE) =================
+function handleTyping() {
+  if (!username || !currentChatUser) return;
 
-  if (chatInput) {
-    chatInput.addEventListener("input", () => {
-      if (!username || !currentChatUser) return;
+  socket.emit("typing", {
+    from: username,
+    to: currentChatUser
+  });
 
-      socket.emit("typing", {
-        from: username,
-        to: currentChatUser
-      });
+  clearTimeout(typingTimeout);
 
-      // 🔥 NEW: stopTyping after delay
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        socket.emit("stopTyping", {
-          from: username,
-          to: currentChatUser
-        });
-      }, 1000);
+  typingTimeout = setTimeout(() => {
+    socket.emit("stopTyping", {
+      from: username,
+      to: currentChatUser
     });
-  }
-});
+  }, 1000);
+}
 
 // ================= SHOW TYPING =================
 socket.on("typing", (data) => {
@@ -264,28 +261,27 @@ socket.on("typing", (data) => {
 
   if (cleanName(data.from) === cleanName(currentChatUser)) {
     const title = document.getElementById("chatTitle");
-
-    if (title) {
-      title.innerText = cleanName(data.from) + " is typing...";
-    }
+    if (title) title.innerText = cleanName(data.from) + " is typing...";
   }
 });
 
 // ================= STOP TYPING =================
-socket.on("stopTyping", (data) => {
+socket.on("stopTyping", () => {
   const title = document.getElementById("chatTitle");
-
   if (title && currentChatUser) {
     title.innerText = "Chat with " + cleanName(currentChatUser);
   }
 });
 
-// ================= AUTO-FILL LOGIN =================
+// ================= AUTO LOGIN FILL =================
 window.addEventListener("DOMContentLoaded", () => {
   const saved = JSON.parse(localStorage.getItem("fb_user"));
 
   if (saved) {
-    document.getElementById("nameInput").value = saved.name;
-    document.getElementById("passwordInput").value = saved.pass;
+    const nameInput = document.getElementById("nameInput");
+    const passInput = document.getElementById("passwordInput");
+
+    if (nameInput) nameInput.value = saved.name;
+    if (passInput) passInput.value = saved.pass;
   }
 });

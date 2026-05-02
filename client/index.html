@@ -14,7 +14,7 @@
 <div id="authScreen">
   <h2>⚡ FutureBook</h2>
 
- <input id="chatInput" placeholder="Type message..." oninput="handleTyping()" />
+  <input id="nameInput" placeholder="Enter your name" />
   <input id="passwordInput" type="password" placeholder="Password" />
 
   <button onclick="signup()">Create Account</button>
@@ -62,7 +62,8 @@
     <div id="chatBox" class="chat-box"></div>
 
     <div class="chat-input">
-      <input id="chatInput" placeholder="Type message..." />
+      <!-- ✅ FIX: only ONE chat input -->
+      <input id="chatInput" placeholder="Type message..." oninput="handleTyping()" />
       <button onclick="sendMessage()">Send</button>
     </div>
 
@@ -79,7 +80,7 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="script.js"></script>
 
-<!-- ================= FIXED SAFETY FUNCTIONS ================= -->
+<!-- SAFE FUNCTIONS -->
 <script>
 function showFeed() {
   document.querySelector(".feed").style.display = "block";

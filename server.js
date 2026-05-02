@@ -35,7 +35,6 @@ io.on("connection", (socket) => {
 
   emitOnlineUsers();
 
-  // 🔥 NEW: request client to re-register
   socket.emit("requestRegister");
 
   // ================= REGISTER =================
@@ -44,8 +43,10 @@ io.on("connection", (socket) => {
 
     username = username.trim();
 
+    // remove old same username
     if (users[username]) delete users[username];
 
+    // clean old socket mapping
     for (let key in users) {
       if (users[key] === socket.id) {
         delete users[key];
@@ -59,7 +60,6 @@ io.on("connection", (socket) => {
 
     emitOnlineUsers();
 
-    // 🔥 NEW
     socket.emit("registered", username);
   });
 
@@ -81,28 +81,30 @@ io.on("connection", (socket) => {
         message
       });
     } else {
-      console.log("⚠️ User not online:", to); // 🔥 NEW
+      console.log("⚠️ User not online:", to);
     }
   });
 
-  // ================= 🔥 TYPING INDICATOR =================
+  // ================= 🔥 TYPING =================
   socket.on("typing", ({ from, to }) => {
-    const receiverSocketId = users[to];
+    if (!from || !to) return; // 🔥 FIX
 
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("typing", { from });
-    }
+    const receiverSocketId = users[to];
+    if (!receiverSocketId) return;
+
+    io.to(receiverSocketId).emit("typing", { from });
   });
 
   socket.on("stopTyping", ({ from, to }) => {
-    const receiverSocketId = users[to];
+    if (!from || !to) return; // 🔥 FIX
 
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("stopTyping", { from });
-    }
+    const receiverSocketId = users[to];
+    if (!receiverSocketId) return;
+
+    io.to(receiverSocketId).emit("stopTyping", { from });
   });
 
-  // 🔥 NEW: keep connection alive
+  // ================= KEEP ALIVE =================
   socket.on("pingCheck", () => {
     socket.emit("pongCheck");
   });
