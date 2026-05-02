@@ -183,6 +183,18 @@ function openChat(user) {
     }, 300);
   }
 }
+function addMessage(user, msg) {
+  const box = document.getElementById("chatBox");
+  if (!box) return;
+
+  const div = document.createElement("div");
+  div.className = "chat-msg";
+
+  div.innerHTML = `<b>${user}:</b> ${msg}`;
+
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
 
 // ================= SEND MESSAGE =================
 function sendMessage() {
