@@ -332,21 +332,30 @@ function handleTyping() {
   }, 1000);
 }
 
+// ================= SHOW TYPING (REAL BUBBLE) =================
 socket.on("typing", (data) => {
   if (!currentChatUser) return;
 
   if (cleanName(data.from) === cleanName(currentChatUser)) {
-    const title = document.getElementById("chatTitle");
-    if (title) title.innerText = cleanName(data.from) + " is typing...";
+    const bubble = document.getElementById("typingIndicator");
+
+    if (bubble) {
+      bubble.style.display = "block";
+      bubble.innerText = `${cleanName(data.from)} is typing...`;
+    }
   }
 });
 
+// ================= STOP TYPING =================
 socket.on("stopTyping", () => {
-  const title = document.getElementById("chatTitle");
-  if (title && currentChatUser) {
-    title.innerText = "Chat with " + cleanName(currentChatUser);
+  const bubble = document.getElementById("typingIndicator");
+
+  if (bubble) {
+    bubble.style.display = "none";
+    bubble.innerText = "";
   }
 });
+
 
 // ================= AUTO LOGIN =================
 window.addEventListener("DOMContentLoaded", () => {
