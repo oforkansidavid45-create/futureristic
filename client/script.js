@@ -254,16 +254,39 @@ socket.on("privateMessage", (data) => {
 
   const fromClean = cleanName(data.from);
 
+  // 🔔 SHOW NOTIFICATION if chat is NOT open
+  if (!currentChatUser || fromClean !== cleanName(currentChatUser)) {
+    showNotification(data.from, data.message);
+  }
+
   if (currentChatUser && fromClean === cleanName(currentChatUser)) {
     addMessage(fromClean, data.message);
 
-    // ✅ FIX: SEND delivered correctly
     socket.emit("delivered", {
       from: data.from,
       to: username
     });
   }
 });
+
+
+
+// ================= NOTIFICATION =================
+function showNotification(sender, message) {
+  const notif = document.createElement("div");
+  notif.className = "notif-popup";
+
+  notif.innerHTML = `
+    <b>🔔 ${cleanName(sender)}</b><br>
+    <small>${message}</small>
+  `;
+
+  document.body.appendChild(notif);
+
+  setTimeout(() => {
+    notif.remove();
+  }, 4000);
+}
 
 // ================= DELIVERED =================
 socket.on("delivered", () => {
