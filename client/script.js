@@ -174,7 +174,6 @@ function openChat(user) {
   if (title) title.innerText = "Chat with " + cleanName(user);
   if (box) box.innerHTML = "";
 
-  // ✅ FIX: send SEEN
   socket.emit("seen", {
     from: username,
     to: user
@@ -207,15 +206,17 @@ function addMessage(user, msg, status = "") {
   box.scrollTop = box.scrollHeight;
 }
 
-// ================= UPDATE STATUS =================
-function updateLastMessageStatus(status) {
+// ✅ FIX: only update LAST message
+function updateLastMessageStatus(text, color) {
   const msgs = document.querySelectorAll(".msg-status");
   if (!msgs.length) return;
 
-  msgs[msgs.length - 1].innerText = status;
+  const last = msgs[msgs.length - 1];
+  last.innerText = text;
+  if (color) last.style.color = color;
 }
 
-// ================= SEND MESSAGE =================
+// ================= SEND =================
 function sendMessage() {
   if (!username) return alert("Login first!");
 
@@ -236,13 +237,12 @@ function sendMessage() {
     to: currentChatUser
   });
 
-  // ✅ FIX: show sent
-  addMessage("You", message, "✔");
+  addMessage("You", message, "✔ Sent");
 
   input.value = "";
 }
 
-// ================= RECEIVE MESSAGE =================
+// ================= RECEIVE =================
 socket.on("privateMessage", (data) => {
   if (!data) return;
 
@@ -251,7 +251,6 @@ socket.on("privateMessage", (data) => {
   if (currentChatUser && fromClean === cleanName(currentChatUser)) {
     addMessage(fromClean, data.message);
 
-    // ✅ SEND DELIVERED
     socket.emit("delivered", {
       from: username,
       to: data.from
@@ -261,25 +260,14 @@ socket.on("privateMessage", (data) => {
 
 // ================= DELIVERED =================
 socket.on("delivered", () => {
-  const statuses = document.querySelectorAll(".msg-status");
-
-  statuses.forEach(s => {
-    if (!s.innerText.includes("Seen")) {
-      s.innerText = "✔✔ Delivered";
-      s.style.color = "gray";
-    }
-  });
-});;
+  updateLastMessageStatus("✔✔ Delivered", "gray");
+});
 
 // ================= SEEN =================
 socket.on("seen", () => {
-  const statuses = document.querySelectorAll(".msg-status");
-
-  statuses.forEach(s => {
-    s.innerText = "✔✔ Seen";
-    s.style.color = "#00e5ff"; // blue
-  });
+  updateLastMessageStatus("✔✔ Seen", "#00e5ff");
 });
+
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
   const box = document.getElementById("onlineUsers");
@@ -295,7 +283,7 @@ socket.on("onlineUsers", (users) => {
     .join("");
 });
 
-// ================= HANDLE TYPING =================
+// ================= TYPING =================
 function handleTyping() {
   if (!username || !currentChatUser) return;
 
@@ -314,7 +302,6 @@ function handleTyping() {
   }, 1000);
 }
 
-// ================= SHOW TYPING =================
 socket.on("typing", (data) => {
   if (!currentChatUser) return;
 
@@ -324,7 +311,6 @@ socket.on("typing", (data) => {
   }
 });
 
-// ================= STOP TYPING =================
 socket.on("stopTyping", () => {
   const title = document.getElementById("chatTitle");
   if (title && currentChatUser) {

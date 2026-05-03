@@ -232,7 +232,7 @@ html {
   border-radius: 10px;
 }
 
-/* ================= MOBILE (FIXED - ONLY ONE BLOCK) ================= */
+/* ================= MOBILE ================= */
 .mobile-nav {
   display: none;
 }
@@ -253,7 +253,6 @@ html {
     padding-bottom: 90px;
   }
 
-  /* ================= CHAT FIX ================= */
   .rightbar {
     position: fixed;
     top: 0;
@@ -275,14 +274,12 @@ html {
     display: flex !important;
   }
 
-  /* ================= CHAT BOX ================= */
   .chat-box {
     flex: 1;
     overflow-y: auto;
     padding-bottom: 90px;
   }
 
-  /* ================= CHAT INPUT ================= */
   .chat-input {
     position: fixed;
     bottom: 60px;
@@ -294,7 +291,6 @@ html {
     z-index: 1000;
   }
 
-  /* ================= MOBILE NAV ================= */
   .mobile-nav {
     position: fixed;
     bottom: 0;
@@ -329,17 +325,11 @@ button:hover {
 
 input {
   outline: none;
-}.status {
-  font-size: 10px;
-  margin-left: 8px;
-  color: #00e5ff;
 }
+
+/* ================= MESSAGE STATUS ================= */
 .msg-status {
-  font-size: 11px;
-  margin-left: 6px;
-  color: #00e5ff;
-}.msg-status {
   font-size: 12px;
   margin-left: 8px;
-  color: gray;
+  color: gray; /* default (sent/delivered) */
 }
