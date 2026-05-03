@@ -188,6 +188,22 @@ function openChat(user) {
       if (input) input.focus();
     }, 300);
   }
+} 
+// ================= TOGGLE CHAT (MOBILE FIX) =================
+function toggleChat() {
+  const chat = document.getElementById("chatPanel");
+
+  if (!chat) return;
+
+  chat.classList.toggle("active");
+
+  // focus input when opening
+  if (chat.classList.contains("active")) {
+    setTimeout(() => {
+      const input = document.getElementById("chatInput");
+      if (input) input.focus();
+    }, 300);
+  }
 }
 
 // ================= MESSAGE UI =================
