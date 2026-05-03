@@ -22,6 +22,9 @@ function getVal(id) {
   return el ? el.value : "";
 }
 
+// ================= MESSAGE TRACKING (🔥 NEW FIX) =================
+let lastMessageId = null;
+
 // ================= AUTH =================
 function signup() {
   const name = getVal("nameInput").trim();
@@ -174,7 +177,6 @@ function openChat(user) {
   if (title) title.innerText = "Chat with " + cleanName(user);
   if (box) box.innerHTML = "";
 
-  // ✅ FIX: SEND SEEN WHEN CHAT OPENS
   socket.emit("seen", {
     from: username,
     to: user
@@ -198,8 +200,12 @@ function addMessage(user, msg, status = "") {
   const div = document.createElement("div");
   div.className = "chat-msg";
 
+  const msgId = Math.random().toString(36).substring(2);
+  div.setAttribute("data-id", msgId);
+
   if (user === "You") {
     div.classList.add("my-msg");
+    lastMessageId = msgId;
   }
 
   div.innerHTML = `
@@ -211,12 +217,11 @@ function addMessage(user, msg, status = "") {
   box.scrollTop = box.scrollHeight;
 }
 
-// ================= UPDATE LAST =================
+// ================= UPDATE ONLY LAST MESSAGE (FIXED) =================
 function updateLastMyMessage(status, color) {
-  const myMsgs = document.querySelectorAll(".my-msg .msg-status");
-  if (!myMsgs.length) return;
+  const last = document.querySelector(".my-msg:last-child .msg-status");
+  if (!last) return;
 
-  const last = myMsgs[myMsgs.length - 1];
   last.innerText = status;
   last.style.color = color;
 }
@@ -242,7 +247,6 @@ function sendMessage() {
     to: currentChatUser
   });
 
-  // ✔ sent
   addMessage("You", message, "✔");
 
   input.value = "";
@@ -254,11 +258,6 @@ socket.on("privateMessage", (data) => {
 
   const fromClean = cleanName(data.from);
 
-  // 🔔 SHOW NOTIFICATION if chat is NOT open
-  if (!currentChatUser || fromClean !== cleanName(currentChatUser)) {
-    showNotification(data.from, data.message);
-  }
-
   if (currentChatUser && fromClean === cleanName(currentChatUser)) {
     addMessage(fromClean, data.message);
 
@@ -269,25 +268,6 @@ socket.on("privateMessage", (data) => {
   }
 });
 
-
-
-// ================= NOTIFICATION =================
-function showNotification(sender, message) {
-  const notif = document.createElement("div");
-  notif.className = "notif-popup";
-
-  notif.innerHTML = `
-    <b>🔔 ${cleanName(sender)}</b><br>
-    <small>${message}</small>
-  `;
-
-  document.body.appendChild(notif);
-
-  setTimeout(() => {
-    notif.remove();
-  }, 4000);
-}
-
 // ================= DELIVERED =================
 socket.on("delivered", () => {
   updateLastMyMessage("✔✔", "gray");
@@ -295,7 +275,7 @@ socket.on("delivered", () => {
 
 // ================= SEEN =================
 socket.on("seen", () => {
-  updateLastMyMessage("✔✔", "#00e5ff"); // blue
+  updateLastMyMessage("✔✔", "#00e5ff");
 });
 
 // ================= ONLINE USERS =================
@@ -332,13 +312,12 @@ function handleTyping() {
   }, 1000);
 }
 
-// ================= SHOW TYPING (REAL BUBBLE) =================
+// ================= TYPING BUBBLE =================
 socket.on("typing", (data) => {
   if (!currentChatUser) return;
 
   if (cleanName(data.from) === cleanName(currentChatUser)) {
     const bubble = document.getElementById("typingIndicator");
-
     if (bubble) {
       bubble.style.display = "block";
       bubble.innerText = `${cleanName(data.from)} is typing...`;
@@ -346,16 +325,10 @@ socket.on("typing", (data) => {
   }
 });
 
-// ================= STOP TYPING =================
 socket.on("stopTyping", () => {
   const bubble = document.getElementById("typingIndicator");
-
-  if (bubble) {
-    bubble.style.display = "none";
-    bubble.innerText = "";
-  }
+  if (bubble) bubble.style.display = "none";
 });
-
 
 // ================= AUTO LOGIN =================
 window.addEventListener("DOMContentLoaded", () => {
@@ -368,4 +341,20 @@ window.addEventListener("DOMContentLoaded", () => {
     if (nameInput) nameInput.value = saved.name;
     if (passInput) passInput.value = saved.pass;
   }
-});
+});// ================= MOBILE / UI HELPERS =================
+
+function showFeed() {
+  document.querySelector(".feed").style.display = "block";
+}
+
+function logout() {
+  localStorage.removeItem("fb_user");
+  location.reload();
+}
+
+function toggleChat() {
+  const panel = document.getElementById("chatPanel");
+  if (!panel) return;
+
+  panel.classList.toggle("active");
+}
