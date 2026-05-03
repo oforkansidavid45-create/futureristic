@@ -59,26 +59,138 @@ function login() {
 socket.on("connect", () => {
   console.log("🔌 connected:", socket.id);
 
-  if (username) socket.emit("register", username);
+  if (username) {
+    socket.emit("register", username);
+  }
 });
+
+// ================= CREATE POST =================
+async function createPost() {
+  if (!username) return alert("Login first!");
+
+  const input = document.getElementById("postInput");
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return alert("Write something!");
+
+  await fetch(`${API}/api/posts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user: cleanName(username),
+      text
+    })
+  });
+
+  input.value = "";
+  loadPosts();
+}
+
+// ================= LOAD POSTS =================
+async function loadPosts() {
+  try {
+    const res = await fetch(`${API}/api/posts`);
+    const posts = await res.json();
+
+    const box = document.getElementById("posts");
+    if (!box) return;
+
+    box.innerHTML = posts.map(p => `
+      <div class="post">
+        <b>${p.user}</b>
+        <p>${p.text}</p>
+
+        <div>
+          ❤️ ${p.likes || 0}
+          <button onclick="likePost('${p._id}')">Like</button>
+        </div>
+
+        <div class="comments">
+          ${(p.comments || []).map(c => `
+            <div class="comment">
+              <b>${c.user}:</b> ${c.text}
+            </div>
+          `).join("")}
+        </div>
+
+        <div class="comment-box">
+          <input id="c-${p._id}" placeholder="Write comment..." />
+          <button onclick="addComment('${p._id}')">Send</button>
+        </div>
+      </div>
+    `).join("");
+
+  } catch (err) {
+    console.log("❌ loadPosts error:", err);
+  }
+}
+
+// ================= LIKE =================
+async function likePost(id) {
+  try {
+    await fetch(`${API}/api/posts/like/${id}`, { method: "PUT" });
+    loadPosts();
+  } catch (err) {
+    console.log("❌ like error:", err);
+  }
+}
+
+// ================= COMMENT =================
+async function addComment(id) {
+  if (!username) return alert("Login first!");
+
+  const input = document.getElementById(`c-${id}`);
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  try {
+    await fetch(`${API}/api/posts/comment/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user: cleanName(username),
+        text
+      })
+    });
+
+    input.value = "";
+    loadPosts();
+  } catch (err) {
+    console.log("❌ comment error:", err);
+  }
+}
 
 // ================= CHAT =================
 function openChat(user) {
   currentChatUser = user;
 
-  document.getElementById("chatTitle").innerText =
-    "Chat with " + cleanName(user);
+  const title = document.getElementById("chatTitle");
+  const box = document.getElementById("chatBox");
+  const rightbar = document.getElementById("chatPanel");
 
-  document.getElementById("chatBox").innerHTML = "";
+  if (title) title.innerText = "Chat with " + cleanName(user);
+  if (box) box.innerHTML = "";
 
-  socket.emit("seen", { from: username, to: user });
+  // ✅ FIX: SEND SEEN WHEN CHAT OPENS
+  socket.emit("seen", {
+    from: username,
+    to: user
+  });
 
-  if (window.innerWidth <= 768) {
-    document.getElementById("chatPanel").classList.add("active");
+  if (window.innerWidth <= 768 && rightbar) {
+    rightbar.classList.add("active");
+
+    setTimeout(() => {
+      const input = document.getElementById("chatInput");
+      if (input) input.focus();
+    }, 300);
   }
 }
 
-// ================= MESSAGE =================
+// ================= MESSAGE UI =================
 function addMessage(user, msg, status = "") {
   const box = document.getElementById("chatBox");
   if (!box) return;
@@ -86,34 +198,38 @@ function addMessage(user, msg, status = "") {
   const div = document.createElement("div");
   div.className = "chat-msg";
 
-  const isMe = user === "You";
+  if (user === "You") {
+    div.classList.add("my-msg");
+  }
 
   div.innerHTML = `
     <b>${user}:</b> ${msg}
-    ${isMe ? `<span class="msg-status">${status}</span>` : ""}
+    ${user === "You" ? `<span class="msg-status">${status}</span>` : ""}
   `;
 
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 }
 
-// ================= FIXED LAST MESSAGE UPDATE =================
+// ================= UPDATE LAST =================
 function updateLastMyMessage(status, color) {
-  const msgs = document.querySelectorAll(".my-msg .msg-status");
-  if (!msgs.length) return;
+  const myMsgs = document.querySelectorAll(".my-msg .msg-status");
+  if (!myMsgs.length) return;
 
-  const last = msgs[msgs.length - 1];
+  const last = myMsgs[myMsgs.length - 1];
   last.innerText = status;
   last.style.color = color;
 }
 
 // ================= SEND =================
 function sendMessage() {
-  if (!username || !currentChatUser) return;
+  if (!username) return alert("Login first!");
 
   const input = document.getElementById("chatInput");
+  if (!input) return;
+
   const message = input.value.trim();
-  if (!message) return;
+  if (!message || !currentChatUser) return;
 
   socket.emit("privateMessage", {
     from: username,
@@ -126,6 +242,7 @@ function sendMessage() {
     to: currentChatUser
   });
 
+  // ✔ sent
   addMessage("You", message, "✔");
 
   input.value = "";
@@ -135,16 +252,15 @@ function sendMessage() {
 socket.on("privateMessage", (data) => {
   if (!data) return;
 
-  const from = cleanName(data.from);
-  const to = cleanName(currentChatUser);
+  const fromClean = cleanName(data.from);
 
-  // show notification if not open chat
-  if (!currentChatUser || from !== to) {
+  // 🔔 SHOW NOTIFICATION if chat is NOT open
+  if (!currentChatUser || fromClean !== cleanName(currentChatUser)) {
     showNotification(data.from, data.message);
   }
 
-  if (currentChatUser && from === to) {
-    addMessage(from, data.message);
+  if (currentChatUser && fromClean === cleanName(currentChatUser)) {
+    addMessage(fromClean, data.message);
 
     socket.emit("delivered", {
       from: data.from,
@@ -153,23 +269,33 @@ socket.on("privateMessage", (data) => {
   }
 });
 
+
+
 // ================= NOTIFICATION =================
 function showNotification(sender, message) {
   const notif = document.createElement("div");
   notif.className = "notif-popup";
-  notif.innerHTML = `<b>${cleanName(sender)}</b><br>${message}`;
+
+  notif.innerHTML = `
+    <b>🔔 ${cleanName(sender)}</b><br>
+    <small>${message}</small>
+  `;
 
   document.body.appendChild(notif);
-  setTimeout(() => notif.remove(), 4000);
+
+  setTimeout(() => {
+    notif.remove();
+  }, 4000);
 }
 
-// ================= STATUS =================
+// ================= DELIVERED =================
 socket.on("delivered", () => {
   updateLastMyMessage("✔✔", "gray");
 });
 
+// ================= SEEN =================
 socket.on("seen", () => {
-  updateLastMyMessage("✔✔", "#00e5ff");
+  updateLastMyMessage("✔✔", "#00e5ff"); // blue
 });
 
 // ================= ONLINE USERS =================
@@ -181,12 +307,13 @@ socket.on("onlineUsers", (users) => {
     .filter(u => u && u !== username)
     .map(u => `
       <div class="online-user" onclick="openChat('${u}')">
-        🟢 ${cleanName(u)}
+        🟢 ${u.split("_")[0]}
       </div>
-    `).join("");
+    `)
+    .join("");
 });
 
-// ================= TYPING (FIXED LOGIC) =================
+// ================= TYPING =================
 function handleTyping() {
   if (!username || !currentChatUser) return;
 
@@ -202,49 +329,43 @@ function handleTyping() {
       from: username,
       to: currentChatUser
     });
-  }, 800);
+  }, 1000);
 }
 
-// ================= FIXED TYPING DISPLAY =================
+// ================= SHOW TYPING (REAL BUBBLE) =================
 socket.on("typing", (data) => {
   if (!currentChatUser) return;
 
-  const bubble = document.getElementById("typingIndicator");
-  if (!bubble) return;
+  if (cleanName(data.from) === cleanName(currentChatUser)) {
+    const bubble = document.getElementById("typingIndicator");
 
-  // 🔥 FIX: do NOT rely too strictly on full name match
-  if (cleanName(data.from)) {
-    bubble.style.display = "block";
-    bubble.innerText = `${cleanName(data.from)} is typing...`;
+    if (bubble) {
+      bubble.style.display = "block";
+      bubble.innerText = `${cleanName(data.from)} is typing...`;
+    }
   }
 });
 
+// ================= STOP TYPING =================
 socket.on("stopTyping", () => {
   const bubble = document.getElementById("typingIndicator");
-  if (bubble) bubble.style.display = "none";
+
+  if (bubble) {
+    bubble.style.display = "none";
+    bubble.innerText = "";
+  }
 });
+
 
 // ================= AUTO LOGIN =================
 window.addEventListener("DOMContentLoaded", () => {
   const saved = JSON.parse(localStorage.getItem("fb_user"));
 
   if (saved) {
-    document.getElementById("nameInput").value = saved.name;
-    document.getElementById("passwordInput").value = saved.pass;
+    const nameInput = document.getElementById("nameInput");
+    const passInput = document.getElementById("passwordInput");
+
+    if (nameInput) nameInput.value = saved.name;
+    if (passInput) passInput.value = saved.pass;
   }
 });
-
-// ================= UI HELPERS =================
-function showFeed() {
-  document.querySelector(".feed").style.display = "block";
-}
-
-function logout() {
-  localStorage.removeItem("fb_user");
-  location.reload();
-}
-
-function toggleChat() {
-  const panel = document.getElementById("chatPanel");
-  if (panel) panel.classList.toggle("active");
-}
