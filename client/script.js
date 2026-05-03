@@ -172,7 +172,11 @@ function openChat(user) {
   const rightbar = document.getElementById("chatPanel");
 
   if (title) title.innerText = "Chat with " + cleanName(user);
-  if (box) box.innerHTML = "";
+  if (box) {
+  box.innerHTML = `
+    <div id="typingIndicator" class="typing-bubble"></div>
+  `;
+}
 
   // ✅ FIX: SEND SEEN WHEN CHAT OPENS
   socket.emit("seen", {
@@ -349,23 +353,24 @@ function handleTyping() {
 }
 
 // ================= SHOW TYPING (REAL BUBBLE) =================
+// ================= SHOW TYPING =================
 socket.on("typing", (data) => {
   if (!currentChatUser) return;
 
-  const sender = data.from.split("_")[0];
-  const chat = currentChatUser.split("_")[0];
+  const sender = cleanName(data.from);
+  const chat = cleanName(currentChatUser);
 
   if (sender === chat) {
     const bubble = document.getElementById("typingIndicator");
 
     if (bubble) {
       bubble.style.display = "block";
-      bubble.innerText = `${sender} is typing...`;
+      bubble.innerText = sender + " is typing...";
     }
   }
 });
 
-socket.on("stopTyping", (data) => {
+socket.on("stopTyping", () => {
   const bubble = document.getElementById("typingIndicator");
 
   if (bubble) {

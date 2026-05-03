@@ -390,4 +390,10 @@ input {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
+}.chat-msg {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}.chat-box {
+  overflow-x: hidden;
 }
