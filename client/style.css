@@ -1,8 +1,14 @@
 /* ================= GLOBAL ================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
-  background: #0a0f1c;
+  background: #0b1220;
   color: white;
 }
 
@@ -10,14 +16,11 @@ html {
   scroll-behavior: smooth;
 }
 
-* {
-  box-sizing: border-box;
-}
-
 /* ================= LAYOUT ================= */
 .app {
   display: flex;
   height: 100vh;
+  gap: 12px;
 }
 
 /* ================= LEFT SIDEBAR ================= */
@@ -26,6 +29,7 @@ html {
   background: #111827;
   padding: 15px;
   border-right: 1px solid #1f2937;
+  border-radius: 0 15px 15px 0;
 }
 
 .logo {
@@ -50,7 +54,7 @@ html {
 /* ================= FEED ================= */
 .feed {
   flex: 1;
-  padding: 20px;
+  padding: 25px;
   overflow-y: auto;
   margin-top: 60px;
 }
@@ -86,10 +90,12 @@ html {
   padding: 15px;
   margin-bottom: 15px;
   transition: 0.2s;
+  border: 1px solid #1f2937;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
 }
 
 .post:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: 0 0 15px rgba(0,229,255,0.2);
 }
 
@@ -130,6 +136,7 @@ html {
   border-left: 1px solid #1f2937;
   display: flex;
   flex-direction: column;
+  border-radius: 15px 0 0 15px;
 }
 
 /* ================= CHAT ================= */
@@ -148,16 +155,32 @@ html {
   background: #1f2937;
   margin-bottom: 6px;
   width: fit-content;
+  max-width: 75%;
+  line-height: 1.4;
 }
 
 .chat-msg b {
   color: #00e5ff;
 }
 
+/* YOUR messages */
+.my-msg {
+  background: #00e5ff !important;
+  color: black;
+  margin-left: auto;
+}
+
+/* others */
+.chat-msg:not(.my-msg) {
+  margin-right: auto;
+}
+
 /* ================= CHAT INPUT ================= */
 .chat-input {
   display: flex;
   gap: 5px;
+  background: #0f172a;
+  border-top: 1px solid #1f2937;
 }
 
 .chat-input input {
@@ -259,13 +282,10 @@ html {
     left: 0;
     right: 0;
     bottom: 60px;
-
     width: 100%;
     height: 100vh;
-
     display: none;
     flex-direction: column;
-
     background: #111827;
     z-index: 999;
   }
@@ -285,7 +305,6 @@ html {
     bottom: 60px;
     left: 0;
     right: 0;
-
     padding: 10px;
     background: #111827;
     z-index: 1000;
@@ -296,14 +315,11 @@ html {
     bottom: 0;
     left: 0;
     right: 0;
-
     height: 60px;
     background: #111827;
-
     display: flex;
     justify-content: space-around;
     align-items: center;
-
     border-top: 1px solid #1f2937;
     z-index: 1001;
   }
@@ -317,6 +333,7 @@ html {
 /* ================= SMALL POLISH ================= */
 button {
   transition: 0.2s;
+  border-radius: 8px;
 }
 
 button:hover {
@@ -329,10 +346,11 @@ input {
 
 /* ================= MESSAGE STATUS ================= */
 .msg-status {
-  font-size: 10px;     /* smaller */
+  font-size: 10px;
   margin-left: 6px;
   color: gray;
 }
+
 /* ================= NOTIFICATION POPUP ================= */
 .notif-popup {
   position: fixed;
@@ -348,15 +366,10 @@ input {
 }
 
 @keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
+
 /* ================= TYPING BUBBLE ================= */
 .typing-bubble {
   display: none;
@@ -373,69 +386,4 @@ input {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
-}/* ================= UI CLEANUP UPGRADE ================= */
-
-/* global spacing reset */
-body {
-  background: #0b1220;
-}
-
-/* nicer app layout */
-.app {
-  gap: 12px;
-}
-
-/* sidebar polish */
-.sidebar {
-  border-radius: 0 15px 15px 0;
-}
-
-/* feed spacing fix */
-.feed {
-  padding: 25px;
-}
-
-/* posts look cleaner */
-.post {
-  border: 1px solid #1f2937;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-}
-
-/* chat panel upgrade */
-.rightbar {
-  border-radius: 15px 0 0 15px;
-}
-
-/* chat bubbles better spacing */
-.chat-msg {
-  max-width: 75%;
-  line-height: 1.4;
-}
-
-/* YOUR messages (important WhatsApp style feel) */
-.my-msg {
-  background: #00e5ff !important;
-  color: black;
-  margin-left: auto;
-}
-
-/* other person messages */
-.chat-msg:not(.my-msg) {
-  margin-right: auto;
-}
-
-/* input bar cleaner */
-.chat-input {
-  background: #0f172a;
-  border-top: 1px solid #1f2937;
-}
-
-/* buttons smoother */
-button {
-  border-radius: 8px;
-}
-
-/* hover polish */
-.post:hover {
-  transform: translateY(-3px);
 }
