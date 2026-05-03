@@ -55,6 +55,63 @@ function login() {
     alert("Wrong login details");
   }
 }
+// ================= LOAD POSTS =================
+async function loadPosts() {
+  try {
+    const res = await fetch(`${API}/api/posts`);
+    const posts = await res.json();
+
+    const container = document.getElementById("posts");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    posts.forEach(post => {
+      const div = document.createElement("div");
+      div.className = "post";
+
+      div.innerHTML = `
+        <b>${post.user}</b>
+        <p>${post.text}</p>
+        <button onclick="likePost('${post._id}')">❤️ ${post.likes}</button>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.log("❌ loadPosts error:", err);
+  }
+}
+
+// ================= CREATE POST =================
+async function createPost() {
+  const input = document.getElementById("postInput");
+  const text = input.value.trim();
+
+  if (!text || !username) return;
+
+  await fetch(`${API}/api/posts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user: cleanName(username),
+      text
+    })
+  });
+
+  input.value = "";
+  loadPosts();
+}
+
+// ================= LIKE POST =================
+async function likePost(id) {
+  await fetch(`${API}/api/posts/like/${id}`, {
+    method: "PUT"
+  });
+
+  loadPosts();
+}
 
 // ================= SOCKET CONNECT =================
 socket.on("connect", () => {
@@ -303,4 +360,27 @@ function addVoiceMessage(user, audioData) {
 
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
+}
+// ================= MOBILE FIXES =================
+
+// Toggle chat panel (FIXED)
+function toggleChat() {
+  const panel = document.getElementById("chatPanel");
+  if (panel) {
+    panel.classList.toggle("active");
+  }
+}
+
+// Show feed (for mobile)
+function showFeed() {
+  const panel = document.getElementById("chatPanel");
+  if (panel) {
+    panel.classList.remove("active");
+  }
+}
+
+// Logout
+function logout() {
+  localStorage.removeItem("fb_user");
+  location.reload();
 }
