@@ -69,29 +69,25 @@ io.on("connection", (socket) => {
   socket.emit("requestRegister");
 
   // ================= REGISTER =================
-  socket.on("register", (username) => {
-    if (!username) return;
+ socket.on("register", (username) => {
+  if (!username) return;
 
-    username = username.trim();
+  username = username.split("_")[0]; // 🔥 FIX HERE
 
-    if (users[username]) delete users[username];
+  if (users[username]) delete users[username];
 
-    for (let key in users) {
-      if (users[key] === socket.id) {
-        delete users[key];
-      }
+  for (let key in users) {
+    if (users[key] === socket.id) {
+      delete users[key];
     }
+  }
 
-    socket.username = username;
-    users[username] = socket.id;
+  socket.username = username;
+  users[username] = socket.id;
 
-    console.log("👤 ONLINE USERS:", Object.keys(users));
-
-    emitOnlineUsers();
-
-    socket.emit("registered", username);
-  });
-
+  emitOnlineUsers();
+  socket.emit("registered", username);
+});
   // ================= PRIVATE MESSAGE =================
   socket.on("privateMessage", ({ from, to, message }) => {
     if (!from || !to || !message) return;
@@ -99,7 +95,7 @@ io.on("connection", (socket) => {
     message = message.trim();
     if (!message) return;
 
-    const receiverSocketId = users[to];
+  const receiverSocketId = users[to.split("_")[0]];
 
     console.log(`💬 ${from} → ${to}: ${message}`);
 
@@ -111,7 +107,7 @@ io.on("connection", (socket) => {
       });
 
       // 🔥 NEW: notify sender that message is delivered
-      const senderSocket = users[from];
+      const senderSocket = users[from.split("_")[0]];
       if (senderSocket) {
         io.to(senderSocket).emit("delivered", { from: to });
       }
@@ -122,23 +118,23 @@ io.on("connection", (socket) => {
   });
 
   // ================= TYPING =================
-  socket.on("typing", ({ from, to }) => {
-    if (!from || !to) return;
+socket.on("typing", ({ from, to }) => {
+  if (!from || !to) return;
 
-    const receiverSocketId = users[to];
-    if (!receiverSocketId) return;
+  const receiverSocketId = users[to.split("_")[0]];
+  if (!receiverSocketId) return;
 
-    io.to(receiverSocketId).emit("typing", { from });
-  });
+  io.to(receiverSocketId).emit("typing", { from: from.split("_")[0] });
+});
 
-  socket.on("stopTyping", ({ from, to }) => {
-    if (!from || !to) return;
+socket.on("stopTyping", ({ from, to }) => {
+  if (!from || !to) return;
 
-    const receiverSocketId = users[to];
-    if (!receiverSocketId) return;
+  const receiverSocketId = users[to.split("_")[0]];
+  if (!receiverSocketId) return;
 
-    io.to(receiverSocketId).emit("stopTyping", { from });
-  });
+  io.to(receiverSocketId).emit("stopTyping", { from: from.split("_")[0] });
+});
 
   // ================= KEEP ALIVE =================
   socket.on("pingCheck", () => {

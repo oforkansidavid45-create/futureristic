@@ -336,18 +336,20 @@ function handleTyping() {
 socket.on("typing", (data) => {
   if (!currentChatUser) return;
 
-  if (cleanName(data.from) === cleanName(currentChatUser)) {
+  const sender = data.from.split("_")[0];
+  const chat = currentChatUser.split("_")[0];
+
+  if (sender === chat) {
     const bubble = document.getElementById("typingIndicator");
 
     if (bubble) {
       bubble.style.display = "block";
-      bubble.innerText = `${cleanName(data.from)} is typing...`;
+      bubble.innerText = `${sender} is typing...`;
     }
   }
 });
 
-// ================= STOP TYPING =================
-socket.on("stopTyping", () => {
+socket.on("stopTyping", (data) => {
   const bubble = document.getElementById("typingIndicator");
 
   if (bubble) {
@@ -355,7 +357,6 @@ socket.on("stopTyping", () => {
     bubble.innerText = "";
   }
 });
-
 
 // ================= AUTO LOGIN =================
 window.addEventListener("DOMContentLoaded", () => {
