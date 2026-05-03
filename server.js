@@ -35,45 +35,13 @@ io.on("connection", (socket) => {
 
   emitOnlineUsers();
 
-  // ================= DELIVERED =================
-  socket.on("delivered", ({ from, to }) => {
-    if (!from || !to) return;
-
-    const senderSocket = users[from];
-    if (senderSocket) {
-      io.to(senderSocket).emit("delivered", { from: to });
-    }
-  });
-
-  // ================= SEEN =================
-  socket.on("seen", ({ from, to }) => {
-    if (!from || !to) return;
-
-    const senderSocket = users[from];
-    if (senderSocket) {
-      io.to(senderSocket).emit("seen", { from: to });
-    }
-  });
-
-  // 🔥 FIX: support OLD frontend event (messageSeen)
-  socket.on("messageSeen", ({ from, to }) => {
-    if (!from || !to) return;
-
-    const senderSocket = users[from];
-    if (senderSocket) {
-      io.to(senderSocket).emit("messageSeen", { from: to });
-    }
-  });
-
-  // 🔥 ASK CLIENT TO REGISTER AGAIN
-  socket.emit("requestRegister");
-
   // ================= REGISTER =================
   socket.on("register", (username) => {
     if (!username) return;
 
     username = username.trim();
 
+    // remove old duplicates
     if (users[username]) delete users[username];
 
     for (let key in users) {
@@ -88,7 +56,6 @@ io.on("connection", (socket) => {
     console.log("👤 ONLINE USERS:", Object.keys(users));
 
     emitOnlineUsers();
-
     socket.emit("registered", username);
   });
 
@@ -109,15 +76,32 @@ io.on("connection", (socket) => {
         to,
         message
       });
-
-      // 🔥 NEW: notify sender that message is delivered
-      const senderSocket = users[from];
-      if (senderSocket) {
-        io.to(senderSocket).emit("delivered", { from: to });
-      }
-
     } else {
       console.log("⚠️ User not online:", to);
+    }
+  });
+
+  // ================= DELIVERED (FIXED) =================
+  socket.on("delivered", ({ from, to }) => {
+    if (!from || !to) return;
+
+    const senderSocket = users[from];
+    if (senderSocket) {
+      io.to(senderSocket).emit("delivered", {
+        from: to
+      });
+    }
+  });
+
+  // ================= SEEN =================
+  socket.on("seen", ({ from, to }) => {
+    if (!from || !to) return;
+
+    const senderSocket = users[from];
+    if (senderSocket) {
+      io.to(senderSocket).emit("seen", {
+        from: to
+      });
     }
   });
 
@@ -126,18 +110,18 @@ io.on("connection", (socket) => {
     if (!from || !to) return;
 
     const receiverSocketId = users[to];
-    if (!receiverSocketId) return;
-
-    io.to(receiverSocketId).emit("typing", { from });
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("typing", { from });
+    }
   });
 
   socket.on("stopTyping", ({ from, to }) => {
     if (!from || !to) return;
 
     const receiverSocketId = users[to];
-    if (!receiverSocketId) return;
-
-    io.to(receiverSocketId).emit("stopTyping", { from });
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("stopTyping", { from });
+    }
   });
 
   // ================= KEEP ALIVE =================
@@ -157,8 +141,6 @@ io.on("connection", (socket) => {
 });
 
 // ================= POSTS =================
-
-// CREATE POST
 app.post("/api/posts", async (req, res) => {
   try {
     const { user, text } = req.body;
@@ -192,11 +174,10 @@ app.get("/api/posts", async (req, res) => {
   }
 });
 
-// ❤️ LIKE POST
+// LIKE
 app.put("/api/posts/like/:id", async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
-
     if (!post) return res.status(404).json({ error: "Post not found" });
 
     post.likes += 1;
@@ -209,7 +190,7 @@ app.put("/api/posts/like/:id", async (req, res) => {
   }
 });
 
-// 💬 COMMENT POST
+// COMMENT
 app.post("/api/posts/comment/:id", async (req, res) => {
   try {
     const { user, text } = req.body;
@@ -219,7 +200,6 @@ app.post("/api/posts/comment/:id", async (req, res) => {
     }
 
     const post = await Post.findById(req.params.id);
-
     if (!post) return res.status(404).json({ error: "Post not found" });
 
     post.comments.push({

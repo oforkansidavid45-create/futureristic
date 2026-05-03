@@ -85,44 +85,9 @@ html {
   border-radius: 15px;
   padding: 15px;
   margin-bottom: 15px;
-  transition: 0.2s;
 }
 
-.post:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(0,229,255,0.2);
-}
-
-/* ================= CREATE POST ================= */
-.create-post {
-  background: #111827;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-.create-post input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  background: #1f2937;
-  color: white;
-}
-
-.create-post button {
-  margin-top: 10px;
-  padding: 10px;
-  width: 100%;
-  border: none;
-  border-radius: 8px;
-  background: #00e5ff;
-  color: black;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* ================= RIGHT CHAT ================= */
+/* ================= CHAT ================= */
 .rightbar {
   width: 25%;
   background: #111827;
@@ -132,16 +97,16 @@ html {
   flex-direction: column;
 }
 
-/* ================= CHAT ================= */
+/* ================= CHAT BOX ================= */
 .chat-box {
   flex: 1;
   overflow-y: auto;
   background: #0f172a;
   padding: 10px;
   border-radius: 10px;
-  margin-bottom: 10px;
 }
 
+/* ================= MESSAGE ================= */
 .chat-msg {
   padding: 8px 12px;
   border-radius: 12px;
@@ -154,7 +119,28 @@ html {
   color: #00e5ff;
 }
 
-/* ================= CHAT INPUT ================= */
+/* ================= STATUS (FIXED WHATSAPP STYLE) ================= */
+.msg-status {
+  font-size: 9px;
+  margin-left: 6px;
+  color: gray;
+  opacity: 0.8;
+}
+
+/* ================= ONLINE USERS ================= */
+.online-user {
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #1f2937;
+  cursor: pointer;
+}
+
+.online-user:hover {
+  background: #374151;
+}
+
+/* ================= INPUT ================= */
 .chat-input {
   display: flex;
   gap: 5px;
@@ -177,163 +163,22 @@ html {
   cursor: pointer;
 }
 
-/* ================= ONLINE USERS ================= */
-.online-user {
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  background: #1f2937;
-  cursor: pointer;
-}
-
-.online-user:hover {
-  background: #374151;
-}
-
-/* ================= COMMENTS ================= */
-.comment-box {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.comment-box input {
-  flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  border: none;
-  background: #1f2937;
-  color: white;
-}
-
-.comment-box button {
-  padding: 8px 10px;
-  border: none;
-  border-radius: 6px;
-  background: #00e5ff;
-  cursor: pointer;
-}
-
-.comment {
-  font-size: 13px;
-  margin-top: 5px;
-  padding: 6px;
-  background: #1f2937;
-  border-radius: 6px;
-}
-
-/* ================= SCROLLBAR ================= */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #00e5ff;
-  border-radius: 10px;
-}
-
-/* ================= MOBILE ================= */
-.mobile-nav {
+/* ================= TYPING BUBBLE (FIXED IMPORTANT PART) ================= */
+.typing-bubble {
   display: none;
+  position: absolute;
+  bottom: 80px;
+  left: 20px;
+  background: #1f2937;
+  color: #00e5ff;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease;
 }
 
-@media (max-width: 768px) {
-
-  .sidebar {
-    display: none;
-  }
-
-  .topbar {
-    left: 0;
-    right: 0;
-  }
-
-  .feed {
-    width: 100%;
-    padding-bottom: 90px;
-  }
-
-  .rightbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 60px;
-
-    width: 100%;
-    height: 100vh;
-
-    display: none;
-    flex-direction: column;
-
-    background: #111827;
-    z-index: 999;
-  }
-
-  .rightbar.active {
-    display: flex !important;
-  }
-
-  .chat-box {
-    flex: 1;
-    overflow-y: auto;
-    padding-bottom: 90px;
-  }
-
-  .chat-input {
-    position: fixed;
-    bottom: 60px;
-    left: 0;
-    right: 0;
-
-    padding: 10px;
-    background: #111827;
-    z-index: 1000;
-  }
-
-  .mobile-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-
-    height: 60px;
-    background: #111827;
-
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-
-    border-top: 1px solid #1f2937;
-    z-index: 1001;
-  }
-
-  .mobile-nav div {
-    font-size: 22px;
-    cursor: pointer;
-  }
-}
-
-/* ================= SMALL POLISH ================= */
-button {
-  transition: 0.2s;
-}
-
-button:hover {
-  transform: scale(1.03);
-}
-
-input {
-  outline: none;
-}
-
-/* ================= MESSAGE STATUS ================= */
-.msg-status {
-  font-size: 10px;     /* smaller */
-  margin-left: 6px;
-  color: gray;
-}
-/* ================= NOTIFICATION POPUP ================= */
+/* ================= NOTIF ================= */
 .notif-popup {
   position: fixed;
   top: 20px;
@@ -342,35 +187,37 @@ input {
   color: white;
   padding: 12px 15px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
   z-index: 2000;
-  animation: slideIn 0.3s ease;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-/* ================= TYPING BUBBLE ================= */
-.typing-bubble {
-  display: none;
-  padding: 8px 12px;
-  margin: 8px;
-  border-radius: 12px;
-  background: #1f2937;
-  width: fit-content;
-  font-size: 13px;
-  color: #00e5ff;
-  animation: fadeIn 0.2s ease;
-}
-
+/* ================= ANIMATION ================= */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+
+  .sidebar { display: none; }
+
+  .rightbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 60px;
+    width: 100%;
+    display: none;
+    flex-direction: column;
+  }
+
+  .rightbar.active {
+    display: flex !important;
+  }
+
+  .typing-bubble {
+    bottom: 100px;
+    left: 10px;
+  }
 }
