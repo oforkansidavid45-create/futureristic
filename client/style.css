@@ -175,12 +175,16 @@ html {
   margin-right: auto;
 }
 
-/* ================= CHAT INPUT ================= */
+/* ================= CHAT INPUT (FIXED) ================= */
 .chat-input {
   display: flex;
   gap: 5px;
   background: #0f172a;
   border-top: 1px solid #1f2937;
+  padding: 10px;
+  align-items: center;
+  position: relative;
+  z-index: 1000;
 }
 
 .chat-input input {
@@ -386,7 +390,4 @@ input {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
-}.chat-input {
-  z-index: 9999;
-  position: fixed;
 }
