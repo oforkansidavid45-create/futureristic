@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 
 const Post = require("./models/Post");
-const Message = require("./models/Message"); // ✅ keep this
+const Message = require("./models/Message");
 
 const app = express();
 const server = http.createServer(app);
@@ -22,12 +22,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "client")));
 
+// ================= USERS =================
+let users = {};
+
+// ================= HELPERS =================
+function emitOnlineUsers() {
+  io.emit("onlineUsers", Object.keys(users));
+}
 
 // ================= LOAD MESSAGES =================
 app.get("/api/messages/:user1/:user2", async (req, res) => {
   try {
-    const user1 = req.params.user1.trim();
-    const user2 = req.params.user2.trim();
+    const user1 = (req.params.user1 || "").trim();
+    const user2 = (req.params.user2 || "").trim();
 
     const messages = await Message.find({
       $or: [
@@ -42,13 +49,6 @@ app.get("/api/messages/:user1/:user2", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-// ================= USERS =================
-let users = {};
-
-// ================= HELPERS =================
-function emitOnlineUsers() {
-  io.emit("onlineUsers", Object.keys(users));
-}
 
 // ================= SOCKET =================
 io.on("connection", (socket) => {
@@ -61,61 +61,47 @@ io.on("connection", (socket) => {
     if (!username) return;
 
     username = username.trim();
-
-    // remove old socket if user reconnects
-    for (let key in users) {
-      if (users[key] === socket.id) {
-        delete users[key];
-      }
-    }
-
-    // remove duplicate usernames (IMPORTANT FIX)
-    for (let key in users) {
-      if (key.split("_")[0] === username.split("_")[0]) {
-        delete users[key];
-      }
-    }
-
     socket.username = username;
     users[username] = socket.id;
-
-    console.log("ONLINE USERS:", Object.keys(users));
 
     emitOnlineUsers();
   });
 
-  // ================= PRIVATE MESSAGE =================
-socket.on("privateMessage", async ({ from, to, message }) => {
-  // 💾 SAVE MESSAGE
-await Message.create({
-  from: from.split("_")[0],
-  to: to.split("_")[0],
-  message
-});
-    if (!from || !to || !message) return;
+  // ================= PRIVATE MESSAGE (FIXED) =================
+  socket.on("privateMessage", async (data) => {
+    try {
+      if (!data || !data.from || !data.to || !data.message) return;
 
-    message = message.trim();
-    if (!message) return;
+      let from = data.from.trim();
+      let to = data.to.trim();
+      let message = data.message.trim();
 
-    // ✅ FIXED: correct lookup
-    const receiverSocketId = users[to];
+      if (!message) return;
 
-    console.log(`💬 ${from} → ${to}: ${message}`);
-
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("privateMessage", {
-        from,
-        to,
+      // 💾 SAVE MESSAGE (FIXED ORDER)
+      await Message.create({
+        from: from.split("_")[0],
+        to: to.split("_")[0],
         message
       });
 
-      const senderSocket = users[from];
-      if (senderSocket) {
-        io.to(senderSocket).emit("delivered", { from: to });
+      const receiverSocketId = users[to];
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("privateMessage", {
+          from,
+          to,
+          message
+        });
+
+        const senderSocket = users[from];
+        if (senderSocket) {
+          io.to(senderSocket).emit("delivered", { from: to });
+        }
       }
 
-    } else {
-      console.log("⚠️ User not online:", to);
+    } catch (err) {
+      console.log("❌ PRIVATE MESSAGE ERROR:", err);
     }
   });
 
@@ -140,8 +126,6 @@ await Message.create({
 
   // ================= DELIVERED =================
   socket.on("delivered", ({ from, to }) => {
-    if (!from || !to) return;
-
     const senderSocket = users[from];
     if (senderSocket) {
       io.to(senderSocket).emit("delivered", { from: to });
@@ -150,23 +134,14 @@ await Message.create({
 
   // ================= SEEN =================
   socket.on("seen", ({ from, to }) => {
-    if (!from || !to) return;
-
     const senderSocket = users[from];
     if (senderSocket) {
       io.to(senderSocket).emit("seen", { from: to });
     }
   });
 
-  // ================= KEEP ALIVE =================
-  socket.on("pingCheck", () => {
-    socket.emit("pongCheck");
-  });
-
   // ================= DISCONNECT =================
   socket.on("disconnect", () => {
-    console.log("❌ disconnected:", socket.id);
-
     if (socket.username) {
       delete users[socket.username];
       emitOnlineUsers();
@@ -175,8 +150,6 @@ await Message.create({
 });
 
 // ================= POSTS =================
-
-// CREATE POST
 app.post("/api/posts", async (req, res) => {
   try {
     const { user, text } = req.body;
@@ -199,7 +172,6 @@ app.post("/api/posts", async (req, res) => {
   }
 });
 
-// GET POSTS
 app.get("/api/posts", async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
@@ -210,11 +182,9 @@ app.get("/api/posts", async (req, res) => {
   }
 });
 
-// ❤️ LIKE POST
 app.put("/api/posts/like/:id", async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
-
     if (!post) return res.status(404).json({ error: "Post not found" });
 
     post.likes += 1;
@@ -227,7 +197,6 @@ app.put("/api/posts/like/:id", async (req, res) => {
   }
 });
 
-// 💬 COMMENT POST
 app.post("/api/posts/comment/:id", async (req, res) => {
   try {
     const { user, text } = req.body;
@@ -237,7 +206,6 @@ app.post("/api/posts/comment/:id", async (req, res) => {
     }
 
     const post = await Post.findById(req.params.id);
-
     if (!post) return res.status(404).json({ error: "Post not found" });
 
     post.comments.push({
