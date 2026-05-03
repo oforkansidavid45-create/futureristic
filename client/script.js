@@ -1,148 +1,306 @@
-require("dotenv").config();
+console.log("🔥 script loaded");
+const TAB_ID = Math.random().toString(36).substring(2);
 
-const express = require("express");
-const http = require("http");
-const cors = require("cors");
-const path = require("path");
-const mongoose = require("mongoose");
-const { Server } = require("socket.io");
+// ================= GLOBAL =================
+let username = null;
+let currentChatUser = null;
+let typingTimeout = null;
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
 
-const Post = require("./models/Post");
-const Message = require("./models/Message");
-
-const app = express();
-const server = http.createServer(app);
-
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
-
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "client")));
-
-let users = {};
-
-// ================= ONLINE USERS FIX =================
-function emitOnlineUsers() {
-  const safeUsers = Object.keys(users).filter(Boolean);
-  io.emit("onlineUsers", safeUsers);
+// ================= CLEAN NAME =================
+function cleanName(name) {
+  if (!name) return "";
+  return name.split("_")[0];
 }
 
-// ================= MESSAGES =================
-app.get("/api/messages/:user1/:user2", async (req, res) => {
+// ================= API + SOCKET =================
+const API = "https://futureristic.onrender.com";
+const socket = io(API);
+
+// ================= SAFE GET INPUT =================
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : "";
+}
+
+// ================= AUTH =================
+function signup() {
+  const name = getVal("nameInput").trim();
+  const pass = getVal("passwordInput");
+
+  if (!name || !pass) return alert("Fill all fields");
+
+  localStorage.setItem("fb_user", JSON.stringify({ name, pass }));
+  alert("Account created! Now login.");
+}
+
+function login() {
+  const name = getVal("nameInput").trim();
+  const pass = getVal("passwordInput");
+
+  const saved = JSON.parse(localStorage.getItem("fb_user"));
+  if (!saved) return alert("No account found");
+
+  if (saved.name === name && saved.pass === pass) {
+    username = name + "_" + TAB_ID;
+
+    document.getElementById("authScreen").style.display = "none";
+    document.querySelector(".app").style.display = "flex";
+
+    socket.emit("register", username);
+    loadPosts();
+  } else {
+    alert("Wrong login details");
+  }
+}
+
+// ================= SOCKET CONNECT =================
+socket.on("connect", () => {
+  if (username) socket.emit("register", username);
+});
+
+// ================= CHAT OPEN =================
+function openChat(user) {
+  currentChatUser = user;
+
+  document.getElementById("chatTitle").innerText =
+    "Chat with " + cleanName(user);
+
+  const box = document.getElementById("chatBox");
+
+  // ✅ FIX: DO NOT WIPE WHOLE CHAT
+  box.innerHTML = `
+    <div id="messagesContainer"></div>
+    <div id="typingIndicator" class="typing-bubble"></div>
+  `;
+
+  socket.emit("seen", {
+    from: username,
+    to: user
+  });
+
+  if (window.innerWidth <= 768) {
+    document.getElementById("chatPanel").classList.add("active");
+  }
+
+  loadMessages(user);
+}
+
+// ================= LOAD MESSAGES =================
+async function loadMessages(user) {
   try {
-    const user1 = (req.params.user1 || "").trim();
-    const user2 = (req.params.user2 || "").trim();
+    const res = await fetch(
+      `${API}/api/messages/${cleanName(username)}/${cleanName(user)}`
+    );
 
-    const messages = await Message.find({
-      $or: [
-        { from: user1, to: user2 },
-        { from: user2, to: user1 }
-      ]
-    }).sort({ createdAt: 1 });
+    const messages = await res.json();
 
-    res.json(messages);
+    const msgBox = document.getElementById("messagesContainer");
+
+    msgBox.innerHTML = "";
+
+    messages.forEach(m => {
+      if (m.from === cleanName(username)) {
+        addMessage("You", m.message);
+      } else {
+        addMessage(m.from, m.message);
+      }
+    });
+
   } catch (err) {
-    console.log("❌ MESSAGE LOAD ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+    console.log("❌ loadMessages error:", err);
+  }
+}
+
+// ================= MESSAGE UI =================
+function addMessage(user, msg, status = "") {
+  const box = document.getElementById("messagesContainer");
+
+  const div = document.createElement("div");
+  div.className = "chat-msg";
+
+  if (user === "You") div.classList.add("my-msg");
+
+  div.innerHTML = `
+    <b>${user}:</b> ${msg}
+    ${user === "You" ? `<span class="msg-status">${status}</span>` : ""}
+  `;
+
+  box.appendChild(div);
+
+  requestAnimationFrame(() => {
+    div.style.animation = "msgPop 0.25s ease forwards";
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
+// ================= SEND MESSAGE =================
+function sendMessage() {
+  const input = document.getElementById("chatInput");
+
+  const message = input.value.trim();
+  if (!message || !currentChatUser) return;
+
+  socket.emit("privateMessage", {
+    from: username,
+    to: currentChatUser,
+    message
+  });
+
+  socket.emit("stopTyping", {
+    from: username,
+    to: currentChatUser
+  });
+
+  addMessage("You", message, "✔");
+
+  input.value = "";
+}
+
+// ================= RECEIVE MESSAGE =================
+socket.on("privateMessage", (data) => {
+  const fromClean = cleanName(data.from);
+
+  if (data.audio) {
+    addVoiceMessage(fromClean, data.audio);
+    return;
+  }
+
+  if (currentChatUser && fromClean === cleanName(currentChatUser)) {
+    addMessage(fromClean, data.message);
+
+    socket.emit("delivered", {
+      from: data.from,
+      to: username
+    });
   }
 });
 
-// ================= SOCKET =================
-io.on("connection", (socket) => {
+// ================= ONLINE USERS =================
+socket.on("onlineUsers", (users) => {
+  if (!username) return;
 
-  emitOnlineUsers();
+  document.getElementById("onlineUsers").innerHTML =
+    users
+      .filter(u =>
+        u &&
+        cleanName(u) !== cleanName(username) &&
+        u !== username
+      )
+      .map(u => `
+        <div class="online-user" onclick="openChat('${u}')">
+          🟢 ${cleanName(u)}
+        </div>
+      `)
+      .join("");
+});
+// ================= TYPING =================
+function handleTyping() {
+  if (!currentChatUser) return;
 
-  // ================= REGISTER FIX =================
-  socket.on("register", (username) => {
-    if (!username) return;
-
-    username = username.trim();
-
-    // remove old socket
-    for (let key in users) {
-      if (users[key] === socket.id) {
-        delete users[key];
-      }
-    }
-
-    socket.username = username;
-    users[username] = socket.id;
-
-    emitOnlineUsers();
+  socket.emit("typing", {
+    from: username,
+    to: currentChatUser
   });
 
-  // ================= PRIVATE MESSAGE FIX =================
-  socket.on("privateMessage", async (data) => {
-    try {
-      if (!data?.from || !data?.to || !data?.message) return;
+  clearTimeout(typingTimeout);
 
-      let from = data.from.trim();
-      let to = data.to.trim();
-      let message = data.message.trim();
+  typingTimeout = setTimeout(() => {
+    socket.emit("stopTyping", {
+      from: username,
+      to: currentChatUser
+    });
+  }, 800);
+}
 
-      if (!message) return;
+// ================= SHOW TYPING =================
+socket.on("typing", (data) => {
+  if (!currentChatUser) return;
 
-      // SAVE
-      await Message.create({
-        from: from.split("_")[0],
-        to: to.split("_")[0],
-        message
-      });
+  const bubble = document.getElementById("typingIndicator");
 
-      const receiverSocketId = users[to];
-
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("privateMessage", {
-          from,
-          to,
-          message,
-          audio: data.audio || null
-        });
-
-        const senderSocket = users[from];
-        if (senderSocket) {
-          io.to(senderSocket).emit("delivered", { from: to });
-        }
-      }
-
-    } catch (err) {
-      console.log("❌ MESSAGE ERROR:", err);
-    }
-  });
-
-  // ================= TYPING =================
-  socket.on("typing", ({ from, to }) => {
-    const id = users[to];
-    if (id) io.to(id).emit("typing", { from });
-  });
-
-  socket.on("stopTyping", ({ from, to }) => {
-    const id = users[to];
-    if (id) io.to(id).emit("stopTyping", { from });
-  });
-
-  // ================= SEEN =================
-  socket.on("seen", ({ from, to }) => {
-    const id = users[from];
-    if (id) io.to(id).emit("seen", { from: to });
-  });
-
-  // ================= DISCONNECT FIX =================
-  socket.on("disconnect", () => {
-    if (socket.username) {
-      delete users[socket.username];
-      emitOnlineUsers();
-    }
-  });
+  if (bubble) {
+    bubble.style.display = "block";
+    bubble.innerText = cleanName(data.from) + " is typing...";
+  }
 });
 
-// ================= DB =================
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("🔥 MongoDB connected"))
-  .catch(err => console.log("❌ Mongo error:", err));
+// ================= STOP TYPING =================
+socket.on("stopTyping", () => {
+  const bubble = document.getElementById("typingIndicator");
 
-// ================= START =================
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log("🚀 Server running on", PORT));
+  if (bubble) {
+    bubble.style.display = "none";
+    bubble.innerText = "";
+  }
+});
+
+// ================= VOICE NOTES =================
+async function startRecording() {
+  if (!navigator.mediaDevices) return alert("Mic not supported");
+
+  if (!isRecording) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+      audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        sendVoiceMessage(reader.result);
+      };
+
+      reader.readAsDataURL(audioBlob);
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+
+    alert("🎤 Recording... click again to stop");
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
+  }
+}
+
+// ================= SEND VOICE =================
+function sendVoiceMessage(audioData) {
+  if (!currentChatUser || !username || !audioData) return;
+
+  socket.emit("privateMessage", {
+    from: username,
+    to: currentChatUser,
+    message: "[VOICE]",
+    audio: audioData
+  });
+
+  addVoiceMessage("You", audioData);
+}
+
+// ================= SHOW VOICE =================
+function addVoiceMessage(user, audioData) {
+  const box = document.getElementById("messagesContainer");
+
+  const div = document.createElement("div");
+  div.className = "chat-msg";
+
+  if (user === "You") div.classList.add("my-msg");
+
+  div.innerHTML = `
+    <b>${user}:</b><br/>
+    <audio controls src="${audioData}"></audio>
+  `;
+
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}

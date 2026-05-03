@@ -26,24 +26,15 @@ app.use(express.static(path.join(__dirname, "client")));
 let users = {};
 
 // ================= HELPERS =================
-function cleanUser(name) {
-  return (name || "").split("_")[0].trim();
-}
-
 function emitOnlineUsers() {
-  // show ONLY clean names (no duplicates)
-  const cleanUsers = [...new Set(
-    Object.keys(users).map(cleanUser)
-  )];
-
-  io.emit("onlineUsers", cleanUsers);
+  io.emit("onlineUsers", Object.keys(users));
 }
 
 // ================= LOAD MESSAGES =================
 app.get("/api/messages/:user1/:user2", async (req, res) => {
   try {
-    const user1 = cleanUser(req.params.user1);
-    const user2 = cleanUser(req.params.user2);
+    const user1 = (req.params.user1 || "").trim();
+    const user2 = (req.params.user2 || "").trim();
 
     const messages = await Message.find({
       $or: [
@@ -66,45 +57,62 @@ io.on("connection", (socket) => {
   emitOnlineUsers();
 
   // ================= REGISTER =================
-  socket.on("register", (username) => {
-    if (!username) return;
+socket.on("register", (username) => {
+  if (!username) return;
 
-    const clean = cleanUser(username);
+  username = username.trim();
 
-    socket.username = clean;
-    users[clean] = socket.id;
+  // ❌ remove old duplicate (same base name)
+  for (let key in users) {
+    if (key.split("_")[0] === username.split("_")[0]) {
+      delete users[key];
+    }
+  }
 
-    emitOnlineUsers();
-  });
+  socket.username = username;
+  users[username] = socket.id;
 
-  // ================= PRIVATE MESSAGE =================
+  emitOnlineUsers();
+});
+
+  // ================= PRIVATE MESSAGE (FIXED) =================
   socket.on("privateMessage", async (data) => {
     try {
-      if (!data) return;
+      if (!data || !data.from || !data.to || !data.message) return;
 
-      const from = cleanUser(data.from);
-      const to = cleanUser(data.to);
-      const message = (data.message || "").trim();
+      let from = data.from.trim();
+      let to = data.to.trim();
+      let message = data.message.trim();
 
-      if (!from || !to || !message) return;
+      if (!message) return;
 
-      // SAVE
-      await Message.create({ from, to, message });
+      // 💾 SAVE MESSAGE (FIXED ORDER)
+      await Message.create({
+        from: from.split("_")[0],
+        to: to.split("_")[0],
+        message
+      });
 
-      const receiverSocketId = users[to];
+     const receiverSocketId = Object.keys(users).find(
+  u => u.split("_")[0] === to.split("_")[0]
+);
 
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("privateMessage", {
-          from,
-          to,
-          message
-        });
+const socketId = users[receiverSocketId];
+
+   if (socketId) {
+  io.to(socketId).emit("privateMessage", {
+    from,
+    to,
+    message
+  });
+
 
         const senderSocket = users[from];
         if (senderSocket) {
           io.to(senderSocket).emit("delivered", { from: to });
         }
       }
+
     } catch (err) {
       console.log("❌ PRIVATE MESSAGE ERROR:", err);
     }
@@ -112,36 +120,44 @@ io.on("connection", (socket) => {
 
   // ================= TYPING =================
   socket.on("typing", ({ from, to }) => {
-    const receiverSocketId = users[cleanUser(to)];
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("typing", {
-        from: cleanUser(from)
-      });
-    }
+    if (!from || !to) return;
+
+   const receiverKey = Object.keys(users).find(
+  u => u.split("_")[0] === to.split("_")[0]
+);
+
+const receiverSocketId = users[receiverKey];
+    if (!receiverSocketId) return;
+
+    io.to(receiverSocketId).emit("typing", { from });
   });
 
   socket.on("stopTyping", ({ from, to }) => {
-    const receiverSocketId = users[cleanUser(to)];
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("stopTyping", {
-        from: cleanUser(from)
-      });
-    }
+    if (!from || !to) return;
+
+    const receiverKey = Object.keys(users).find(
+  u => u.split("_")[0] === to.split("_")[0]
+);
+
+const receiverSocketId = users[receiverKey];
+    if (!receiverSocketId) return;
+
+    io.to(receiverSocketId).emit("stopTyping", { from });
   });
 
   // ================= DELIVERED =================
   socket.on("delivered", ({ from, to }) => {
-    const senderSocket = users[cleanUser(from)];
+    const senderSocket = users[from];
     if (senderSocket) {
-      io.to(senderSocket).emit("delivered", { from: cleanUser(to) });
+      io.to(senderSocket).emit("delivered", { from: to });
     }
   });
 
   // ================= SEEN =================
   socket.on("seen", ({ from, to }) => {
-    const senderSocket = users[cleanUser(from)];
+    const senderSocket = users[from];
     if (senderSocket) {
-      io.to(senderSocket).emit("seen", { from: cleanUser(to) });
+      io.to(senderSocket).emit("seen", { from: to });
     }
   });
 
@@ -164,7 +180,7 @@ app.post("/api/posts", async (req, res) => {
     }
 
     const post = await Post.create({
-      user: cleanUser(user),
+      user: user.trim(),
       text: text.trim(),
       likes: 0,
       comments: []
@@ -214,7 +230,7 @@ app.post("/api/posts/comment/:id", async (req, res) => {
     if (!post) return res.status(404).json({ error: "Post not found" });
 
     post.comments.push({
-      user: cleanUser(user),
+      user: user.trim(),
       text: text.trim()
     });
 
