@@ -57,30 +57,21 @@ io.on("connection", (socket) => {
   emitOnlineUsers();
 
   // ================= REGISTER =================
-socket.on("register", (username) => {
-  if (!username) return;
+  socket.on("register", (username) => {
+    if (!username) return;
 
-  username = username.trim();
+    username = username.trim();
 
-  // ❌ remove old duplicate (same base name)
-  for (let key in users) {
-    if (key.split("_")[0] === username.split("_")[0]) {
-      delete users[key];
-    }
-  }
+    socket.username = username;
+    users[username] = socket.id;
 
-  socket.username = username;
-  users[username] = socket.id;
+    emitOnlineUsers();
+  });
 
-  emitOnlineUsers();
-});
-
-  // ================= PRIVATE MESSAGE (FIXED) =================
+  // ================= PRIVATE MESSAGE =================
   socket.on("privateMessage", async (data) => {
     try {
-     if (cleanName(data.from) === cleanName(currentChatUser)) {
-  addMessage(cleanName(data.from), data.message);
-}
+      if (!data || !data.from || !data.to || !data.message) return;
 
       let from = data.from.trim();
       let to = data.to.trim();
@@ -88,31 +79,36 @@ socket.on("register", (username) => {
 
       if (!message) return;
 
-      // 💾 SAVE MESSAGE (FIXED ORDER)
+      // 💾 SAVE MESSAGE
       await Message.create({
         from: from.split("_")[0],
         to: to.split("_")[0],
         message
       });
 
-     const receiverSocketId = Object.keys(users).find(
-  u => u.split("_")[0] === to.split("_")[0]
-);
+      // 🔥 FIND RECEIVER (WORKS FOR MULTIPLE TABS)
+      let receiverSocketId = null;
 
-const socketId = users[receiverSocketId];
-
-   if (socketId) {
-  io.to(socketId).emit("privateMessage", {
-    from,
-    to,
-    message
-  });
-
-
-        const senderSocket = users[from];
-        if (senderSocket) {
-          io.to(senderSocket).emit("delivered", { from: to });
+      for (let key in users) {
+        if (key.split("_")[0] === to.split("_")[0]) {
+          receiverSocketId = users[key];
+          break;
         }
+      }
+
+      // 📩 SEND MESSAGE
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("privateMessage", {
+          from,
+          to,
+          message
+        });
+      }
+
+      // ✅ DELIVERY STATUS
+      const senderSocket = users[from];
+      if (senderSocket) {
+        io.to(senderSocket).emit("delivered", { from: to });
       }
 
     } catch (err) {
@@ -124,31 +120,33 @@ const socketId = users[receiverSocketId];
   socket.on("typing", ({ from, to }) => {
     if (!from || !to) return;
 
-   const receiverKey = Object.keys(users).find(
-  u => u.split("_")[0] === to.split("_")[0]
-);
+    let receiverSocketId = null;
 
-const receiverSocketId = users[receiverKey];
+    for (let key in users) {
+      if (key.split("_")[0] === to.split("_")[0]) {
+        receiverSocketId = users[key];
+        break;
+      }
+    }
+
     if (!receiverSocketId) return;
 
     io.to(receiverSocketId).emit("typing", { from });
   });
 
+  // ================= STOP TYPING =================
   socket.on("stopTyping", ({ from, to }) => {
     if (!from || !to) return;
 
-    const receiverKey = Object.keys(users).find(
-  u => u.split("_")[0] === to.split("_")[0]
-);
-// ✅ FIND USER EVEN WITH DIFFERENT TAB_ID
-let receiverSocketId = null;
+    let receiverSocketId = null;
 
-for (let key in users) {
-  if (key.split("_")[0] === to.split("_")[0]) {
-    receiverSocketId = users[key];
-    break;
-  }
-}
+    for (let key in users) {
+      if (key.split("_")[0] === to.split("_")[0]) {
+        receiverSocketId = users[key];
+        break;
+      }
+    }
+
     if (!receiverSocketId) return;
 
     io.to(receiverSocketId).emit("stopTyping", { from });
@@ -156,14 +154,7 @@ for (let key in users) {
 
   // ================= DELIVERED =================
   socket.on("delivered", ({ from, to }) => {
-  let senderSocket = null;
-
-for (let key in users) {
-  if (key === from) {
-    senderSocket = users[key];
-    break;
-  }
-}
+    const senderSocket = users[from];
     if (senderSocket) {
       io.to(senderSocket).emit("delivered", { from: to });
     }
@@ -171,14 +162,7 @@ for (let key in users) {
 
   // ================= SEEN =================
   socket.on("seen", ({ from, to }) => {
-   let senderSocket = null;
-
-for (let key in users) {
-  if (key === from) {
-    senderSocket = users[key];
-    break;
-  }
-}
+    const senderSocket = users[from];
     if (senderSocket) {
       io.to(senderSocket).emit("seen", { from: to });
     }
