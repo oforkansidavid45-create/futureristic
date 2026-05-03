@@ -26,15 +26,24 @@ app.use(express.static(path.join(__dirname, "client")));
 let users = {};
 
 // ================= HELPERS =================
+function cleanUser(name) {
+  return (name || "").split("_")[0].trim();
+}
+
 function emitOnlineUsers() {
-  io.emit("onlineUsers", Object.keys(users));
+  // show ONLY clean names (no duplicates)
+  const cleanUsers = [...new Set(
+    Object.keys(users).map(cleanUser)
+  )];
+
+  io.emit("onlineUsers", cleanUsers);
 }
 
 // ================= LOAD MESSAGES =================
 app.get("/api/messages/:user1/:user2", async (req, res) => {
   try {
-    const user1 = (req.params.user1 || "").trim();
-    const user2 = (req.params.user2 || "").trim();
+    const user1 = cleanUser(req.params.user1);
+    const user2 = cleanUser(req.params.user2);
 
     const messages = await Message.find({
       $or: [
@@ -60,30 +69,27 @@ io.on("connection", (socket) => {
   socket.on("register", (username) => {
     if (!username) return;
 
-    username = username.trim();
-    socket.username = username;
-    users[username] = socket.id;
+    const clean = cleanUser(username);
+
+    socket.username = clean;
+    users[clean] = socket.id;
 
     emitOnlineUsers();
   });
 
-  // ================= PRIVATE MESSAGE (FIXED) =================
+  // ================= PRIVATE MESSAGE =================
   socket.on("privateMessage", async (data) => {
     try {
-      if (!data || !data.from || !data.to || !data.message) return;
+      if (!data) return;
 
-      let from = data.from.trim();
-      let to = data.to.trim();
-      let message = data.message.trim();
+      const from = cleanUser(data.from);
+      const to = cleanUser(data.to);
+      const message = (data.message || "").trim();
 
-      if (!message) return;
+      if (!from || !to || !message) return;
 
-      // 💾 SAVE MESSAGE (FIXED ORDER)
-      await Message.create({
-        from: from.split("_")[0],
-        to: to.split("_")[0],
-        message
-      });
+      // SAVE
+      await Message.create({ from, to, message });
 
       const receiverSocketId = users[to];
 
@@ -99,7 +105,6 @@ io.on("connection", (socket) => {
           io.to(senderSocket).emit("delivered", { from: to });
         }
       }
-
     } catch (err) {
       console.log("❌ PRIVATE MESSAGE ERROR:", err);
     }
@@ -107,36 +112,36 @@ io.on("connection", (socket) => {
 
   // ================= TYPING =================
   socket.on("typing", ({ from, to }) => {
-    if (!from || !to) return;
-
-    const receiverSocketId = users[to];
-    if (!receiverSocketId) return;
-
-    io.to(receiverSocketId).emit("typing", { from });
+    const receiverSocketId = users[cleanUser(to)];
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("typing", {
+        from: cleanUser(from)
+      });
+    }
   });
 
   socket.on("stopTyping", ({ from, to }) => {
-    if (!from || !to) return;
-
-    const receiverSocketId = users[to];
-    if (!receiverSocketId) return;
-
-    io.to(receiverSocketId).emit("stopTyping", { from });
+    const receiverSocketId = users[cleanUser(to)];
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("stopTyping", {
+        from: cleanUser(from)
+      });
+    }
   });
 
   // ================= DELIVERED =================
   socket.on("delivered", ({ from, to }) => {
-    const senderSocket = users[from];
+    const senderSocket = users[cleanUser(from)];
     if (senderSocket) {
-      io.to(senderSocket).emit("delivered", { from: to });
+      io.to(senderSocket).emit("delivered", { from: cleanUser(to) });
     }
   });
 
   // ================= SEEN =================
   socket.on("seen", ({ from, to }) => {
-    const senderSocket = users[from];
+    const senderSocket = users[cleanUser(from)];
     if (senderSocket) {
-      io.to(senderSocket).emit("seen", { from: to });
+      io.to(senderSocket).emit("seen", { from: cleanUser(to) });
     }
   });
 
@@ -159,7 +164,7 @@ app.post("/api/posts", async (req, res) => {
     }
 
     const post = await Post.create({
-      user: user.trim(),
+      user: cleanUser(user),
       text: text.trim(),
       likes: 0,
       comments: []
@@ -209,7 +214,7 @@ app.post("/api/posts/comment/:id", async (req, res) => {
     if (!post) return res.status(404).json({ error: "Post not found" });
 
     post.comments.push({
-      user: user.trim(),
+      user: cleanUser(user),
       text: text.trim()
     });
 
