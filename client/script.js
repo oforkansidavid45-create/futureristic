@@ -136,7 +136,14 @@ function addMessage(user, msg, status = "") {
     ${user === "You" ? `<span class="msg-status">${status}</span>` : ""}
   `;
 
+  // smoother insert
   box.appendChild(div);
+
+  // force animation restart (important trick)
+  requestAnimationFrame(() => {
+    div.style.animation = "msgPop 0.25s ease forwards";
+  });
+
   box.scrollTop = box.scrollHeight;
 }
 
@@ -166,6 +173,11 @@ function sendMessage() {
 // ================= RECEIVE MESSAGE =================
 socket.on("privateMessage", (data) => {
   const fromClean = cleanName(data.from);
+
+  if (data.audio) {
+    addVoiceMessage(fromClean, data.audio);
+    return;
+  }
 
   if (currentChatUser && fromClean === cleanName(currentChatUser)) {
     addMessage(fromClean, data.message);
@@ -230,3 +242,75 @@ socket.on("stopTyping", () => {
     bubble.innerText = "";
   }
 });
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+
+// ================= START RECORDING =================
+async function startRecording() {
+  if (!navigator.mediaDevices) {
+    alert("Mic not supported on this device");
+    return;
+  }
+
+  if (!isRecording) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+      audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Audio = reader.result;
+
+        sendVoiceMessage(base64Audio);
+      };
+
+      reader.readAsDataURL(audioBlob);
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+
+    alert("🎤 Recording started... click again to stop");
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
+  }
+}
+function sendVoiceMessage(audioData) {
+  if (!currentChatUser || !username) return;
+
+  socket.emit("privateMessage", {
+    from: username,
+    to: currentChatUser,
+    message: "[VOICE]",
+    audio: audioData
+  });
+
+  // show locally
+  addVoiceMessage("You", audioData, "✔");
+}
+function addVoiceMessage(user, audioData) {
+  const box = document.getElementById("chatBox");
+
+  const div = document.createElement("div");
+  div.className = "chat-msg";
+
+  if (user === "You") div.classList.add("my-msg");
+
+  div.innerHTML = `
+    <b>${user}:</b><br/>
+    <audio controls src="${audioData}"></audio>
+  `;
+
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}

@@ -69,10 +69,7 @@
       <input id="chatInput" placeholder="Type message..." oninput="handleTyping()" />
       <button onclick="sendMessage()">Send</button>
     </div>
-<button onclick="console.log('CLICK WORKING'); openChat('test_user')">
-  💬
-</button>
-  </div>
+
 </div>
 
 <!-- MOBILE NAV -->
@@ -80,6 +77,12 @@
   <div onclick="showFeed()">🏠</div>
   <div onclick="toggleChat()">💬</div>
   <div onclick="logout()">🚪</div>
+</div>
+<div class="chat-input">
+  <input id="chatInput" placeholder="Type message..." oninput="handleTyping()" />
+
+  <button onclick="startRecording()">🎤</button>
+  <button onclick="sendMessage()">Send</button>
 </div>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
