@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const Message = require("./models/Message");
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
@@ -20,6 +21,24 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "client")));
+// ================= LOAD MESSAGES =================
+app.get("/api/messages/:user1/:user2", async (req, res) => {
+  try {
+    const { user1, user2 } = req.params;
+
+    const messages = await Message.find({
+      $or: [
+        { from: user1, to: user2 },
+        { from: user2, to: user1 }
+      ]
+    }).sort({ createdAt: 1 });
+
+    res.json(messages);
+  } catch (err) {
+    console.log("❌ MESSAGE LOAD ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // ================= USERS =================
 let users = {};
@@ -64,7 +83,13 @@ io.on("connection", (socket) => {
   });
 
   // ================= PRIVATE MESSAGE =================
-  socket.on("privateMessage", ({ from, to, message }) => {
+socket.on("privateMessage", async ({ from, to, message }) => {
+  // 💾 SAVE MESSAGE
+await Message.create({
+  from: from.split("_")[0],
+  to: to.split("_")[0],
+  message
+});
     if (!from || !to || !message) return;
 
     message = message.trim();

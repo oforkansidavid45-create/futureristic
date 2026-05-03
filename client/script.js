@@ -165,6 +165,33 @@ async function addComment(id) {
 
 // ================= CHAT =================
 function openChat(user) {
+  loadMessages(user);
+  // ================= LOAD MESSAGES =================
+async function loadMessages(user) {
+  try {
+    const res = await fetch(`${API}/api/messages/${cleanName(username)}/${cleanName(user)}`);
+    const messages = await res.json();
+
+    const box = document.getElementById("chatBox");
+
+    if (!box) return;
+
+    box.innerHTML = `
+      <div id="typingIndicator" class="typing-bubble"></div>
+    `;
+
+    messages.forEach(m => {
+      if (m.from === cleanName(username)) {
+        addMessage("You", m.message);
+      } else {
+        addMessage(m.from, m.message);
+      }
+    });
+
+  } catch (err) {
+    console.log("❌ loadMessages error:", err);
+  }
+}
   currentChatUser = user;
 
   const title = document.getElementById("chatTitle");
