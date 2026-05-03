@@ -261,14 +261,25 @@ socket.on("privateMessage", (data) => {
 
 // ================= DELIVERED =================
 socket.on("delivered", () => {
-  updateLastMessageStatus("✔✔");
-});
+  const statuses = document.querySelectorAll(".msg-status");
+
+  statuses.forEach(s => {
+    if (!s.innerText.includes("Seen")) {
+      s.innerText = "✔✔ Delivered";
+      s.style.color = "gray";
+    }
+  });
+});;
 
 // ================= SEEN =================
 socket.on("seen", () => {
-  updateLastMessageStatus("✔✔ Seen");
-});
+  const statuses = document.querySelectorAll(".msg-status");
 
+  statuses.forEach(s => {
+    s.innerText = "✔✔ Seen";
+    s.style.color = "#00e5ff"; // blue
+  });
+});
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
   const box = document.getElementById("onlineUsers");
