@@ -5,6 +5,9 @@ const TAB_ID = Math.random().toString(36).substring(2);
 let username = null;
 let currentChatUser = null;
 let typingTimeout = null;
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
 
 // ================= CLEAN NAME =================
 function cleanName(name) {
@@ -58,17 +61,7 @@ socket.on("connect", () => {
   if (username) socket.emit("register", username);
 });
 
-// ================= POSTS (UNCHANGED) =================
-async function createPost() { /* same as yours */ }
-async function loadPosts() { /* same as yours */ }
-async function likePost(id) { /* same as yours */ }
-async function addComment(id) { /* same as yours */ }
-
-// =====================================================
-// 💬 CHAT CORE FIXED SECTION
-// =====================================================
-
-// ================= OPEN CHAT =================
+// ================= CHAT OPEN =================
 function openChat(user) {
   currentChatUser = user;
 
@@ -77,7 +70,6 @@ function openChat(user) {
 
   const box = document.getElementById("chatBox");
 
-  // reset chat box properly (KEEP typing indicator)
   box.innerHTML = `<div id="typingIndicator" class="typing-bubble"></div>`;
 
   socket.emit("seen", {
@@ -89,10 +81,10 @@ function openChat(user) {
     document.getElementById("chatPanel").classList.add("active");
   }
 
-  loadMessages(user); // ✅ FIXED: now properly called
+  loadMessages(user);
 }
 
-// ================= LOAD MESSAGES (FIXED - ONLY ONCE) =================
+// ================= LOAD MESSAGES =================
 async function loadMessages(user) {
   try {
     const res = await fetch(
@@ -117,11 +109,6 @@ async function loadMessages(user) {
   }
 }
 
-// ================= TOGGLE CHAT =================
-function toggleChat() {
-  document.getElementById("chatPanel").classList.toggle("active");
-}
-
 // ================= MESSAGE UI =================
 function addMessage(user, msg, status = "") {
   const box = document.getElementById("chatBox");
@@ -136,10 +123,7 @@ function addMessage(user, msg, status = "") {
     ${user === "You" ? `<span class="msg-status">${status}</span>` : ""}
   `;
 
-  // smoother insert
   box.appendChild(div);
-
-  // force animation restart (important trick)
   requestAnimationFrame(() => {
     div.style.animation = "msgPop 0.25s ease forwards";
   });
@@ -202,7 +186,7 @@ socket.on("onlineUsers", (users) => {
       .join("");
 });
 
-// ================= TYPING FIXED =================
+// ================= TYPING =================
 function handleTyping() {
   if (!currentChatUser) return;
 
@@ -221,7 +205,7 @@ function handleTyping() {
   }, 800);
 }
 
-// SHOW TYPING
+// ================= SHOW TYPING =================
 socket.on("typing", (data) => {
   if (!currentChatUser) return;
 
@@ -233,7 +217,7 @@ socket.on("typing", (data) => {
   }
 });
 
-// STOP TYPING
+// ================= STOP TYPING =================
 socket.on("stopTyping", () => {
   const bubble = document.getElementById("typingIndicator");
 
@@ -242,16 +226,14 @@ socket.on("stopTyping", () => {
     bubble.innerText = "";
   }
 });
-let mediaRecorder;
-let audioChunks = [];
-let isRecording = false;
 
-// ================= START RECORDING =================
+// =====================================================
+// 🎤 VOICE NOTES (FIXED & CLEAN)
+// =====================================================
+
+// ================= START/STOP RECORDING =================
 async function startRecording() {
-  if (!navigator.mediaDevices) {
-    alert("Mic not supported on this device");
-    return;
-  }
+  if (!navigator.mediaDevices) return alert("Mic not supported");
 
   if (!isRecording) {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -268,9 +250,7 @@ async function startRecording() {
 
       const reader = new FileReader();
       reader.onload = () => {
-        const base64Audio = reader.result;
-
-        sendVoiceMessage(base64Audio);
+        sendVoiceMessage(reader.result);
       };
 
       reader.readAsDataURL(audioBlob);
@@ -279,12 +259,14 @@ async function startRecording() {
     mediaRecorder.start();
     isRecording = true;
 
-    alert("🎤 Recording started... click again to stop");
+    alert("🎤 Recording... click again to stop");
   } else {
     mediaRecorder.stop();
     isRecording = false;
   }
 }
+
+// ================= SEND VOICE =================
 function sendVoiceMessage(audioData) {
   if (!currentChatUser || !username) return;
 
@@ -295,9 +277,10 @@ function sendVoiceMessage(audioData) {
     audio: audioData
   });
 
-  // show locally
-  addVoiceMessage("You", audioData, "✔");
+  addVoiceMessage("You", audioData);
 }
+
+// ================= SHOW VOICE =================
 function addVoiceMessage(user, audioData) {
   const box = document.getElementById("chatBox");
 
