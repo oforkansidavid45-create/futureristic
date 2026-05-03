@@ -70,7 +70,11 @@ function openChat(user) {
 
   const box = document.getElementById("chatBox");
 
-  box.innerHTML = `<div id="typingIndicator" class="typing-bubble"></div>`;
+  // ✅ FIX: DO NOT WIPE WHOLE CHAT
+  box.innerHTML = `
+    <div id="messagesContainer"></div>
+    <div id="typingIndicator" class="typing-bubble"></div>
+  `;
 
   socket.emit("seen", {
     from: username,
@@ -92,9 +96,10 @@ async function loadMessages(user) {
     );
 
     const messages = await res.json();
-    const box = document.getElementById("chatBox");
 
-    box.innerHTML = `<div id="typingIndicator" class="typing-bubble"></div>`;
+    const msgBox = document.getElementById("messagesContainer");
+
+    msgBox.innerHTML = "";
 
     messages.forEach(m => {
       if (m.from === cleanName(username)) {
@@ -111,7 +116,7 @@ async function loadMessages(user) {
 
 // ================= MESSAGE UI =================
 function addMessage(user, msg, status = "") {
-  const box = document.getElementById("chatBox");
+  const box = document.getElementById("messagesContainer");
 
   const div = document.createElement("div");
   div.className = "chat-msg";
@@ -124,6 +129,7 @@ function addMessage(user, msg, status = "") {
   `;
 
   box.appendChild(div);
+
   requestAnimationFrame(() => {
     div.style.animation = "msgPop 0.25s ease forwards";
   });
@@ -227,11 +233,7 @@ socket.on("stopTyping", () => {
   }
 });
 
-// =====================================================
-// 🎤 VOICE NOTES (FIXED & CLEAN)
-// =====================================================
-
-// ================= START/STOP RECORDING =================
+// ================= VOICE NOTES =================
 async function startRecording() {
   if (!navigator.mediaDevices) return alert("Mic not supported");
 
@@ -268,7 +270,7 @@ async function startRecording() {
 
 // ================= SEND VOICE =================
 function sendVoiceMessage(audioData) {
-  if (!currentChatUser || !username) return;
+  if (!currentChatUser || !username || !audioData) return;
 
   socket.emit("privateMessage", {
     from: username,
@@ -282,7 +284,7 @@ function sendVoiceMessage(audioData) {
 
 // ================= SHOW VOICE =================
 function addVoiceMessage(user, audioData) {
-  const box = document.getElementById("chatBox");
+  const box = document.getElementById("messagesContainer");
 
   const div = document.createElement("div");
   div.className = "chat-msg";
