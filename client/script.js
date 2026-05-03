@@ -174,6 +174,7 @@ function openChat(user) {
   if (title) title.innerText = "Chat with " + cleanName(user);
   if (box) box.innerHTML = "";
 
+  // ✅ FIX: SEND SEEN WHEN CHAT OPENS
   socket.emit("seen", {
     from: username,
     to: user
@@ -197,7 +198,6 @@ function addMessage(user, msg, status = "") {
   const div = document.createElement("div");
   div.className = "chat-msg";
 
-  // ✅ mark if it's YOUR message
   if (user === "You") {
     div.classList.add("my-msg");
   }
@@ -211,7 +211,7 @@ function addMessage(user, msg, status = "") {
   box.scrollTop = box.scrollHeight;
 }
 
-// ✅ FIX: only update LAST message
+// ================= UPDATE LAST =================
 function updateLastMyMessage(status, color) {
   const myMsgs = document.querySelectorAll(".my-msg .msg-status");
   if (!myMsgs.length) return;
@@ -220,6 +220,7 @@ function updateLastMyMessage(status, color) {
   last.innerText = status;
   last.style.color = color;
 }
+
 // ================= SEND =================
 function sendMessage() {
   if (!username) return alert("Login first!");
@@ -241,7 +242,9 @@ function sendMessage() {
     to: currentChatUser
   });
 
-addMessage("You", message, "✔");
+  // ✔ sent
+  addMessage("You", message, "✔");
+
   input.value = "";
 }
 
@@ -254,9 +257,10 @@ socket.on("privateMessage", (data) => {
   if (currentChatUser && fromClean === cleanName(currentChatUser)) {
     addMessage(fromClean, data.message);
 
+    // ✅ FIX: SEND delivered correctly
     socket.emit("delivered", {
-      from: username,
-      to: data.from
+      from: data.from,
+      to: username
     });
   }
 });
@@ -270,6 +274,7 @@ socket.on("delivered", () => {
 socket.on("seen", () => {
   updateLastMyMessage("✔✔", "#00e5ff"); // blue
 });
+
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
   const box = document.getElementById("onlineUsers");
