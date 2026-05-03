@@ -78,7 +78,9 @@ socket.on("register", (username) => {
   // ================= PRIVATE MESSAGE (FIXED) =================
   socket.on("privateMessage", async (data) => {
     try {
-      if (!data || !data.from || !data.to || !data.message) return;
+     if (cleanName(data.from) === cleanName(currentChatUser)) {
+  addMessage(cleanName(data.from), data.message);
+}
 
       let from = data.from.trim();
       let to = data.to.trim();
@@ -138,8 +140,15 @@ const receiverSocketId = users[receiverKey];
     const receiverKey = Object.keys(users).find(
   u => u.split("_")[0] === to.split("_")[0]
 );
+// ✅ FIND USER EVEN WITH DIFFERENT TAB_ID
+let receiverSocketId = null;
 
-const receiverSocketId = users[receiverKey];
+for (let key in users) {
+  if (key.split("_")[0] === to.split("_")[0]) {
+    receiverSocketId = users[key];
+    break;
+  }
+}
     if (!receiverSocketId) return;
 
     io.to(receiverSocketId).emit("stopTyping", { from });
@@ -147,7 +156,14 @@ const receiverSocketId = users[receiverKey];
 
   // ================= DELIVERED =================
   socket.on("delivered", ({ from, to }) => {
-    const senderSocket = users[from];
+  let senderSocket = null;
+
+for (let key in users) {
+  if (key === from) {
+    senderSocket = users[key];
+    break;
+  }
+}
     if (senderSocket) {
       io.to(senderSocket).emit("delivered", { from: to });
     }
@@ -155,7 +171,14 @@ const receiverSocketId = users[receiverKey];
 
   // ================= SEEN =================
   socket.on("seen", ({ from, to }) => {
-    const senderSocket = users[from];
+   let senderSocket = null;
+
+for (let key in users) {
+  if (key === from) {
+    senderSocket = users[key];
+    break;
+  }
+}
     if (senderSocket) {
       io.to(senderSocket).emit("seen", { from: to });
     }
