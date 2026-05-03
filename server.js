@@ -1,6 +1,5 @@
 require("dotenv").config();
 
-const Message = require("./models/Message");
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
@@ -9,6 +8,7 @@ const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 
 const Post = require("./models/Post");
+const Message = require("./models/Message"); // ✅ keep this
 
 const app = express();
 const server = http.createServer(app);
@@ -21,10 +21,13 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "client")));
+
+
 // ================= LOAD MESSAGES =================
 app.get("/api/messages/:user1/:user2", async (req, res) => {
   try {
-    const { user1, user2 } = req.params;
+    const user1 = req.params.user1.trim();
+    const user2 = req.params.user2.trim();
 
     const messages = await Message.find({
       $or: [
@@ -39,7 +42,6 @@ app.get("/api/messages/:user1/:user2", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 // ================= USERS =================
 let users = {};
 
