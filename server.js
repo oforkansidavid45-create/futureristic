@@ -63,59 +63,58 @@ io.on("connection", (socket) => {
     username = username.trim();
 
     socket.username = username;
-    users[username] = socket.id;
+  // ❌ REMOVE duplicate same-name users
+for (let key in users) {
+  if (key.split("_")[0] === username.split("_")[0]) {
+    delete users[key];
+  }
+}
+
+users[username] = socket.id;
 
     emitOnlineUsers();
   });
 
   // ================= PRIVATE MESSAGE =================
-  socket.on("privateMessage", async (data) => {
-    try {
-      if (!data || !data.from || !data.to || !data.message) return;
+socket.on("privateMessage", async (data) => {
+  try {
+    if (!data || !data.from || !data.to || !data.message) return;
 
-      let from = data.from.trim();
-      let to = data.to.trim();
-      let message = data.message.trim();
+    let from = data.from.trim();
+    let to = data.to.trim();
+    let message = data.message.trim();
 
-      if (!message) return;
+    if (!message) return;
 
-      // 💾 SAVE MESSAGE
-      await Message.create({
-        from: from.split("_")[0],
-        to: to.split("_")[0],
-        message
-      });
+    // 💾 SAVE MESSAGE
+    await Message.create({
+      from: from.split("_")[0],
+      to: to.split("_")[0],
+      message
+    });
 
-      // 🔥 FIND RECEIVER (WORKS FOR MULTIPLE TABS)
-      let receiverSocketId = null;
-
-      for (let key in users) {
-        if (key.split("_")[0] === to.split("_")[0]) {
-          receiverSocketId = users[key];
-          break;
-        }
-      }
-
-      // 📩 SEND MESSAGE
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("privateMessage", {
+    // 🔥 SEND TO ALL MATCHING RECEIVER TABS
+    for (let key in users) {
+      if (key.split("_")[0] === to.split("_")[0]) {
+        io.to(users[key]).emit("privateMessage", {
           from,
           to,
           message
         });
       }
-
-      // ✅ DELIVERY STATUS
-      const senderSocket = users[from];
-      if (senderSocket) {
-        io.to(senderSocket).emit("delivered", { from: to });
-      }
-
-    } catch (err) {
-      console.log("❌ PRIVATE MESSAGE ERROR:", err);
     }
-  });
 
+    // 🔥 SEND DELIVERY TO ALL SENDER TABS
+    for (let key in users) {
+      if (key.split("_")[0] === from.split("_")[0]) {
+        io.to(users[key]).emit("delivered", { from: to });
+      }
+    }
+
+  } catch (err) {
+    console.log("❌ PRIVATE MESSAGE ERROR:", err);
+  }
+});
   // ================= TYPING =================
   socket.on("typing", ({ from, to }) => {
     if (!from || !to) return;
