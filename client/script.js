@@ -50,10 +50,81 @@ function login() {
     document.querySelector(".app").style.display = "flex";
 
     socket.emit("register", username);
-
-    loadPosts(); // ✅ ensure posts load
+    loadPosts();
   } else {
     alert("Wrong login details");
+  }
+}
+
+// ================= VOICE MESSAGE =================
+function sendVoiceMessage(audioData) {
+  if (!currentChatUser || !username || !audioData) return;
+
+  socket.emit("privateMessage", {
+    from: username,
+    to: currentChatUser,
+    message: "[VOICE]",
+    audio: audioData
+  });
+
+  addVoiceMessage("You", audioData);
+}
+
+// ================= SHOW VOICE =================
+function addVoiceMessage(user, audioData) {
+  const box = document.getElementById("messagesContainer");
+  if (!box) return;
+
+  const div = document.createElement("div");
+  div.className = "chat-msg";
+
+  if (user === "You") div.classList.add("my-msg");
+
+  div.innerHTML = `
+    <b>${user}:</b><br/>
+    <audio controls src="${audioData}"></audio>
+  `;
+
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ================= VOICE RECORDING =================
+async function startRecording() {
+  if (!navigator.mediaDevices) {
+    alert("Mic not supported");
+    return;
+  }
+
+  if (!isRecording) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+      audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        sendVoiceMessage(reader.result);
+      };
+
+      reader.readAsDataURL(audioBlob);
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+    alert("🎤 Recording... click again to stop");
+
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
   }
 }
 
@@ -126,7 +197,6 @@ function openChat(user) {
     "Chat with " + cleanName(user);
 
   const box = document.getElementById("chatBox");
-
   if (!box) return;
 
   box.innerHTML = `
@@ -154,21 +224,8 @@ async function loadMessages(user) {
     );
 
     const messages = await res.json();
-
-    let msgBox = document.getElementById("messagesContainer");
-
-    // ✅ auto-create if missing
-    if (!msgBox) {
-      const chatBox = document.getElementById("chatBox");
-      if (!chatBox) return;
-
-      chatBox.innerHTML = `
-        <div id="messagesContainer"></div>
-        <div id="typingIndicator" class="typing-bubble"></div>
-      `;
-
-      msgBox = document.getElementById("messagesContainer");
-    }
+    const msgBox = document.getElementById("messagesContainer");
+    if (!msgBox) return;
 
     msgBox.innerHTML = "";
 
@@ -200,11 +257,6 @@ function addMessage(user, msg, status = "") {
   `;
 
   box.appendChild(div);
-
-  requestAnimationFrame(() => {
-    div.style.animation = "msgPop 0.25s ease forwards";
-  });
-
   box.scrollTop = box.scrollHeight;
 }
 
@@ -216,6 +268,7 @@ function sendMessage() {
   const message = input.value.trim();
   if (!message || !currentChatUser) return;
 
+  // ✅ FIXED: send normal message
   socket.emit("privateMessage", {
     from: username,
     to: currentChatUser,
@@ -228,22 +281,17 @@ function sendMessage() {
   });
 
   addMessage("You", message, "✔");
-
   input.value = "";
 }
 
 // ================= RECEIVE MESSAGE =================
 socket.on("privateMessage", (data) => {
-  console.log("📩 RECEIVED MESSAGE:", data);
+  console.log("📩 RECEIVED:", data);
+
   const fromClean = cleanName(data.from);
+  const currentClean = currentChatUser ? cleanName(currentChatUser) : null;
 
-  if (data.audio) {
-    addVoiceMessage(fromClean, data.audio);
-    return;
-  }
-
-  // ✅ FIXED CONDITION
-  if (currentChatUser) {
+  if (currentClean === fromClean) {
     addMessage(fromClean, data.message);
 
     socket.emit("delivered", {
