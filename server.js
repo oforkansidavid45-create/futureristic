@@ -65,6 +65,7 @@ socket.on("register", (username) => {
   username = username.trim().toLowerCase();
   socket.username = username;
 
+  // store multiple tabs
   if (!users[username]) {
     users[username] = [];
   }
@@ -75,21 +76,6 @@ socket.on("register", (username) => {
 
   emitOnlineUsers();
 });
-
-// remove old tabs of same user
-for (let key in users) {
-  if (key.split("_")[0] === username.split("_")[0]) {
-    delete users[key];
-  }
-}
-if (!users[username]) {
-  users[username] = [];
-}
-
-users[username].push(socket.id);
-
-    emitOnlineUsers();
-  });
 
   // ================= PRIVATE MESSAGE =================
 socket.on("privateMessage", async (data) => {
@@ -104,33 +90,24 @@ socket.on("privateMessage", async (data) => {
 
     if (!message && !audio) return;
 
-    // ================= SAVE =================
-    await Message.create({
-      from,
-      to,
-      message,
-      audio
-    });
+    // SAVE
+    await Message.create({ from, to, message, audio });
 
     const payload = { from, to, message, audio };
 
-    // ================= SEND TO RECEIVER =================
-    Object.keys(users).forEach(userKey => {
-      if (userKey.toLowerCase() === to) {
-        users[userKey].forEach(socketId => {
-          io.to(socketId).emit("privateMessage", payload);
-        });
-      }
-    });
+    // SEND TO RECEIVER (ALL TABS)
+    if (users[to]) {
+      users[to].forEach(socketId => {
+        io.to(socketId).emit("privateMessage", payload);
+      });
+    }
 
-    // ================= SEND TO SENDER =================
-    Object.keys(users).forEach(userKey => {
-      if (userKey.toLowerCase() === from) {
-        users[userKey].forEach(socketId => {
-          io.to(socketId).emit("delivered", { from: to });
-        });
-      }
-    });
+    // SEND BACK TO SENDER (DELIVERED)
+    if (users[from]) {
+      users[from].forEach(socketId => {
+        io.to(socketId).emit("delivered", { from: to });
+      });
+    }
 
   } catch (err) {
     console.log("❌ PRIVATE MESSAGE ERROR:", err);
@@ -180,20 +157,19 @@ if (senderSocket) {
   });
 
   // ================= DISCONNECT =================
-  socket.on("disconnect", () => {
-    if (socket.username) {
-    if (users[socket.username]) {
-  users[socket.username] = users[socket.username].filter(
-    id => id !== socket.id
-  );
+socket.on("disconnect", () => {
+  if (socket.username && users[socket.username]) {
+    users[socket.username] = users[socket.username].filter(
+      id => id !== socket.id
+    );
 
-  if (users[socket.username].length === 0) {
-    delete users[socket.username];
-  }
-}
-      emitOnlineUsers();
+    if (users[socket.username].length === 0) {
+      delete users[socket.username];
     }
-  });
+
+    emitOnlineUsers();
+  }
+});
 
 // ================= POSTS =================
 app.post("/api/posts", async (req, res) => {
