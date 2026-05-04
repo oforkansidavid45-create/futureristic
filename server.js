@@ -87,12 +87,12 @@ socket.on("privateMessage", async (data) => {
     if (!message) return;
 
     // 💾 SAVE MESSAGE
-    await Message.create({
-      from: from.split("_")[0],
-      to: to.split("_")[0],
-      message
-    });
-
+   await Message.create({
+  from: from.split("_")[0],
+  to: to.split("_")[0],
+  message,
+  audio: data.audio || null
+});
     // 🔥 SEND TO ALL MATCHING RECEIVER TABS
     for (let key in users) {
       if (key.split("_")[0] === to.split("_")[0]) {
