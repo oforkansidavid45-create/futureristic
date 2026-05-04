@@ -57,14 +57,22 @@ io.on("connection", (socket) => {
   emitOnlineUsers();
 
   // ================= REGISTER =================
-  socket.on("register", (username) => {
-    if (!username) return;
+socket.on("register", (username) => {
+  if (!username) return;
 
-    username = username.trim();
+  username = username.trim().toLowerCase();
+  socket.username = username;
 
-    socket.username = username;
-  // ❌ REMOVE duplicate same-name users
+  if (!users[username]) {
+    users[username] = [];
+  }
 
+  users[username].push(socket.id);
+
+  console.log("👥 users:", users);
+
+  emitOnlineUsers();
+});
 
 // remove old tabs of same user
 for (let key in users) {
@@ -94,7 +102,7 @@ socket.on("privateMessage", async (data) => {
 
     if (!message && !audio) return;
 
-    // ================= SAVE MESSAGE =================
+    // ================= SAVE =================
     await Message.create({
       from,
       to,
@@ -104,19 +112,23 @@ socket.on("privateMessage", async (data) => {
 
     const payload = { from, to, message, audio };
 
-    // ================= SEND TO RECEIVER (ALL TABS) =================
-    if (users[to]) {
-      users[to].forEach(socketId => {
-        io.to(socketId).emit("privateMessage", payload);
-      });
-    }
+    // ================= SEND TO RECEIVER =================
+    Object.keys(users).forEach(userKey => {
+      if (userKey.toLowerCase() === to) {
+        users[userKey].forEach(socketId => {
+          io.to(socketId).emit("privateMessage", payload);
+        });
+      }
+    });
 
-    // ================= SEND BACK TO SENDER (ALL TABS) =================
-    if (users[from]) {
-      users[from].forEach(socketId => {
-        io.to(socketId).emit("delivered", { from: to });
-      });
-    }
+    // ================= SEND TO SENDER =================
+    Object.keys(users).forEach(userKey => {
+      if (userKey.toLowerCase() === from) {
+        users[userKey].forEach(socketId => {
+          io.to(socketId).emit("delivered", { from: to });
+        });
+      }
+    });
 
   } catch (err) {
     console.log("❌ PRIVATE MESSAGE ERROR:", err);
