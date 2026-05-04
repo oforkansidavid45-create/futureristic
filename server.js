@@ -72,7 +72,6 @@ for (let key in users) {
     delete users[key];
   }
 }
-
 if (!users[username]) {
   users[username] = [];
 }
@@ -87,8 +86,8 @@ socket.on("privateMessage", async (data) => {
   try {
     if (!data || !data.from || !data.to) return;
 
-    const from = data.from.trim();
-    const to = data.to.trim();
+    const from = data.from.trim().toLowerCase();
+    const to = data.to.trim().toLowerCase();
 
     const message = (data.message || "").trim();
     const audio = data.audio || null;
@@ -97,37 +96,26 @@ socket.on("privateMessage", async (data) => {
 
     // ================= SAVE MESSAGE =================
     await Message.create({
-      from: from.split("_")[0],
-      to: to.split("_")[0],
-      message,
-      audio
-    });
-
-    // ================= NORMALIZE MESSAGE =================
-    const payload = {
       from,
       to,
       message,
       audio
-    };
+    });
+
+    const payload = { from, to, message, audio };
 
     // ================= SEND TO RECEIVER (ALL TABS) =================
-    // send to ALL tabs of receiver
-for (let key in users) {
-  if (key === to) {
-    users[key].forEach(socketId => {
-      io.to(socketId).emit("privateMessage", data);
-    });
-  }
-}
+    if (users[to]) {
+      users[to].forEach(socketId => {
+        io.to(socketId).emit("privateMessage", payload);
+      });
+    }
 
     // ================= SEND BACK TO SENDER (ALL TABS) =================
-    for (let key in users) {
-      if (key.split("_")[0] === from.split("_")[0]) {
-        io.to(users[key]).emit("delivered", {
-          from: to
-        });
-      }
+    if (users[from]) {
+      users[from].forEach(socketId => {
+        io.to(socketId).emit("delivered", { from: to });
+      });
     }
 
   } catch (err) {
