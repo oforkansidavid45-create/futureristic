@@ -50,11 +50,13 @@ function login() {
     document.querySelector(".app").style.display = "flex";
 
     socket.emit("register", username);
-    loadPosts();
+
+    loadPosts(); // ✅ ensure posts load
   } else {
     alert("Wrong login details");
   }
 }
+
 // ================= LOAD POSTS =================
 async function loadPosts() {
   try {
@@ -87,8 +89,9 @@ async function loadPosts() {
 // ================= CREATE POST =================
 async function createPost() {
   const input = document.getElementById("postInput");
-  const text = input.value.trim();
+  if (!input) return;
 
+  const text = input.value.trim();
   if (!text || !username) return;
 
   await fetch(`${API}/api/posts`, {
@@ -106,10 +109,7 @@ async function createPost() {
 
 // ================= LIKE POST =================
 async function likePost(id) {
-  await fetch(`${API}/api/posts/like/${id}`, {
-    method: "PUT"
-  });
-
+  await fetch(`${API}/api/posts/like/${id}`, { method: "PUT" });
   loadPosts();
 }
 
@@ -127,7 +127,8 @@ function openChat(user) {
 
   const box = document.getElementById("chatBox");
 
-  // ✅ FIX: DO NOT WIPE WHOLE CHAT
+  if (!box) return;
+
   box.innerHTML = `
     <div id="messagesContainer"></div>
     <div id="typingIndicator" class="typing-bubble"></div>
@@ -154,16 +155,28 @@ async function loadMessages(user) {
 
     const messages = await res.json();
 
-    const msgBox = document.getElementById("messagesContainer");
+    let msgBox = document.getElementById("messagesContainer");
+
+    // ✅ auto-create if missing
+    if (!msgBox) {
+      const chatBox = document.getElementById("chatBox");
+      if (!chatBox) return;
+
+      chatBox.innerHTML = `
+        <div id="messagesContainer"></div>
+        <div id="typingIndicator" class="typing-bubble"></div>
+      `;
+
+      msgBox = document.getElementById("messagesContainer");
+    }
 
     msgBox.innerHTML = "";
 
     messages.forEach(m => {
-      if (m.from === cleanName(username)) {
-        addMessage("You", m.message);
-      } else {
-        addMessage(m.from, m.message);
-      }
+      addMessage(
+        m.from === cleanName(username) ? "You" : m.from,
+        m.message
+      );
     });
 
   } catch (err) {
@@ -174,6 +187,7 @@ async function loadMessages(user) {
 // ================= MESSAGE UI =================
 function addMessage(user, msg, status = "") {
   const box = document.getElementById("messagesContainer");
+  if (!box) return;
 
   const div = document.createElement("div");
   div.className = "chat-msg";
@@ -197,6 +211,7 @@ function addMessage(user, msg, status = "") {
 // ================= SEND MESSAGE =================
 function sendMessage() {
   const input = document.getElementById("chatInput");
+  if (!input) return;
 
   const message = input.value.trim();
   if (!message || !currentChatUser) return;
@@ -226,8 +241,13 @@ socket.on("privateMessage", (data) => {
     return;
   }
 
-  if (currentChatUser && fromClean === cleanName(currentChatUser)) {
+  if (currentChatUser) {
+  const activeUser = cleanName(currentChatUser);
+
+  if (fromClean === activeUser) {
     addMessage(fromClean, data.message);
+  }
+}
 
     socket.emit("delivered", {
       from: data.from,
@@ -240,7 +260,10 @@ socket.on("privateMessage", (data) => {
 socket.on("onlineUsers", (users) => {
   if (!username) return;
 
-  document.getElementById("onlineUsers").innerHTML =
+  const container = document.getElementById("onlineUsers");
+  if (!container) return;
+
+  container.innerHTML =
     users
       .filter(u =>
         u &&
@@ -254,6 +277,7 @@ socket.on("onlineUsers", (users) => {
       `)
       .join("");
 });
+
 // ================= TYPING =================
 function handleTyping() {
   if (!currentChatUser) return;
@@ -275,10 +299,7 @@ function handleTyping() {
 
 // ================= SHOW TYPING =================
 socket.on("typing", (data) => {
-  if (!currentChatUser) return;
-
   const bubble = document.getElementById("typingIndicator");
-
   if (bubble) {
     bubble.style.display = "block";
     bubble.innerText = cleanName(data.from) + " is typing...";
@@ -288,98 +309,23 @@ socket.on("typing", (data) => {
 // ================= STOP TYPING =================
 socket.on("stopTyping", () => {
   const bubble = document.getElementById("typingIndicator");
-
   if (bubble) {
     bubble.style.display = "none";
     bubble.innerText = "";
   }
 });
 
-// ================= VOICE NOTES =================
-async function startRecording() {
-  if (!navigator.mediaDevices) return alert("Mic not supported");
-
-  if (!isRecording) {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-
-    mediaRecorder.ondataavailable = (e) => {
-      audioChunks.push(e.data);
-    };
-
-    mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        sendVoiceMessage(reader.result);
-      };
-
-      reader.readAsDataURL(audioBlob);
-    };
-
-    mediaRecorder.start();
-    isRecording = true;
-
-    alert("🎤 Recording... click again to stop");
-  } else {
-    mediaRecorder.stop();
-    isRecording = false;
-  }
-}
-
-// ================= SEND VOICE =================
-function sendVoiceMessage(audioData) {
-  if (!currentChatUser || !username || !audioData) return;
-
-  socket.emit("privateMessage", {
-    from: username,
-    to: currentChatUser,
-    message: "[VOICE]",
-    audio: audioData
-  });
-
-  addVoiceMessage("You", audioData);
-}
-
-// ================= SHOW VOICE =================
-function addVoiceMessage(user, audioData) {
-  const box = document.getElementById("messagesContainer");
-
-  const div = document.createElement("div");
-  div.className = "chat-msg";
-
-  if (user === "You") div.classList.add("my-msg");
-
-  div.innerHTML = `
-    <b>${user}:</b><br/>
-    <audio controls src="${audioData}"></audio>
-  `;
-
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-}
-// ================= MOBILE FIXES =================
-
-// Toggle chat panel (FIXED)
+// ================= MOBILE =================
 function toggleChat() {
   const panel = document.getElementById("chatPanel");
-  if (panel) {
-    panel.classList.toggle("active");
-  }
+  if (panel) panel.classList.toggle("active");
 }
 
-// Show feed (for mobile)
 function showFeed() {
   const panel = document.getElementById("chatPanel");
-  if (panel) {
-    panel.classList.remove("active");
-  }
+  if (panel) panel.classList.remove("active");
 }
 
-// Logout
 function logout() {
   localStorage.removeItem("fb_user");
   location.reload();
