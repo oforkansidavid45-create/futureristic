@@ -284,24 +284,31 @@ socket.on("privateMessage", (data) => {
 
   if (!data) return;
 
-  const fromClean = cleanName(data.from).toLowerCase();
-  const currentClean = currentChatUser;
+  const from = (data.from || "").toLowerCase();
+  const to = (data.to || "").toLowerCase();
 
-  if (fromClean === currentClean) {
+  const me = (username || "").toLowerCase();
+  const current = (currentChatUser || "").toLowerCase();
+
+  // ================= SHOW MESSAGE IF CHAT IS OPEN =================
+  if (current === from || current === to) {
+
     if (data.audio) {
-      addVoiceMessage(fromClean, data.audio);
+      addVoiceMessage(from === me ? "You" : from, data.audio);
     } else {
-      addMessage(fromClean, data.message);
+      addMessage(from === me ? "You" : from, data.message);
     }
 
-    socket.emit("delivered", {
-      from: data.from,
-      to: username
-    });
   } else {
-    // 🔥 OPTIONAL: show notification for inactive chat
-    console.log("📨 message received but chat not open");
+    // 🔔 OPTIONAL: show notification
+    console.log("🔔 Message received but chat not open");
   }
+
+  // ================= SEND DELIVERY =================
+  socket.emit("delivered", {
+    from: data.from,
+    to: username
+  });
 });
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
