@@ -190,7 +190,7 @@ socket.on("connect", () => {
 
 // ================= CHAT OPEN =================
 function openChat(user) {
-  currentChatUser = user.toLowerCase();
+  currentChatUser = cleanName(user).toLowerCase();
 
   document.getElementById("chatTitle").innerText =
     "Chat with " + currentChatUser;
@@ -210,7 +210,6 @@ function openChat(user) {
 
   loadMessages(currentChatUser);
 }
-
 // ================= LOAD MESSAGES =================
 async function loadMessages(user) {
   try {
@@ -280,36 +279,30 @@ function sendMessage() {
 }
 
 // ================= RECEIVE MESSAGE =================
-socket.on("privateMessage", async (data) => {
-  try {
-    if (!data || !data.from || !data.to || (!data.message && !data.audio)) return;
+socket.on("privateMessage", (data) => {
+  console.log("📩 RECEIVED:", data);
 
-    let from = data.from.trim();
-    let to = data.to.trim();
+  if (!data) return;
 
-    await Message.create({
-      from: from.split("_")[0],
-      to: to.split("_")[0],
-      message: data.message || "",
-      audio: data.audio || null
-    });
+  const fromClean = cleanName(data.from).toLowerCase();
+  const currentClean = currentChatUser;
 
-    for (let key in users) {
-      if (key.split("_")[0] === to.split("_")[0]) {
-        io.to(users[key]).emit("privateMessage", {
-          from,
-          to,
-          message: data.message || "",
-          audio: data.audio || null
-        });
-      }
+  if (fromClean === currentClean) {
+    if (data.audio) {
+      addVoiceMessage(fromClean, data.audio);
+    } else {
+      addMessage(fromClean, data.message);
     }
 
-  } catch (err) {
-    console.log("❌ PRIVATE MESSAGE ERROR:", err);
+    socket.emit("delivered", {
+      from: data.from,
+      to: username
+    });
+  } else {
+    // 🔥 OPTIONAL: show notification for inactive chat
+    console.log("📨 message received but chat not open");
   }
 });
-
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
   if (!username) return;
