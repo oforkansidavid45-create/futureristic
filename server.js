@@ -57,6 +57,8 @@ io.on("connection", (socket) => {
   emitOnlineUsers();
 
   // ================= REGISTER =================
+
+
 socket.on("register", (username) => {
   if (!username) return;
 
@@ -192,7 +194,6 @@ if (senderSocket) {
       emitOnlineUsers();
     }
   });
-});
 
 // ================= POSTS =================
 app.post("/api/posts", async (req, res) => {
