@@ -70,6 +70,13 @@ for (let key in users) {
   }
 }
 
+// remove old tabs of same user
+for (let key in users) {
+  if (key.split("_")[0] === username.split("_")[0]) {
+    delete users[key];
+  }
+}
+
 users[username] = socket.id;
 
     emitOnlineUsers();
@@ -83,42 +90,47 @@ socket.on("privateMessage", async (data) => {
     const from = data.from.trim();
     const to = data.to.trim();
 
+    const message = (data.message || "").trim();
+    const audio = data.audio || null;
+
+    if (!message && !audio) return;
+
+    // ================= SAVE MESSAGE =================
     await Message.create({
       from: from.split("_")[0],
       to: to.split("_")[0],
-      message: data.message || "",
-      audio: data.audio || null
+      message,
+      audio
     });
 
-    // send to receiver
+    // ================= NORMALIZE MESSAGE =================
+    const payload = {
+      from,
+      to,
+      message,
+      audio
+    };
+
+    // ================= SEND TO RECEIVER (ALL TABS) =================
     for (let key in users) {
       if (key.split("_")[0] === to.split("_")[0]) {
-        io.to(users[key]).emit("privateMessage", data);
+        io.to(users[key]).emit("privateMessage", payload);
+      }
+    }
+
+    // ================= SEND BACK TO SENDER (ALL TABS) =================
+    for (let key in users) {
+      if (key.split("_")[0] === from.split("_")[0]) {
+        io.to(users[key]).emit("delivered", {
+          from: to
+        });
       }
     }
 
   } catch (err) {
-    console.log(err);
+    console.log("❌ PRIVATE MESSAGE ERROR:", err);
   }
 });
-  // ================= TYPING =================
-  socket.on("typing", ({ from, to }) => {
-    if (!from || !to) return;
-
-    let receiverSocketId = null;
-
-    for (let key in users) {
-      if (key.split("_")[0] === to.split("_")[0]) {
-        receiverSocketId = users[key];
-        break;
-      }
-    }
-
-    if (!receiverSocketId) return;
-
-    io.to(receiverSocketId).emit("typing", { from });
-  });
-
   // ================= STOP TYPING =================
   socket.on("stopTyping", ({ from, to }) => {
     if (!from || !to) return;
