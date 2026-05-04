@@ -162,10 +162,19 @@ io.on("connection", (socket) => {
 
   // ================= SEEN =================
   socket.on("seen", ({ from, to }) => {
-    const senderSocket = users[from];
-    if (senderSocket) {
-      io.to(senderSocket).emit("seen", { from: to });
-    }
+    // 🔥 FIND SENDER (WORKS WITH TAB_ID)
+let senderSocket = null;
+
+for (let key in users) {
+  if (key.split("_")[0] === from.split("_")[0]) {
+    senderSocket = users[key];
+    break;
+  }
+}
+
+if (senderSocket) {
+  io.to(senderSocket).emit("delivered", { from: to });
+}
   });
 
   // ================= DISCONNECT =================
