@@ -241,13 +241,9 @@ socket.on("privateMessage", (data) => {
     return;
   }
 
+  // ✅ FIXED CONDITION
   if (currentChatUser) {
-  const activeUser = cleanName(currentChatUser);
-
-  if (fromClean === activeUser) {
     addMessage(fromClean, data.message);
-  }
-}
 
     socket.emit("delivered", {
       from: data.from,
