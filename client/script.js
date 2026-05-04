@@ -234,6 +234,7 @@ function sendMessage() {
 
 // ================= RECEIVE MESSAGE =================
 socket.on("privateMessage", (data) => {
+  console.log("📩 RECEIVED MESSAGE:", data);
   const fromClean = cleanName(data.from);
 
   if (data.audio) {
