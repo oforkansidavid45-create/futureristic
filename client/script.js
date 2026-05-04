@@ -27,7 +27,7 @@ function getVal(id) {
 
 // ================= AUTH =================
 function signup() {
-  const name = getVal("nameInput").trim();
+  const name = getVal("nameInput").trim().toLowerCase(); // 🔥 FIX
   const pass = getVal("passwordInput");
 
   if (!name || !pass) return alert("Fill all fields");
