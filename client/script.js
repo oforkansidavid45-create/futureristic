@@ -37,14 +37,14 @@ function signup() {
 }
 
 function login() {
-  const name = getVal("nameInput").trim();
+  const name = getVal("nameInput").trim().toLowerCase();
   const pass = getVal("passwordInput");
 
   const saved = JSON.parse(localStorage.getItem("fb_user"));
   if (!saved) return alert("No account found");
 
   if (saved.name === name && saved.pass === pass) {
-    username = name + "_" + TAB_ID;
+    username = name; // 🔥 NO TAB_ID
 
     document.getElementById("authScreen").style.display = "none";
     document.querySelector(".app").style.display = "flex";
@@ -55,7 +55,6 @@ function login() {
     alert("Wrong login details");
   }
 }
-
 // ================= VOICE MESSAGE =================
 function sendVoiceMessage(audioData) {
   if (!currentChatUser || !username || !audioData) return;
@@ -191,10 +190,10 @@ socket.on("connect", () => {
 
 // ================= CHAT OPEN =================
 function openChat(user) {
-  currentChatUser = user;
+  currentChatUser = user.toLowerCase();
 
   document.getElementById("chatTitle").innerText =
-    "Chat with " + cleanName(user);
+    "Chat with " + currentChatUser;
 
   const box = document.getElementById("chatBox");
   if (!box) return;
@@ -206,14 +205,10 @@ function openChat(user) {
 
   socket.emit("seen", {
     from: username,
-    to: user
+    to: currentChatUser
   });
 
-  if (window.innerWidth <= 768) {
-    document.getElementById("chatPanel").classList.add("active");
-  }
-
-  loadMessages(user);
+  loadMessages(currentChatUser);
 }
 
 // ================= LOAD MESSAGES =================
@@ -285,19 +280,33 @@ function sendMessage() {
 }
 
 // ================= RECEIVE MESSAGE =================
-socket.on("privateMessage", (data) => {
-  console.log("📩 RECEIVED:", data);
+socket.on("privateMessage", async (data) => {
+  try {
+    if (!data || !data.from || !data.to || (!data.message && !data.audio)) return;
 
-  const fromClean = cleanName(data.from);
-  const currentClean = currentChatUser ? cleanName(currentChatUser) : null;
+    let from = data.from.trim();
+    let to = data.to.trim();
 
-  if (currentClean === fromClean) {
-    addMessage(fromClean, data.message);
-
-    socket.emit("delivered", {
-      from: data.from,
-      to: username
+    await Message.create({
+      from: from.split("_")[0],
+      to: to.split("_")[0],
+      message: data.message || "",
+      audio: data.audio || null
     });
+
+    for (let key in users) {
+      if (key.split("_")[0] === to.split("_")[0]) {
+        io.to(users[key]).emit("privateMessage", {
+          from,
+          to,
+          message: data.message || "",
+          audio: data.audio || null
+        });
+      }
+    }
+
+  } catch (err) {
+    console.log("❌ PRIVATE MESSAGE ERROR:", err);
   }
 });
 

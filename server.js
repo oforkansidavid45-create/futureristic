@@ -78,41 +78,27 @@ users[username] = socket.id;
   // ================= PRIVATE MESSAGE =================
 socket.on("privateMessage", async (data) => {
   try {
-    if (!data || !data.from || !data.to || !data.message) return;
+    if (!data || !data.from || !data.to) return;
 
-    let from = data.from.trim();
-    let to = data.to.trim();
-    let message = data.message.trim();
+    const from = data.from.trim();
+    const to = data.to.trim();
 
-    if (!message) return;
+    await Message.create({
+      from: from.split("_")[0],
+      to: to.split("_")[0],
+      message: data.message || "",
+      audio: data.audio || null
+    });
 
-    // 💾 SAVE MESSAGE
-   await Message.create({
-  from: from.split("_")[0],
-  to: to.split("_")[0],
-  message,
-  audio: data.audio || null
-});
-    // 🔥 SEND TO ALL MATCHING RECEIVER TABS
+    // send to receiver
     for (let key in users) {
       if (key.split("_")[0] === to.split("_")[0]) {
-        io.to(users[key]).emit("privateMessage", {
-          from,
-          to,
-          message
-        });
-      }
-    }
-
-    // 🔥 SEND DELIVERY TO ALL SENDER TABS
-    for (let key in users) {
-      if (key.split("_")[0] === from.split("_")[0]) {
-        io.to(users[key]).emit("delivered", { from: to });
+        io.to(users[key]).emit("privateMessage", data);
       }
     }
 
   } catch (err) {
-    console.log("❌ PRIVATE MESSAGE ERROR:", err);
+    console.log(err);
   }
 });
   // ================= TYPING =================
