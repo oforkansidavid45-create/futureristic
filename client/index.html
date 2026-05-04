@@ -6,15 +6,6 @@
   <title>FutureBook ⚡</title>
 
   <link rel="stylesheet" href="style.css"/>
-
-  <!-- ✅ FIX: prevent layout overflow from long typing text -->
-  <style>
-    #typingIndicator {
-      max-width: 90%;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-    }
-  </style>
 </head>
 
 <body>
@@ -68,12 +59,11 @@
 
     <h3 id="chatTitle">💬 Select a user</h3>
 
-    <!-- CHAT BOX -->
+    <!-- CHAT BOX (ONLY ONE — FIXED) -->
     <div id="chatBox" class="chat-box">
-      <div id="typingIndicator" class="typing-bubble"></div>
-    </div>
+        
 
-    <!-- CHAT INPUT -->
+    <!-- CHAT INPUT (ONLY ONE — FIXED) -->
     <div class="chat-input">
       <input id="chatInput"
              placeholder="Type message..."
@@ -97,17 +87,6 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="script.js"></script>
 
-<!-- ================= FIXED SAFE FUNCTIONS ================= -->
-<script>
-function showFeed() {
-  document.querySelector(".feed").scrollIntoView({ behavior: "smooth" });
-}
-
-function logout() {
-  localStorage.removeItem("fb_user");
-  location.reload();
-}
-</script>
 
 </body>
-</html>
+</html

@@ -64,11 +64,7 @@ io.on("connection", (socket) => {
 
     socket.username = username;
   // ❌ REMOVE duplicate same-name users
-for (let key in users) {
-  if (key.split("_")[0] === username.split("_")[0]) {
-    delete users[key];
-  }
-}
+
 
 // remove old tabs of same user
 for (let key in users) {
@@ -77,7 +73,11 @@ for (let key in users) {
   }
 }
 
-users[username] = socket.id;
+if (!users[username]) {
+  users[username] = [];
+}
+
+users[username].push(socket.id);
 
     emitOnlineUsers();
   });
@@ -112,11 +112,14 @@ socket.on("privateMessage", async (data) => {
     };
 
     // ================= SEND TO RECEIVER (ALL TABS) =================
-    for (let key in users) {
-      if (key.split("_")[0] === to.split("_")[0]) {
-        io.to(users[key]).emit("privateMessage", payload);
-      }
-    }
+    // send to ALL tabs of receiver
+for (let key in users) {
+  if (key === to) {
+    users[key].forEach(socketId => {
+      io.to(socketId).emit("privateMessage", data);
+    });
+  }
+}
 
     // ================= SEND BACK TO SENDER (ALL TABS) =================
     for (let key in users) {
@@ -177,7 +180,15 @@ if (senderSocket) {
   // ================= DISCONNECT =================
   socket.on("disconnect", () => {
     if (socket.username) {
-      delete users[socket.username];
+    if (users[socket.username]) {
+  users[socket.username] = users[socket.username].filter(
+    id => id !== socket.id
+  );
+
+  if (users[socket.username].length === 0) {
+    delete users[socket.username];
+  }
+}
       emitOnlineUsers();
     }
   });
