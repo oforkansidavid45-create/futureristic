@@ -170,6 +170,9 @@ socket.on("privateMessage", (data) => {
   // ✅ ALWAYS SHOW IF:
   // 1. I'm sender OR receiver AND chat is open
   const isMyMessage = from === me;
+  const isChatOpen = current === from || current === to;
+
+  if (!isChatOpen) return;
 
   if (data.audio) {
     addVoiceMessage(isMyMessage ? "You" : from, data.audio);
