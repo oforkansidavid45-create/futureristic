@@ -148,16 +148,22 @@ socket.on("privateMessage", (data) => {
 
   if (!data) return;
 
-  const from = cleanName(data.from);
-  const me = cleanName(username);
+  const from = cleanName(data.from || "");
+  const me = cleanName(username || "");
 
+  // ✅ ALWAYS SHOW MESSAGE
   if (data.audio) {
     addVoiceMessage(from === me ? "You" : from, data.audio);
   } else {
     addMessage(from === me ? "You" : from, data.message);
   }
-});
 
+  // ✅ SEND DELIVERY
+  socket.emit("delivered", {
+    from: data.from,
+    to: username
+  });
+});
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
   if (!username) return;
