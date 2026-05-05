@@ -110,6 +110,35 @@ io.on("connection", (socket) => {
     }
   });
 
+  // ================= STOP TYPING =================
+  socket.on("stopTyping", ({ from, to }) => {
+    if (!from || !to) return;
+
+    if (users[to]) {
+      users[to].forEach(socketId => {
+        io.to(socketId).emit("stopTyping", { from });
+      });
+    }
+  });
+
+  // ================= DELIVERED =================
+  socket.on("delivered", ({ from, to }) => {
+    if (users[from]) {
+      users[from].forEach(socketId => {
+        io.to(socketId).emit("delivered", { from: to });
+      });
+    }
+  });
+
+  // ================= SEEN =================
+  socket.on("seen", ({ from, to }) => {
+    if (users[from]) {
+      users[from].forEach(socketId => {
+        io.to(socketId).emit("delivered", { from: to });
+      });
+    }
+  });
+
   // ================= DISCONNECT =================
   socket.on("disconnect", () => {
     if (!socket.username) return;
@@ -127,65 +156,7 @@ io.on("connection", (socket) => {
     emitOnlineUsers();
   });
 
-}); // ✅ ONLY CLOSE HERE
-    socket.on("stopTyping", ({ from, to }) => {
-      if (!from || !to) return;
-
-      let receiverSocketId = null;
-
-      for (let key in users) {
-        if (key.split("_")[0] === to.split("_")[0]) {
-          receiverSocketId = users[key];
-          break;
-        }
-      }
-
-      if (!receiverSocketId) return;
-
-      io.to(receiverSocketId).emit("stopTyping", { from });
-    });
-
-    // ================= DELIVERED =================
-    socket.on("delivered", ({ from, to }) => {
-      const senderSocket = users[from];
-      if (senderSocket) {
-        io.to(senderSocket).emit("delivered", { from: to });
-      }
-    });
-
-    // ================= SEEN =================
-    socket.on("seen", ({ from, to }) => {
-      // 🔥 FIND SENDER (WORKS WITH TAB_ID)
-  let senderSocket = null;
-
-  for (let key in users) {
-    if (key.split("_")[0] === from.split("_")[0]) {
-      senderSocket = users[key];
-      break;
-    }
-  }
-
-  if (senderSocket) {
-    io.to(senderSocket).emit("delivered", { from: to });
-  }
-    });
-
-    // ================= DISCONNECT =================
- socket.on("disconnect", () => {
-  if (!socket.username) return;
-
-  const user = socket.username;
-
-  if (users[user]) {
-    users[user] = users[user].filter(id => id !== socket.id);
-
-    if (users[user].length === 0) {
-      delete users[user];
-    }
-  }
-
-  emitOnlineUsers();
-});
+}); // ✅ CLOSE HERE ONLY (VERY IMPORTANT)
 
   // ================= POSTS =================
   app.post("/api/posts", async (req, res) => {
