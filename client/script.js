@@ -286,20 +286,11 @@ socket.on("privateMessage", (data) => {
 
   const from = (data.from || "").toLowerCase();
   const me = (username || "").toLowerCase();
-  const current = (currentChatUser || "").toLowerCase();
 
-  // ONLY SHOW IN CHAT IF OPEN
-  if (current === from) {
-
-    if (data.audio) {
-      addVoiceMessage(from === me ? "You" : from, data.audio);
-    } else {
-      addMessage(from === me ? "You" : from, data.message);
-    }
-
+  if (data.audio) {
+    addVoiceMessage(from === me ? "You" : from, data.audio);
   } else {
-    // show notification instead
-    console.log("🔔 New message from", from);
+    addMessage(from === me ? "You" : from, data.message);
   }
 
   socket.emit("delivered", {
