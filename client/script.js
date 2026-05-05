@@ -170,24 +170,29 @@ socket.on("privateMessage", (data) => {
   if (!data) return;
 
   const from = cleanName(data.from || "");
+  const to = cleanName(data.to || "");
   const me = cleanName(username || "");
   const current = cleanName(currentChatUser || "");
 
-  // ================= SHOW MESSAGE =================
+  // ✅ ALWAYS SHOW IF:
+  // 1. I'm sender OR receiver AND chat is open
+  const isMyMessage = from === me;
+  const isChatOpen = current === from || current === to;
+
+  if (!isChatOpen) return;
+
   if (data.audio) {
-    addVoiceMessage(from === me ? "You" : from, data.audio);
+    addVoiceMessage(isMyMessage ? "You" : from, data.audio);
   } else {
-    addMessage(from === me ? "You" : from, data.message);
+    addMessage(isMyMessage ? "You" : from, data.message);
   }
 
-  // ================= DELIVERY (FIXED POSITION) =================
+  // mark delivered
   socket.emit("delivered", {
-    from: data.from,
-    to: username
+    from,
+    to: me
   });
 });
-
-
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
 function markSeen() {
   if (!currentChatUser) return;
