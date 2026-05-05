@@ -163,24 +163,24 @@ socket.on("privateMessage", (data) => {
   if (!data) return;
 
   const from = cleanName(data.from || "");
-  const to = cleanName(data.to || "");
   const me = cleanName(username || "");
   const current = cleanName(currentChatUser || "");
 
-  // ✅ ALWAYS SHOW IF:
-  // 1. I'm sender OR receiver AND chat is open
   const isMyMessage = from === me;
-  const isChatOpen = current === from || current === to;
 
-  if (!isChatOpen) return;
+  // ❌ IMPORTANT: STOP DUPLICATE
+  if (isMyMessage) return;
+
+  // ✅ only show if chat open
+  if (current !== from) return;
 
   if (data.audio) {
-    addVoiceMessage(isMyMessage ? "You" : from, data.audio);
+    addVoiceMessage(from, data.audio);
   } else {
-    addMessage(isMyMessage ? "You" : from, data.message);
+    addMessage(from, data.message);
   }
 
-  // mark delivered
+  // delivery
   socket.emit("delivered", {
     from,
     to: me
