@@ -195,14 +195,6 @@ function openChat(user) {
   document.getElementById("chatTitle").innerText =
     "Chat with " + currentChatUser;
 
-  const box = document.getElementById("chatBox");
-  if (!box) return;
-
-  box.innerHTML = `
-    <div id="messagesContainer"></div>
-    <div id="typingIndicator" class="typing-bubble"></div>
-  `;
-
   socket.emit("seen", {
     from: username,
     to: currentChatUser
@@ -210,6 +202,7 @@ function openChat(user) {
 
   loadMessages(currentChatUser);
 }
+
 // ================= LOAD MESSAGES =================
 async function loadMessages(user) {
   try {
@@ -288,14 +281,23 @@ socket.on("privateMessage", (data) => {
   const me = (username || "").toLowerCase();
   const current = (currentChatUser || "").toLowerCase();
 
-  // ONLY SHOW IF CHAT OPEN
-  if (current !== from && current !== me) return;
+  // 🔥 ONLY SHOW IF CHAT IS OPEN WITH SENDER
+  if (current !== from) {
+    console.log("🔕 message ignored (chat not open)");
+    return;
+  }
 
   if (data.audio) {
     addVoiceMessage(from === me ? "You" : from, data.audio);
   } else {
     addMessage(from === me ? "You" : from, data.message);
   }
+
+  socket.emit("delivered", {
+    from: data.from,
+    to: username
+  });
+
 
   socket.emit("delivered", {
     from: data.from,
@@ -370,6 +372,13 @@ socket.on("stopTyping", (data) => {
     bubble.style.display = "none";
     bubble.innerText = "";
   }
+});
+socket.on("connect", () => {
+  console.log("CONNECTED SOCKET:", socket.id);
+});
+
+socket.on("privateMessage", (data) => {
+  console.log("RAW MESSAGE:", data);
 });
 
 // ================= MOBILE =================
