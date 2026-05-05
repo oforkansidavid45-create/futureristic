@@ -1,5 +1,4 @@
 console.log("🔥 script loaded");
-const TAB_ID = Math.random().toString(36).substring(2);
 
 // ================= GLOBAL =================
 let username = null;
@@ -27,7 +26,7 @@ function getVal(id) {
 
 // ================= AUTH =================
 function signup() {
-  const name = getVal("nameInput").trim().toLowerCase(); // 🔥 FIX
+  const name = getVal("nameInput").trim().toLowerCase();
   const pass = getVal("passwordInput");
 
   if (!name || !pass) return alert("Fill all fields");
@@ -44,7 +43,7 @@ function login() {
   if (!saved) return alert("No account found");
 
   if (saved.name === name && saved.pass === pass) {
-    username = name; // 🔥 NO TAB_ID
+    username = name;
 
     document.getElementById("authScreen").style.display = "none";
     document.querySelector(".app").style.display = "flex";
@@ -55,150 +54,27 @@ function login() {
     alert("Wrong login details");
   }
 }
-// ================= VOICE MESSAGE =================
-function sendVoiceMessage(audioData) {
-  if (!currentChatUser || !username || !audioData) return;
-
-  socket.emit("privateMessage", {
-    from: username,
-    to: currentChatUser,
-    message: "[VOICE]",
-    audio: audioData
-  });
-
-  addVoiceMessage("You", audioData);
-}
-
-// ================= SHOW VOICE =================
-function addVoiceMessage(user, audioData) {
-  const box = document.getElementById("messagesContainer");
-  if (!box) return;
-
-  const div = document.createElement("div");
-  div.className = "chat-msg";
-
-  if (user === "You") div.classList.add("my-msg");
-
-  div.innerHTML = `
-    <b>${user}:</b><br/>
-    <audio controls src="${audioData}"></audio>
-  `;
-
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-}
-
-// ================= VOICE RECORDING =================
-async function startRecording() {
-  if (!navigator.mediaDevices) {
-    alert("Mic not supported");
-    return;
-  }
-
-  if (!isRecording) {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-
-    mediaRecorder.ondataavailable = (e) => {
-      audioChunks.push(e.data);
-    };
-
-    mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        sendVoiceMessage(reader.result);
-      };
-
-      reader.readAsDataURL(audioBlob);
-    };
-
-    mediaRecorder.start();
-    isRecording = true;
-    alert("🎤 Recording... click again to stop");
-
-  } else {
-    mediaRecorder.stop();
-    isRecording = false;
-  }
-}
-
-// ================= LOAD POSTS =================
-async function loadPosts() {
-  try {
-    const res = await fetch(`${API}/api/posts`);
-    const posts = await res.json();
-
-    const container = document.getElementById("posts");
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    posts.forEach(post => {
-      const div = document.createElement("div");
-      div.className = "post";
-
-      div.innerHTML = `
-        <b>${post.user}</b>
-        <p>${post.text}</p>
-        <button onclick="likePost('${post._id}')">❤️ ${post.likes}</button>
-      `;
-
-      container.appendChild(div);
-    });
-
-  } catch (err) {
-    console.log("❌ loadPosts error:", err);
-  }
-}
-
-// ================= CREATE POST =================
-async function createPost() {
-  const input = document.getElementById("postInput");
-  if (!input) return;
-
-  const text = input.value.trim();
-  if (!text || !username) return;
-
-  await fetch(`${API}/api/posts`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user: cleanName(username),
-      text
-    })
-  });
-
-  input.value = "";
-  loadPosts();
-}
-
-// ================= LIKE POST =================
-async function likePost(id) {
-  await fetch(`${API}/api/posts/like/${id}`, { method: "PUT" });
-  loadPosts();
-}
 
 // ================= SOCKET CONNECT =================
 socket.on("connect", () => {
+  console.log("✅ CONNECTED:", socket.id);
   if (username) socket.emit("register", username);
 });
 
 // ================= CHAT OPEN =================
 function openChat(user) {
-  currentChatUser = cleanName(user).toLowerCase();
+  currentChatUser = cleanName(user);
 
   document.getElementById("chatTitle").innerText =
     "Chat with " + currentChatUser;
 
-  socket.emit("seen", {
-    from: username,
-    to: currentChatUser
-  });
+  const box = document.getElementById("chatBox");
+  if (box) {
+    box.innerHTML = `
+      <div id="messagesContainer"></div>
+      <div id="typingIndicator" class="typing-bubble"></div>
+    `;
+  }
 
   loadMessages(currentChatUser);
 }
@@ -229,7 +105,7 @@ async function loadMessages(user) {
 }
 
 // ================= MESSAGE UI =================
-function addMessage(user, msg, status = "") {
+function addMessage(user, msg) {
   const box = document.getElementById("messagesContainer");
   if (!box) return;
 
@@ -238,10 +114,7 @@ function addMessage(user, msg, status = "") {
 
   if (user === "You") div.classList.add("my-msg");
 
-  div.innerHTML = `
-    <b>${user}:</b> ${msg}
-    ${user === "You" ? `<span class="msg-status">${status}</span>` : ""}
-  `;
+  div.innerHTML = `<b>${user}:</b> ${msg}`;
 
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
@@ -255,7 +128,6 @@ function sendMessage() {
   const message = input.value.trim();
   if (!message || !currentChatUser) return;
 
-  // ✅ FIXED: send normal message
   socket.emit("privateMessage", {
     from: username,
     to: currentChatUser,
@@ -267,7 +139,6 @@ function sendMessage() {
     to: currentChatUser
   });
 
-  addMessage("You", message, "✔");
   input.value = "";
 }
 
@@ -277,32 +148,14 @@ socket.on("privateMessage", (data) => {
 
   if (!data) return;
 
-  const from = cleanName(data.from || "").toLowerCase();
-  const me = (username || "").toLowerCase();
-  const current = (currentChatUser || "").toLowerCase();
-
-  // 🔥 ONLY SHOW IF CHAT IS OPEN WITH SENDER
-  if (current !== from) {
-    console.log("🔕 message ignored (chat not open)");
-    return;
-  }
+  const from = cleanName(data.from);
+  const me = cleanName(username);
 
   if (data.audio) {
     addVoiceMessage(from === me ? "You" : from, data.audio);
   } else {
     addMessage(from === me ? "You" : from, data.message);
   }
-
-  socket.emit("delivered", {
-    from: data.from,
-    to: username
-  });
-
-
-  socket.emit("delivered", {
-    from: data.from,
-    to: username
-  });
 });
 
 // ================= ONLINE USERS =================
@@ -314,11 +167,7 @@ socket.on("onlineUsers", (users) => {
 
   container.innerHTML =
     users
-      .filter(u =>
-        u &&
-        cleanName(u) !== cleanName(username) &&
-        u !== username
-      )
+      .filter(u => u && cleanName(u) !== cleanName(username))
       .map(u => `
         <div class="online-user" onclick="openChat('${u}')">
           🟢 ${cleanName(u)}
@@ -346,7 +195,6 @@ function handleTyping() {
   }, 800);
 }
 
-// ================= SHOW TYPING =================
 socket.on("typing", (data) => {
   if (!currentChatUser) return;
 
@@ -360,7 +208,6 @@ socket.on("typing", (data) => {
   }
 });
 
-// ================= STOP TYPING =================
 socket.on("stopTyping", (data) => {
   if (!currentChatUser) return;
 
@@ -373,13 +220,55 @@ socket.on("stopTyping", (data) => {
     bubble.innerText = "";
   }
 });
-socket.on("connect", () => {
-  console.log("CONNECTED SOCKET:", socket.id);
-});
 
-socket.on("privateMessage", (data) => {
-  console.log("RAW MESSAGE:", data);
-});
+// ================= POSTS =================
+async function loadPosts() {
+  const res = await fetch(`${API}/api/posts`);
+  const posts = await res.json();
+
+  const container = document.getElementById("posts");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  posts.forEach(post => {
+    const div = document.createElement("div");
+    div.className = "post";
+
+    div.innerHTML = `
+      <b>${post.user}</b>
+      <p>${post.text}</p>
+      <button onclick="likePost('${post._id}')">❤️ ${post.likes}</button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+async function createPost() {
+  const input = document.getElementById("postInput");
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text || !username) return;
+
+  await fetch(`${API}/api/posts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user: cleanName(username),
+      text
+    })
+  });
+
+  input.value = "";
+  loadPosts();
+}
+
+async function likePost(id) {
+  await fetch(`${API}/api/posts/like/${id}`, { method: "PUT" });
+  loadPosts();
+}
 
 // ================= MOBILE =================
 function toggleChat() {
