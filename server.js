@@ -53,32 +53,126 @@
   // ================= SOCKET =================
 
 io.on("connection", (socket) => {
-  socket.on("privateMessage", (data) => {
-  console.log("🔥 SERVER GOT MESSAGE:", data);
-});
+
   console.log("⚡ connected:", socket.id);
 
   emitOnlineUsers();
 
   // ================= REGISTER =================
-socket.on("register", (username) => {
-  if (!username) return;
+  socket.on("register", (username) => {
+    if (!username) return;
 
-  username = username.trim().toLowerCase();
-  socket.username = username;
+    username = username.trim().toLowerCase();
+    socket.username = username;
 
-  if (!users[username]) {
-    users[username] = [];
-  }
+    if (!users[username]) {
+      users[username] = [];
+    }
 
-  // prevent duplicates
-  if (!users[username].includes(socket.id)) {
-    users[username].push(socket.id);
-  }
+    if (!users[username].includes(socket.id)) {
+      users[username].push(socket.id);
+    }
 
-  console.log("👤 REGISTERED USERS:", users);
+    console.log("👤 REGISTERED USERS:", users);
 
-  emitOnlineUsers();
+    emitOnlineUsers();
+  });
+
+  // ================= PRIVATE MESSAGE (FIXED + WHATSAPP STYLE) =================
+  socket.on("privateMessage", (data) => {
+    try {
+      console.log("🔥 SERVER GOT MESSAGE:", data);
+
+      const from = data.from?.trim().toLowerCase();
+      const to = data.to?.trim().toLowerCase();
+
+      const message = data.message || "";
+
+      if (!from || !to || !message) return;
+
+      const payload = {
+        from,
+        to,
+        message,
+        status: "sent",
+        time: Date.now()
+      };
+
+      // 🔥 SEND TO RECEIVER
+      if (users[to]) {
+        users[to].forEach(id => {
+          io.to(id).emit("privateMessage", {
+            ...payload,
+            status: "delivered"
+          });
+        });
+      }
+
+      // 🔥 SEND BACK TO SENDER (so sender sees ✔✔)
+      if (users[from]) {
+        users[from].forEach(id => {
+          io.to(id).emit("messageStatus", {
+            to,
+            status: "delivered"
+          });
+        });
+      }
+
+    } catch (err) {
+      console.log("❌ MESSAGE ERROR:", err);
+    }
+  });
+
+  // ================= SEEN (WHATSAPP BLUE TICK) =================
+  socket.on("seen", ({ from, to }) => {
+    if (!from || !to) return;
+
+    const sender = from.trim().toLowerCase();
+
+    if (users[sender]) {
+      users[sender].forEach(id => {
+        io.to(id).emit("messageSeen", {
+          from: to,
+          status: "seen"
+        });
+      });
+    }
+  });
+
+  // ================= TYPING =================
+  socket.on("typing", ({ from, to }) => {
+    if (users[to]) {
+      users[to].forEach(id => {
+        io.to(id).emit("typing", { from });
+      });
+    }
+  });
+
+  socket.on("stopTyping", ({ from, to }) => {
+    if (users[to]) {
+      users[to].forEach(id => {
+        io.to(id).emit("stopTyping", { from });
+      });
+    }
+  });
+
+  // ================= DISCONNECT =================
+  socket.on("disconnect", () => {
+    if (!socket.username) return;
+
+    const user = socket.username;
+
+    if (users[user]) {
+      users[user] = users[user].filter(id => id !== socket.id);
+
+      if (users[user].length === 0) {
+        delete users[user];
+      }
+    }
+
+    emitOnlineUsers();
+  });
+
 });
   // ================= PRIVATE MESSAGE =================
 // ================= PRIVATE MESSAGE =================
@@ -115,6 +209,17 @@ socket.on("privateMessage", async (data) => {
     console.log("❌ MESSAGE ERROR:", err);
   }
 });
+socket.on("seen", ({ from, to }) => {
+  const sender = from.toLowerCase();
+
+  if (users[sender]) {
+    users[sender].forEach(id => {
+      io.to(id).emit("messageSeen", {
+        from: to
+      });
+    });
+  }
+});
   // ================= TYPING =================
   socket.on("typing", ({ from, to }) => {
     if (users[to]) {
@@ -146,7 +251,7 @@ socket.on("privateMessage", async (data) => {
 
     emitOnlineUsers();
   });
-});
+
   // ================= POSTS =================
   app.post("/api/posts", async (req, res) => {
     try {

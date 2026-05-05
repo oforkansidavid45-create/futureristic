@@ -53,7 +53,11 @@ function login() {
   } else {
     alert("Wrong login details");
   }
-}
+} 
+// ================= USER STATUS =================
+socket.on("userStatus", (data) => {
+  console.log(data.user + " is " + data.status);
+});
 
 // ================= SOCKET CONNECT =================
 socket.on("connect", () => {
@@ -63,13 +67,20 @@ socket.on("connect", () => {
 
 // ================= CHAT OPEN =================
 function openChat(user) {
-  currentChatUser = cleanName(user).toLowerCase();
-
-  console.log("💬 OPEN CHAT:", currentChatUser);
+  currentChatUser = cleanName(user);
 
   document.getElementById("chatTitle").innerText =
     "Chat with " + currentChatUser;
 
+  const box = document.getElementById("chatBox");
+  if (!box) return;
+
+  box.innerHTML = `
+    <div id="messagesContainer"></div>
+    <div id="typingIndicator" class="typing-bubble"></div>
+  `;
+
+  // ✅ THIS IS CORRECT PLACE FOR SEEN
   socket.emit("seen", {
     from: username,
     to: currentChatUser
@@ -103,7 +114,8 @@ async function loadMessages(user) {
 }
 
 // ================= MESSAGE UI =================
-function addMessage(user, msg) {
+
+function addMessage(user, msg, status = "") {
   const box = document.getElementById("messagesContainer");
   if (!box) return;
 
@@ -112,7 +124,11 @@ function addMessage(user, msg) {
 
   if (user === "You") div.classList.add("my-msg");
 
-  div.innerHTML = `<b>${user}:</b> ${msg}`;
+  div.innerHTML = `
+    <b>${user}</b>
+    <div>${msg}</div>
+    <span class="msg-status">${status}</span>
+  `;
 
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
@@ -146,6 +162,8 @@ function sendMessage() {
   input.value = "";
 }
 // ================= RECEIVE MESSAGE =================
+
+// ====// ================= RECEIVE MESSAGE =================
 socket.on("privateMessage", (data) => {
   console.log("📩 RECEIVED:", data);
 
@@ -153,21 +171,33 @@ socket.on("privateMessage", (data) => {
 
   const from = cleanName(data.from || "");
   const me = cleanName(username || "");
+  const current = cleanName(currentChatUser || "");
 
-  // ✅ ALWAYS SHOW MESSAGE
+  // ================= SHOW MESSAGE =================
   if (data.audio) {
     addVoiceMessage(from === me ? "You" : from, data.audio);
   } else {
     addMessage(from === me ? "You" : from, data.message);
   }
 
-  // ✅ SEND DELIVERY
+  // ================= DELIVERY (FIXED POSITION) =================
   socket.emit("delivered", {
     from: data.from,
     to: username
   });
 });
-// ================= ONLINE USERS =================
+
+
+// ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
+function markSeen() {
+  if (!currentChatUser) return;
+
+  socket.emit("seen", {
+    from: username,
+    to: currentChatUser
+  });
+}
+//============= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
   if (!username) return;
 
@@ -228,6 +258,12 @@ socket.on("stopTyping", (data) => {
     bubble.style.display = "none";
     bubble.innerText = "";
   }
+});
+socket.on("messageSeen", (data) => {
+  document.querySelectorAll(".msg-status").forEach(el => {
+    el.innerText = "✔✔";
+    el.style.color = "cyan";
+  });
 });
 
 // ================= POSTS =================
