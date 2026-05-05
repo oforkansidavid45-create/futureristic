@@ -12,7 +12,7 @@ let isRecording = false;
 // ================= CLEAN NAME =================
 function cleanName(name) {
   if (!name) return "";
-  return name.split("_")[0];
+  return name.toLowerCase().split("_")[0].trim();
 }
 
 // ================= API + SOCKET =================
@@ -284,8 +284,12 @@ socket.on("privateMessage", (data) => {
 
   if (!data) return;
 
-  const from = (data.from || "").toLowerCase();
+  const from = cleanName(data.from || "").toLowerCase();
   const me = (username || "").toLowerCase();
+  const current = (currentChatUser || "").toLowerCase();
+
+  // ONLY SHOW IF CHAT OPEN
+  if (current !== from && current !== me) return;
 
   if (data.audio) {
     addVoiceMessage(from === me ? "You" : from, data.audio);
@@ -298,7 +302,6 @@ socket.on("privateMessage", (data) => {
     to: username
   });
 });
-
 
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {

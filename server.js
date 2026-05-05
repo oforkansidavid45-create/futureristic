@@ -75,42 +75,40 @@ io.on("connection", (socket) => {
   });
 
   // ================= PRIVATE MESSAGE =================
-  socket.on("privateMessage", async (data) => {
-    try {
-      if (!data || !data.from || !data.to) return;
+socket.on("privateMessage", async (data) => {
+  try {
+    if (!data || !data.from || !data.to) return;
 
-      const from = data.from.trim().toLowerCase();
-      const to = data.to.trim().toLowerCase();
+    const from = data.from.trim().toLowerCase();
+    const to = data.to.trim().toLowerCase();
 
-      const message = (data.message || "").trim();
-      const audio = data.audio || null;
+    const message = (data.message || "").trim();
+    const audio = data.audio || null;
 
-      if (!message && !audio) return;
+    if (!message && !audio) return;
 
-      // save
-      await Message.create({ from, to, message, audio });
+    await Message.create({ from, to, message, audio });
 
-      const payload = { from, to, message, audio };
+    const payload = { from, to, message, audio };
 
-      // SEND TO RECEIVER (ALL TABS)
-      if (users[to]) {
-        users[to].forEach(id => {
-          io.to(id).emit("privateMessage", payload);
-        });
-      }
-
-      // SEND BACK TO SENDER (ALL TABS)
-      if (users[from]) {
-        users[from].forEach(id => {
-          io.to(id).emit("delivered", { from: to });
-        });
-      }
-
-    } catch (err) {
-      console.log("❌ PRIVATE MESSAGE ERROR:", err);
+    // SEND TO RECEIVER
+    if (users[to]) {
+      users[to].forEach(socketId => {
+        io.to(socketId).emit("privateMessage", payload);
+      });
     }
-  });
 
+    // SEND BACK TO SENDER
+    if (users[from]) {
+      users[from].forEach(socketId => {
+        io.to(socketId).emit("delivered", { from: to });
+      });
+    }
+
+  } catch (err) {
+    console.log("❌ PRIVATE MESSAGE ERROR:", err);
+  }
+});
   // ================= TYPING =================
   socket.on("typing", ({ from, to }) => {
     if (users[to]) {
