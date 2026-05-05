@@ -25,35 +25,46 @@ function getVal(id) {
 }
 
 // ================= AUTH =================
-function signup() {
+async function signup() {
   const name = getVal("nameInput").trim().toLowerCase();
-  const pass = getVal("passwordInput");
+  const password = getVal("passwordInput");
 
-  if (!name || !pass) return alert("Fill all fields");
+  if (!name || !password) return alert("Fill all fields");
 
-  localStorage.setItem("fb_user", JSON.stringify({ name, pass }));
+  const res = await fetch(`${API}/api/signup`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ name, password })
+  });
+
+  const data = await res.json();
+
+  if (data.error) return alert(data.error);
+
   alert("Account created! Now login.");
 }
-
-function login() {
+async function login() {
   const name = getVal("nameInput").trim().toLowerCase();
-  const pass = getVal("passwordInput");
+  const password = getVal("passwordInput");
 
-  const saved = JSON.parse(localStorage.getItem("fb_user"));
-  if (!saved) return alert("No account found");
+  const res = await fetch(`${API}/api/login`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ name, password })
+  });
 
-  if (saved.name === name && saved.pass === pass) {
-    username = name;
+  const data = await res.json();
 
-    document.getElementById("authScreen").style.display = "none";
-    document.querySelector(".app").style.display = "flex";
+  if (data.error) return alert(data.error);
 
-    socket.emit("register", username);
-    loadPosts();
-  } else {
-    alert("Wrong login details");
-  }
-} 
+  username = data.user;
+
+  document.getElementById("authScreen").style.display = "none";
+  document.querySelector(".app").style.display = "flex";
+
+  socket.emit("register", username);
+  loadPosts();
+}
 // ================= USER STATUS =================
 socket.on("userStatus", (data) => {
   console.log(data.user + " is " + data.status);

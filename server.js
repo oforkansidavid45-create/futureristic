@@ -12,7 +12,7 @@
 
   const app = express();
   const server = http.createServer(app);
-
+const User = require("./models/User");
   // ================= SOCKET =================
   const io = new Server(server, {
     cors: { origin: "*" }
@@ -78,29 +78,62 @@ io.on("connection", (socket) => {
     emitOnlineUsers();
   });
 
-  // ================= PRIVATE MESSAGE (SIMPLE WORKING) =================
+  // ================= PRIVATE MESSAGE (CLEAN + FIXED) =================
   socket.on("privateMessage", (data) => {
-    console.log("🔥 MESSAGE:", data);
+    try {
+      console.log("🔥 SERVER GOT MESSAGE:", data);
 
-    const from = data.from?.trim().toLowerCase();
-    const to = data.to?.trim().toLowerCase();
-    const message = data.message;
+      const from = data.from?.trim().toLowerCase();
+      const to = data.to?.trim().toLowerCase();
+      const message = (data.message || "").trim();
 
-    if (!from || !to || !message) return;
+      if (!from || !to || !message) return;
 
-    const payload = { from, to, message };
+      const payload = {
+        from,
+        to,
+        message,
+        status: "sent",
+        time: Date.now()
+      };
 
-    // send to receiver
-    if (users[to]) {
-      users[to].forEach(id => {
-        io.to(id).emit("privateMessage", payload);
-      });
+      // SEND TO RECEIVER
+      if (users[to]) {
+        users[to].forEach(id => {
+          io.to(id).emit("privateMessage", {
+            ...payload,
+            status: "delivered"
+          });
+        });
+      }
+
+      // SEND BACK TO SENDER (tick update)
+      if (users[from]) {
+        users[from].forEach(id => {
+          io.to(id).emit("messageStatus", {
+            to,
+            status: "delivered"
+          });
+        });
+      }
+
+    } catch (err) {
+      console.log("❌ MESSAGE ERROR:", err);
     }
+  });
 
-    // optional send back to sender (for sync)
-    if (users[from]) {
-      users[from].forEach(id => {
-        io.to(id).emit("privateMessage", payload);
+  // ================= SEEN =================
+  socket.on("seen", ({ from, to }) => {
+    if (!from || !to) return;
+
+    const sender = from.trim().toLowerCase();
+
+    if (users[sender]) {
+      users[sender].forEach(id => {
+        io.to(id).emit("messageSeen", {
+          from: to,
+          status: "seen"
+        });
       });
     }
   });
@@ -140,7 +173,6 @@ io.on("connection", (socket) => {
   });
 
 });
-
   // ================= POSTS =================
   app.post("/api/posts", async (req, res) => {
     try {
@@ -213,7 +245,48 @@ io.on("connection", (socket) => {
       res.status(500).json({ error: "Server error" });
     }
   });
+app.post("/api/signup", async (req, res) => {
+  try {
+    const { name, password } = req.body;
 
+    if (!name || !password) {
+      return res.status(400).json({ error: "Fill all fields" });
+    }
+
+    const exists = await User.findOne({ name: name.toLowerCase() });
+    if (exists) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    const user = await User.create({
+      name: name.toLowerCase(),
+      password
+    });
+
+    res.json({ success: true, user: user.name });
+
+  } catch (err) {
+    console.log("❌ SIGNUP ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+}); 
+app.post("/api/login", async (req, res) => {
+  try {
+    const { name, password } = req.body;
+
+    const user = await User.findOne({ name: name.toLowerCase() });
+
+    if (!user || user.password !== password) {
+      return res.status(400).json({ error: "Invalid login" });
+    }
+
+    res.json({ success: true, user: user.name });
+
+  } catch (err) {
+    console.log("❌ LOGIN ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
  
 // ================= DB =================
 mongoose.connect(process.env.MONGO_URI)
