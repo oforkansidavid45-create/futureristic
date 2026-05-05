@@ -61,56 +61,58 @@ io.on("connection", (socket) => {
   emitOnlineUsers();
 
   // ================= REGISTER =================
-  socket.on("register", (username) => {
-    if (!username) return;
+socket.on("register", (username) => {
+  if (!username) return;
 
-    username = username.trim().toLowerCase();
-    socket.username = username;
+  username = username.trim().toLowerCase();
+  socket.username = username;
 
-    if (!users[username]) users[username] = [];
+  if (!users[username]) {
+    users[username] = [];
+  }
 
-    if (!users[username].includes(socket.id)) {
-      users[username].push(socket.id);
-    }
+  // prevent duplicates
+  if (!users[username].includes(socket.id)) {
+    users[username].push(socket.id);
+  }
 
-    emitOnlineUsers();
-  });
+  console.log("👤 REGISTERED USERS:", users);
 
+  emitOnlineUsers();
+});
   // ================= PRIVATE MESSAGE =================
 // ================= PRIVATE MESSAGE =================
 socket.on("privateMessage", async (data) => {
   try {
-    if (!data || !data.from || !data.to) return;
+    console.log("🔥 SERVER GOT MESSAGE:", data);
 
-    const from = data.from.trim().toLowerCase();
-    const to = data.to.trim().toLowerCase();
+    const from = data.from?.trim().toLowerCase();
+    const to = data.to?.trim().toLowerCase();
 
     const message = (data.message || "").trim();
-    const audio = data.audio || null;
 
-    if (!message && !audio) return;
+    if (!from || !to || !message) return;
 
-    // save to DB
-    await Message.create({ from, to, message, audio });
+    const payload = { from, to, message };
 
-    const payload = { from, to, message, audio };
-
-    // 🔥 SEND TO RECEIVER (ALL TABS)
-    if (users[to]) {
-      users[to].forEach(socketId => {
-        io.to(socketId).emit("privateMessage", payload);
+    // 🔥 SEND TO RECEIVER
+    if (users[to] && users[to].length > 0) {
+      users[to].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
       });
+    } else {
+      console.log("❌ RECEIVER NOT ONLINE:", to);
     }
 
-    // 🔥 SEND BACK TO SENDER (ALL TABS)
-    if (users[from]) {
-      users[from].forEach(socketId => {
-        io.to(socketId).emit("privateMessage", payload);
+    // 🔥 SEND BACK TO SENDER
+    if (users[from] && users[from].length > 0) {
+      users[from].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
       });
     }
 
   } catch (err) {
-    console.log("❌ PRIVATE MESSAGE ERROR:", err);
+    console.log("❌ MESSAGE ERROR:", err);
   }
 });
   // ================= TYPING =================
