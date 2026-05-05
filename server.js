@@ -75,7 +75,44 @@ io.on("connection", (socket) => {
   });
 
   // ================= PRIVATE MESSAGE =================
+// ================= PRIVATE MESSAGE =================
+socket.on("privateMessage", async (data) => {
+  try {
+    console.log("📥 SERVER GOT:", data);
 
+    if (!data || !data.from || !data.to) return;
+
+    const from = data.from.trim().toLowerCase();
+    const to = data.to.trim().toLowerCase();
+
+    const message = (data.message || "").trim();
+    const audio = data.audio || null;
+
+    if (!message && !audio) return;
+
+    // SAVE TO DB
+    await Message.create({ from, to, message, audio });
+
+    const payload = { from, to, message, audio };
+
+    // 🔥 SEND TO RECEIVER
+    if (users[to]) {
+      users[to].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
+      });
+    }
+
+    // 🔥 ALSO SEND BACK TO SENDER (VERY IMPORTANT)
+    if (users[from]) {
+      users[from].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
+      });
+    }
+
+  } catch (err) {
+    console.log("❌ PRIVATE MESSAGE ERROR:", err);
+  }
+});
   // ================= TYPING =================
   socket.on("typing", ({ from, to }) => {
     if (users[to]) {
