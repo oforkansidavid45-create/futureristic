@@ -143,21 +143,13 @@ function sendMessage() {
   const message = input.value.trim();
   if (!message || !currentChatUser) return;
 
-  const payload = {
+  // ✅ show instantly
+  addMessage("You", message, "✔");
+
+  socket.emit("privateMessage", {
     from: username,
     to: currentChatUser,
     message
-  };
-
-  // ✅ 1. SHOW IMMEDIATELY (THIS FIXES YOUR PROBLEM)
-  addMessage("You", message, "✔");
-
-  // ✅ 2. SEND TO SERVER
-  socket.emit("privateMessage", payload);
-
-  socket.emit("stopTyping", {
-    from: username,
-    to: currentChatUser
   });
 
   input.value = "";
@@ -171,21 +163,26 @@ socket.on("privateMessage", (data) => {
   if (!data) return;
 
   const from = cleanName(data.from || "");
+  const to = cleanName(data.to || "");
   const me = cleanName(username || "");
+  const current = cleanName(currentChatUser || "");
 
-  // ❌ DO NOT filter too early
-  // ONLY block duplicate self messages
-  if (from === me) return;
+  // ✅ ALWAYS SHOW IF:
+  // 1. I'm sender OR receiver AND chat is open
+  const isMyMessage = from === me;
 
-  addMessage(from, data.message);
-});
+  if (data.audio) {
+    addVoiceMessage(isMyMessage ? "You" : from, data.audio);
+  } else {
+    addMessage(isMyMessage ? "You" : from, data.message);
+  }
 
   // mark delivered
   socket.emit("delivered", {
     from,
     to: me
   });
-
+});
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
 function markSeen() {
   if (!currentChatUser) return;
