@@ -52,31 +52,47 @@
 
   // ================= SOCKET =================
   io.on("connection", (socket) => {
-    console.log("⚡ connected:", socket.id);
-    }); // ✅ CLOSE io.on("connection")
+  console.log("⚡ connected:", socket.id);
+
+  emitOnlineUsers(); // ✅ NOW INSIDE
+
+  // ================= REGISTER =================
+  socket.on("register", (username) => {
+    if (!username) return;
+
+    username = username.trim().toLowerCase();
+    socket.username = username;
+
+    if (!users[username]) {
+      users[username] = [];
+    }
+
+    // prevent duplicate socket ids
+    if (!users[username].includes(socket.id)) {
+      users[username].push(socket.id);
+    }
 
     emitOnlineUsers();
+  });
 
-    // ================= REGISTER =================
+  // ================= DISCONNECT =================
+  socket.on("disconnect", () => {
+    if (!socket.username) return;
 
+    const user = socket.username;
 
-socket.on("register", (username) => {
-  if (!username) return;
+    if (users[user]) {
+      users[user] = users[user].filter(id => id !== socket.id);
 
-  username = username.trim().toLowerCase();
-  socket.username = username;
+      if (users[user].length === 0) {
+        delete users[user];
+      }
+    }
 
-  if (!users[username]) {
-    users[username] = [];
-  }
+    emitOnlineUsers();
+  });
 
-  // prevent duplicate socket ids
-  if (!users[username].includes(socket.id)) {
-    users[username].push(socket.id);
-  }
-
-  emitOnlineUsers();
-});
+}); // ✅ CLOSE ONLY HERE (VERY IMPORTANT)
     // ================= PRIVATE MESSAGE =================
   socket.on("privateMessage", async (data) => {
   try {
