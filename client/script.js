@@ -119,15 +119,19 @@ function addMessage(user, msg, status = "") {
   const box = document.getElementById("messagesContainer");
   if (!box) return;
 
-  const div = document.createElement("div");
-  div.className = "chat-msg";
+  const isMe = user === "You";
 
-  if (user === "You") div.classList.add("my-msg");
+  const div = document.createElement("div");
+  div.className = isMe ? "msg me" : "msg other";
 
   div.innerHTML = `
-    <b>${user}</b>
-    <div>${msg}</div>
-    <span class="msg-status">${status}</span>
+    <div class="msg-bubble">
+      <div>${msg}</div>
+      <div class="msg-meta">
+        <span>${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        ${isMe ? `<span class="msg-status">${status}</span>` : ""}
+      </div>
+    </div>
   `;
 
   box.appendChild(div);

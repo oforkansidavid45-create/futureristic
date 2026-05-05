@@ -56,11 +56,22 @@
   <div id="onlineUsers"></div>
 
   <hr>
+<div class="chat-header">
+  <div class="chat-user-info">
+    <div class="avatar">👤</div>
+    <div>
+      <div id="chatTitle">Select a user</div>
+      <small id="userStatus">offline</small>
+    </div>
+  </div>
+</div>
 
-  <h3 id="chatTitle">💬 Select a user</h3>
 
   <!-- CHAT BOX -->
-  <div id="chatBox" class="chat-box">
+<div id="chatBox" class="chat-box">
+  <div id="messagesContainer" class="messages"></div>
+  <div id="typingIndicator" class="typing-bubble"></div>
+</div>
 
     <!-- MESSAGES -->
     <div id="messagesContainer"></div>
