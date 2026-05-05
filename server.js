@@ -9,10 +9,10 @@
 
   const Post = require("./models/Post");
   const Message = require("./models/Message");
-
+const User = require("./models/Users");
   const app = express();
   const server = http.createServer(app);
-const User = require("./models/User");
+
   // ================= SOCKET =================
   const io = new Server(server, {
     cors: { origin: "*" }
