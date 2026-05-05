@@ -75,41 +75,24 @@ io.on("connection", (socket) => {
   });
 
   // ================= PRIVATE MESSAGE =================
-  socket.on("privateMessage", async (data) => {
-    try {
-      if (!data || !data.from || !data.to) return;
+socket.on("privateMessage", (data) => {
+  if (!data) return;
 
-      const from = data.from.trim().toLowerCase();
-      const to = data.to.trim().toLowerCase();
+  const fromClean = cleanName(data.from);
 
-      const message = (data.message || "").trim();
-      const audio = data.audio || null;
+  // ALWAYS show message
+  if (data.audio) {
+    addVoiceMessage(fromClean, data.audio);
+  } else {
+    addMessage(fromClean, data.message);
+  }
 
-      if (!message && !audio) return;
-
-      await Message.create({ from, to, message, audio });
-
-      const payload = { from, to, message, audio };
-
-      // SEND TO RECEIVER
-      if (users[to]) {
-        users[to].forEach(socketId => {
-          io.to(socketId).emit("privateMessage", payload);
-        });
-      }
-
-      // SEND BACK TO SENDER
-      if (users[from]) {
-        users[from].forEach(socketId => {
-          io.to(socketId).emit("delivered", { from: to });
-        });
-      }
-
-    } catch (err) {
-      console.log("❌ PRIVATE MESSAGE ERROR:", err);
-    }
+  // mark delivered
+  socket.emit("delivered", {
+    from: data.from,
+    to: username
   });
-
+});
   // ================= STOP TYPING =================
   socket.on("stopTyping", ({ from, to }) => {
     if (!from || !to) return;
