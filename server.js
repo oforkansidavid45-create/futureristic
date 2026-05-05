@@ -75,7 +75,6 @@ io.on("connection", (socket) => {
   });
 
   // ================= PRIVATE MESSAGE =================
-// ================= PRIVATE MESSAGE =================
 socket.on("privateMessage", async (data) => {
   try {
     console.log("📥 SERVER GOT:", data);
@@ -90,19 +89,19 @@ socket.on("privateMessage", async (data) => {
 
     if (!message && !audio) return;
 
-    // SAVE TO DB
+    // SAVE MESSAGE
     await Message.create({ from, to, message, audio });
 
     const payload = { from, to, message, audio };
 
-    // 🔥 SEND TO RECEIVER
+    // SEND TO RECEIVER
     if (users[to]) {
       users[to].forEach(id => {
         io.to(id).emit("privateMessage", payload);
       });
     }
 
-    // 🔥 ALSO SEND BACK TO SENDER (VERY IMPORTANT)
+    // SEND BACK TO SENDER
     if (users[from]) {
       users[from].forEach(id => {
         io.to(id).emit("privateMessage", payload);
