@@ -51,6 +51,7 @@
   });
 
   // ================= SOCKET =================
+
 io.on("connection", (socket) => {
   console.log("⚡ connected:", socket.id);
 
@@ -63,9 +64,7 @@ io.on("connection", (socket) => {
     username = username.trim().toLowerCase();
     socket.username = username;
 
-    if (!users[username]) {
-      users[username] = [];
-    }
+    if (!users[username]) users[username] = [];
 
     if (!users[username].includes(socket.id)) {
       users[username].push(socket.id);
@@ -75,10 +74,9 @@ io.on("connection", (socket) => {
   });
 
   // ================= PRIVATE MESSAGE =================
+// ================= PRIVATE MESSAGE =================
 socket.on("privateMessage", async (data) => {
   try {
-    console.log("📥 SERVER GOT:", data);
-
     if (!data || !data.from || !data.to) return;
 
     const from = data.from.trim().toLowerCase();
@@ -89,22 +87,22 @@ socket.on("privateMessage", async (data) => {
 
     if (!message && !audio) return;
 
-    // SAVE MESSAGE
+    // save to DB
     await Message.create({ from, to, message, audio });
 
     const payload = { from, to, message, audio };
 
-    // SEND TO RECEIVER
+    // 🔥 SEND TO RECEIVER (ALL TABS)
     if (users[to]) {
-      users[to].forEach(id => {
-        io.to(id).emit("privateMessage", payload);
+      users[to].forEach(socketId => {
+        io.to(socketId).emit("privateMessage", payload);
       });
     }
 
-    // SEND BACK TO SENDER
+    // 🔥 SEND BACK TO SENDER (ALL TABS)
     if (users[from]) {
-      users[from].forEach(id => {
-        io.to(id).emit("privateMessage", payload);
+      users[from].forEach(socketId => {
+        io.to(socketId).emit("privateMessage", payload);
       });
     }
 
@@ -138,16 +136,12 @@ socket.on("privateMessage", async (data) => {
     if (users[user]) {
       users[user] = users[user].filter(id => id !== socket.id);
 
-      if (users[user].length === 0) {
-        delete users[user];
-      }
+      if (users[user].length === 0) delete users[user];
     }
 
     emitOnlineUsers();
   });
-
 });
-
   // ================= POSTS =================
   app.post("/api/posts", async (req, res) => {
     try {

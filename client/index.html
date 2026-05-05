@@ -50,31 +50,37 @@
   </div>
 
   <!-- CHAT -->
-  <div class="rightbar" id="chatPanel">
+<div class="rightbar" id="chatPanel">
 
-    <h3>🟢 Online Users</h3>
-    <div id="onlineUsers"></div>
+  <h3>🟢 Online Users</h3>
+  <div id="onlineUsers"></div>
 
-    <hr>
+  <hr>
 
-    <h3 id="chatTitle">💬 Select a user</h3>
+  <h3 id="chatTitle">💬 Select a user</h3>
 
-    <!-- CHAT BOX (ONLY ONE — FIXED) -->
-    <div id="chatBox" class="chat-box">
-      <div id="typingIndicator" class="typing-bubble"></div>
-    </div>
+  <!-- CHAT BOX -->
+  <div id="chatBox" class="chat-box">
 
-    <!-- CHAT INPUT (ONLY ONE — FIXED) -->
-    <div class="chat-input">
-      <input id="chatInput"
-             placeholder="Type message..."
-             oninput="handleTyping()" />
+    <!-- MESSAGES -->
+    <div id="messagesContainer"></div>
 
-      <button onclick="startRecording()">🎤</button>
-      <button onclick="sendMessage()">Send</button>
-    </div>
+    <!-- TYPING -->
+    <div id="typingIndicator" class="typing-bubble"></div>
 
   </div>
+
+  <!-- INPUT -->
+  <div class="chat-input">
+    <input id="chatInput"
+           placeholder="Type message..."
+           oninput="handleTyping()" />
+
+    <button onclick="startRecording()">🎤</button>
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+</div>
 
 </div>
 

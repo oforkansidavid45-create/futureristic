@@ -126,13 +126,19 @@ function sendMessage() {
   if (!input) return;
 
   const message = input.value.trim();
-  if (!message || !currentChatUser) return;
+  if (!message || !currentChatUser || !username) return;
 
-  socket.emit("privateMessage", {
+  const payload = {
     from: username,
     to: currentChatUser,
     message
-  });
+  };
+
+  // 🔥 send ONLY to server
+  socket.emit("privateMessage", payload);
+
+  // ❌ DO NOT manually addMessage here
+  // server will handle both sides
 
   socket.emit("stopTyping", {
     from: username,
