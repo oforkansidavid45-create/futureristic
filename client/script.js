@@ -63,22 +63,20 @@ socket.on("connect", () => {
 
 // ================= CHAT OPEN =================
 function openChat(user) {
-  currentChatUser = cleanName(user);
+  currentChatUser = cleanName(user).toLowerCase();
+
+  console.log("💬 OPEN CHAT:", currentChatUser);
 
   document.getElementById("chatTitle").innerText =
     "Chat with " + currentChatUser;
 
-  const box = document.getElementById("chatBox");
-  if (box) {
-    box.innerHTML = `
-      <div id="messagesContainer"></div>
-      <div id="typingIndicator" class="typing-bubble"></div>
-    `;
-  }
+  socket.emit("seen", {
+    from: username,
+    to: currentChatUser
+  });
 
   loadMessages(currentChatUser);
 }
-
 // ================= LOAD MESSAGES =================
 async function loadMessages(user) {
   try {
@@ -121,33 +119,32 @@ function addMessage(user, msg) {
 }
 
 // ================= SEND MESSAGE =================
+
 function sendMessage() {
   const input = document.getElementById("chatInput");
-  if (!input) return;
 
-  const message = input.value.trim();
-  if (!message || !currentChatUser || !username) return;
+  const message = input?.value?.trim();
 
-  const payload = {
+  console.log("📤 TRY SEND:", {
+    message,
+    username,
+    currentChatUser,
+    connected: socket.connected
+  });
+
+  if (!message) return alert("No message typed");
+  if (!currentChatUser) return alert("No user selected");
+  if (!username) return alert("Not logged in");
+  if (!socket.connected) return alert("Socket not connected");
+
+  socket.emit("privateMessage", {
     from: username,
     to: currentChatUser,
     message
-  };
-
-  // 🔥 send ONLY to server
-  socket.emit("privateMessage", payload);
-
-  // ❌ DO NOT manually addMessage here
-  // server will handle both sides
-
-  socket.emit("stopTyping", {
-    from: username,
-    to: currentChatUser
   });
 
   input.value = "";
 }
-
 // ================= RECEIVE MESSAGE =================
 socket.on("privateMessage", (data) => {
   console.log("📩 RECEIVED:", data);

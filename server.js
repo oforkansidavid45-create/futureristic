@@ -53,6 +53,9 @@
   // ================= SOCKET =================
 
 io.on("connection", (socket) => {
+  socket.on("privateMessage", (data) => {
+  console.log("🔥 SERVER GOT MESSAGE:", data);
+});
   console.log("⚡ connected:", socket.id);
 
   emitOnlineUsers();
