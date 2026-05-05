@@ -138,25 +138,26 @@ function addMessage(user, msg, status = "") {
 
 function sendMessage() {
   const input = document.getElementById("chatInput");
+  if (!input) return;
 
-  const message = input?.value?.trim();
+  const message = input.value.trim();
+  if (!message || !currentChatUser) return;
 
-  console.log("📤 TRY SEND:", {
-    message,
-    username,
-    currentChatUser,
-    connected: socket.connected
-  });
-
-  if (!message) return alert("No message typed");
-  if (!currentChatUser) return alert("No user selected");
-  if (!username) return alert("Not logged in");
-  if (!socket.connected) return alert("Socket not connected");
-
-  socket.emit("privateMessage", {
+  const payload = {
     from: username,
     to: currentChatUser,
     message
+  };
+
+  // ✅ 1. SHOW IMMEDIATELY (THIS FIXES YOUR PROBLEM)
+  addMessage("You", message, "✔");
+
+  // ✅ 2. SEND TO SERVER
+  socket.emit("privateMessage", payload);
+
+  socket.emit("stopTyping", {
+    from: username,
+    to: currentChatUser
   });
 
   input.value = "";
@@ -170,29 +171,21 @@ socket.on("privateMessage", (data) => {
   if (!data) return;
 
   const from = cleanName(data.from || "");
-  const to = cleanName(data.to || "");
   const me = cleanName(username || "");
-  const current = cleanName(currentChatUser || "");
 
-  // ✅ ALWAYS SHOW IF:
-  // 1. I'm sender OR receiver AND chat is open
-  const isMyMessage = from === me;
-  const isChatOpen = current === from || current === to;
+  // ❌ DO NOT filter too early
+  // ONLY block duplicate self messages
+  if (from === me) return;
 
-  if (!isChatOpen) return;
-
-  if (data.audio) {
-    addVoiceMessage(isMyMessage ? "You" : from, data.audio);
-  } else {
-    addMessage(isMyMessage ? "You" : from, data.message);
-  }
+  addMessage(from, data.message);
+});
 
   // mark delivered
   socket.emit("delivered", {
     from,
     to: me
   });
-});
+
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
 function markSeen() {
   if (!currentChatUser) return;
