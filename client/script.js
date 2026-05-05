@@ -285,13 +285,11 @@ socket.on("privateMessage", (data) => {
   if (!data) return;
 
   const from = (data.from || "").toLowerCase();
-  const to = (data.to || "").toLowerCase();
-
   const me = (username || "").toLowerCase();
   const current = (currentChatUser || "").toLowerCase();
 
-  // ================= SHOW MESSAGE IF CHAT IS OPEN =================
-  if (current === from || current === to) {
+  // ONLY SHOW IN CHAT IF OPEN
+  if (current === from) {
 
     if (data.audio) {
       addVoiceMessage(from === me ? "You" : from, data.audio);
@@ -300,16 +298,17 @@ socket.on("privateMessage", (data) => {
     }
 
   } else {
-    // 🔔 OPTIONAL: show notification
-    console.log("🔔 Message received but chat not open");
+    // show notification instead
+    console.log("🔔 New message from", from);
   }
 
-  // ================= SEND DELIVERY =================
   socket.emit("delivered", {
     from: data.from,
     to: username
   });
 });
+
+
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
   if (!username) return;
