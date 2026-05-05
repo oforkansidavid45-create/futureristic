@@ -75,18 +75,41 @@ io.on("connection", (socket) => {
   });
 
   // ================= PRIVATE MESSAGE =================
-socket.on("privateMessage", (data) => {
-  if (!data) return;
+socket.on("privateMessage", async (data) => {
+  try {
+    if (!data || !data.from || !data.to) return;
 
-  const fromClean = cleanName(data.from);
+    const from = data.from.trim().toLowerCase();
+    const to = data.to.trim().toLowerCase();
 
-  // ALWAYS show message
-  if (data.audio) {
-    addVoiceMessage(fromClean, data.audio);
-  } else {
-    addMessage(fromClean, data.message);
+    const message = (data.message || "").trim();
+    const audio = data.audio || null;
+
+    if (!message && !audio) return;
+
+    // SAVE TO DB
+    await Message.create({ from, to, message, audio });
+
+    const payload = { from, to, message, audio };
+
+    // SEND TO RECEIVER
+    if (users[to]) {
+      users[to].forEach(socketId => {
+        io.to(socketId).emit("privateMessage", payload);
+      });
+    }
+
+    // SEND BACK TO SENDER (so all tabs update)
+    if (users[from]) {
+      users[from].forEach(socketId => {
+        io.to(socketId).emit("delivered", { from: to });
+      });
+    }
+
+  } catch (err) {
+    console.log("❌ privateMessage error:", err);
   }
-
+});
   // mark delivered
   socket.emit("delivered", {
     from: data.from,
