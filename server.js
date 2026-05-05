@@ -78,62 +78,29 @@ io.on("connection", (socket) => {
     emitOnlineUsers();
   });
 
-  // ================= PRIVATE MESSAGE (CLEAN + FIXED) =================
+  // ================= PRIVATE MESSAGE (SIMPLE WORKING) =================
   socket.on("privateMessage", (data) => {
-    try {
-      console.log("🔥 SERVER GOT MESSAGE:", data);
+    console.log("🔥 MESSAGE:", data);
 
-      const from = data.from?.trim().toLowerCase();
-      const to = data.to?.trim().toLowerCase();
-      const message = (data.message || "").trim();
+    const from = data.from?.trim().toLowerCase();
+    const to = data.to?.trim().toLowerCase();
+    const message = data.message;
 
-      if (!from || !to || !message) return;
+    if (!from || !to || !message) return;
 
-      const payload = {
-        from,
-        to,
-        message,
-        status: "sent",
-        time: Date.now()
-      };
+    const payload = { from, to, message };
 
-      // SEND TO RECEIVER
-      if (users[to]) {
-        users[to].forEach(id => {
-          io.to(id).emit("privateMessage", {
-            ...payload,
-            status: "delivered"
-          });
-        });
-      }
-
-      // SEND BACK TO SENDER (tick update)
-      if (users[from]) {
-        users[from].forEach(id => {
-          io.to(id).emit("messageStatus", {
-            to,
-            status: "delivered"
-          });
-        });
-      }
-
-    } catch (err) {
-      console.log("❌ MESSAGE ERROR:", err);
+    // send to receiver
+    if (users[to]) {
+      users[to].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
+      });
     }
-  });
 
-  // ================= SEEN =================
-  socket.on("seen", ({ from, to }) => {
-    if (!from || !to) return;
-
-    const sender = from.trim().toLowerCase();
-
-    if (users[sender]) {
-      users[sender].forEach(id => {
-        io.to(id).emit("messageSeen", {
-          from: to,
-          status: "seen"
-        });
+    // optional send back to sender (for sync)
+    if (users[from]) {
+      users[from].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
       });
     }
   });
@@ -173,6 +140,7 @@ io.on("connection", (socket) => {
   });
 
 });
+
   // ================= POSTS =================
   app.post("/api/posts", async (req, res) => {
     try {
