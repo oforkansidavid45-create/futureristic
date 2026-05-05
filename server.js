@@ -93,6 +93,15 @@ socket.on("privateMessage", (data) => {
     to: username
   });
 });
+socket.on("typing", ({ from, to }) => {
+  if (!from || !to) return;
+
+  if (users[to]) {
+    users[to].forEach(socketId => {
+      io.to(socketId).emit("typing", { from });
+    });
+  }
+});
   // ================= STOP TYPING =================
   socket.on("stopTyping", ({ from, to }) => {
     if (!from || !to) return;

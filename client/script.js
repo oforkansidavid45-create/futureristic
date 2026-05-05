@@ -353,7 +353,12 @@ function handleTyping() {
 
 // ================= SHOW TYPING =================
 socket.on("typing", (data) => {
+  if (!currentChatUser) return;
+
+  if (cleanName(data.from) !== cleanName(currentChatUser)) return;
+
   const bubble = document.getElementById("typingIndicator");
+
   if (bubble) {
     bubble.style.display = "block";
     bubble.innerText = cleanName(data.from) + " is typing...";
@@ -361,8 +366,13 @@ socket.on("typing", (data) => {
 });
 
 // ================= STOP TYPING =================
-socket.on("stopTyping", () => {
+socket.on("stopTyping", (data) => {
+  if (!currentChatUser) return;
+
+  if (cleanName(data.from) !== cleanName(currentChatUser)) return;
+
   const bubble = document.getElementById("typingIndicator");
+
   if (bubble) {
     bubble.style.display = "none";
     bubble.innerText = "";
