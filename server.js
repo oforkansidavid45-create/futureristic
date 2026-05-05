@@ -171,7 +171,7 @@ socket.on("typing", ({ from, to }) => {
     emitOnlineUsers();
   });
 
-}); // ✅ CLOSE HERE ONLY (VERY IMPORTANT)
+
 
   // ================= POSTS =================
   app.post("/api/posts", async (req, res) => {
