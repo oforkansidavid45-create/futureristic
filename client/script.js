@@ -25,23 +25,29 @@ function getVal(id) {
 }
 
 // ================= AUTH =================
-async function signup() {
+aasync function signup() {
   const name = getVal("nameInput").trim().toLowerCase();
   const pass = getVal("passwordInput");
 
   if (!name || !pass) return alert("Fill all fields");
 
-  const res = await fetch(`${API}/api/auth/signup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: name, password: pass })
-  });
+  try {
+    const res = await fetch(`${API}/api/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: name, password: pass })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (data.error) return alert(data.error);
+    if (data.error) return alert(data.error);
 
-  alert("Account created! Now login.");
+    alert("Account created! Now login.");
+
+  } catch (err) {
+    console.log("❌ SIGNUP ERROR:", err);
+    alert("Server error");
+  }
 }
 async function login() {
   const name = getVal("nameInput").trim().toLowerCase();
