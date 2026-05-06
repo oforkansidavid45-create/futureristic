@@ -25,7 +25,7 @@ function getVal(id) {
 }
 
 // ================= AUTH =================
-aasync function signup() {
+async function signup() {
   const name = getVal("nameInput").trim().toLowerCase();
   const pass = getVal("passwordInput");
 
