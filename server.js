@@ -13,7 +13,10 @@ const bcrypt = require("bcrypt");
 const User = require("./models/Users");
   const app = express();
   const server = http.createServer(app);
-
+  
+app.use(cors());
+app.use(express.json()); // ✅ MUST BE HERE
+app.use(express.static(path.join(__dirname, "client")));
 app.post("/api/auth/signup", async (req, res) => {
   try {
     console.log("📥 SIGNUP BODY:", req.body);
