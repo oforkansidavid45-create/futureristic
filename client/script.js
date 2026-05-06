@@ -42,10 +42,10 @@ async function signup() {
 
     if (data.error) return alert(data.error);
 
-    alert("Account created! Now login.");
+    alert("Account created! Now login");
 
   } catch (err) {
-    console.log("❌ SIGNUP ERROR:", err);
+    console.log("❌ ERROR:", err);
     alert("Server error");
   }
 }
