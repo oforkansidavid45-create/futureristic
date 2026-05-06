@@ -13,45 +13,9 @@ const bcrypt = require("bcrypt");
 const User = require("./models/Users");
   const app = express();
   const server = http.createServer(app);
-  
-app.use(cors());
+
 app.use(express.json()); // ✅ MUST BE HERE
-app.use(express.static(path.join(__dirname, "client")));
-app.post("/api/auth/signup", async (req, res) => {
-  try {
-    console.log("📥 SIGNUP BODY:", req.body);
 
-    let { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ error: "Fill all fields" });
-    }
-
-    username = username.trim().toLowerCase();
-
-    const existingUser = await User.findOne({ username });
-
-    if (existingUser) {
-      return res.status(400).json({ error: "User already exists" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await User.create({
-      username,
-      password: hashedPassword
-    });
-
-    res.json({
-      message: "Account created",
-      user: username
-    });
-
-  } catch (err) {
-    console.log("❌ SIGNUP ERROR:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
   // ================= SOCKET =================
   const io = new Server(server, {
     cors: { origin: "*" }
@@ -313,49 +277,54 @@ f
       res.status(500).json({ error: "Server error" });
     }
   });
-app.post("/api/signup", async (req, res) => {
+ app.post("/api/auth/signup", async (req, res) => {
   try {
-    const { name, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!name || !password) {
-      return res.status(400).json({ error: "Fill all fields" });
-    }
-
-    const exists = await User.findOne({ name: name.toLowerCase() });
-    if (exists) {
-      return res.status(400).json({ error: "User already exists" });
-    }
+    const hashed = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name: name.toLowerCase(),
-      password
+      username,
+      password: hashed
     });
 
-    res.json({ success: true, user: user.name });
+    res.json({ message: "User created" });
 
   } catch (err) {
     console.log("❌ SIGNUP ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
-}); 
-app.post("/api/login", async (req, res) => {
+});
+
+ app.post("/api/auth/login", async (req, res) => {
   try {
-    const { name, password } = req.body;
+    let { username, password } = req.body;
 
-    const user = await User.findOne({ name: name.toLowerCase() });
-
-    if (!user || user.password !== password) {
-      return res.status(400).json({ error: "Invalid login" });
+    if (!username || !password) {
+      return res.status(400).json({ error: "Fill all fields" });
     }
 
-    res.json({ success: true, user: user.name });
+    username = username.trim().toLowerCase();
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.status(400).json({ error: "Wrong password" });
+    }
+
+    res.json({ message: "Login successful", user: username });
 
   } catch (err) {
     console.log("❌ LOGIN ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
- 
 // ================= DB =================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("🔥 MongoDB connected"))
