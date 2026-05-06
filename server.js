@@ -13,6 +13,37 @@ const User = require("./models/Users");
   const app = express();
   const server = http.createServer(app);
 
+  app.post("/api/auth/signup", async (req, res) => {
+  try {
+    let { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "Fill all fields" });
+    }
+
+    username = username.trim().toLowerCase();
+
+    // check if user exists
+    const exists = await User.findOne({ username });
+    if (exists) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    // hash password
+    const hashed = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      username,
+      password: hashed
+    });
+
+    res.json({ message: "Account created", user: username });
+
+  } catch (err) {
+    console.log("❌ SIGNUP ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
   // ================= SOCKET =================
   const io = new Server(server, {
     cors: { origin: "*" }
@@ -78,6 +109,35 @@ io.on("connection", (socket) => {
     emitOnlineUsers();
   });
 
+  app.post("/api/auth/login", async (req, res) => {
+  try {
+    let { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "Fill all fields" });
+    }
+
+    username = username.trim().toLowerCase();
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.status(400).json({ error: "Wrong password" });
+    }
+
+    res.json({ message: "Login successful", user: username });
+
+  } catch (err) {
+    console.log("❌ LOGIN ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
   // ================= PRIVATE MESSAGE (CLEAN + FIXED) =================
   socket.on("privateMessage", (data) => {
     try {

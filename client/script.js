@@ -27,14 +27,14 @@ function getVal(id) {
 // ================= AUTH =================
 async function signup() {
   const name = getVal("nameInput").trim().toLowerCase();
-  const password = getVal("passwordInput");
+  const pass = getVal("passwordInput");
 
-  if (!name || !password) return alert("Fill all fields");
+  if (!name || !pass) return alert("Fill all fields");
 
-  const res = await fetch(`${API}/api/signup`, {
+  const res = await fetch(`${API}/api/auth/signup`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name, password })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: name, password: pass })
   });
 
   const data = await res.json();
@@ -45,12 +45,12 @@ async function signup() {
 }
 async function login() {
   const name = getVal("nameInput").trim().toLowerCase();
-  const password = getVal("passwordInput");
+  const pass = getVal("passwordInput");
 
-  const res = await fetch(`${API}/api/login`, {
+  const res = await fetch(`${API}/api/auth/login`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name, password })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: name, password: pass })
   });
 
   const data = await res.json();
