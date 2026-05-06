@@ -13,7 +13,8 @@ const bcrypt = require("bcrypt");
 const User = require("./models/Users");
   const app = express();
   const server = http.createServer(app);
-
+app.use(cors());
+app.use(express.static(path.join(__dirname, "client")));
 app.use(express.json()); // ✅ MUST BE HERE
 
   // ================= SOCKET =================
@@ -21,9 +22,6 @@ app.use(express.json()); // ✅ MUST BE HERE
     cors: { origin: "*" }
   });
 
-  app.use(cors());
-  app.use(express.json());
-  app.use(express.static(path.join(__dirname, "client")));
 
   // ================= USERS =================
   let users = {};
@@ -81,35 +79,7 @@ io.on("connection", (socket) => {
     emitOnlineUsers();
   });
 
-  app.post("/api/auth/login", async (req, res) => {
-  try {
-    let { username, password } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ error: "Fill all fields" });
-    }
-f
-    username = username.trim().toLowerCase();
-
-    const user = await User.findOne({ username });
-
-    if (!user) {
-      return res.status(400).json({ error: "User not found" });
-    }
-
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
-      return res.status(400).json({ error: "Wrong password" });
-    }
-
-    res.json({ message: "Login successful", user: username });
-
-  } catch (err) {
-    console.log("❌ LOGIN ERROR:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
   // ================= PRIVATE MESSAGE (CLEAN + FIXED) =================
   socket.on("privateMessage", (data) => {
     try {
@@ -281,14 +251,18 @@ f
   try {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return res.status(400).json({ error: "Fill all fields" });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      username,
+      username: username.trim().toLowerCase(),
       password: hashed
     });
 
-    res.json({ message: "User created" });
+    res.json({ message: "User created", user: user.username });
 
   } catch (err) {
     console.log("❌ SIGNUP ERROR:", err);
@@ -296,7 +270,7 @@ f
   }
 });
 
- app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   try {
     let { username, password } = req.body;
 
