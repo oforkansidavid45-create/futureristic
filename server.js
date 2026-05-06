@@ -6,6 +6,7 @@
   const path = require("path");
   const mongoose = require("mongoose");
   const { Server } = require("socket.io");
+const bcrypt = require("bcrypt");
 
   const Post = require("./models/Post");
   const Message = require("./models/Message");
@@ -116,7 +117,7 @@ io.on("connection", (socket) => {
     if (!username || !password) {
       return res.status(400).json({ error: "Fill all fields" });
     }
-
+f
     username = username.trim().toLowerCase();
 
     const user = await User.findOne({ username });
