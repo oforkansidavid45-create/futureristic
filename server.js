@@ -14,8 +14,10 @@ const User = require("./models/Users");
   const app = express();
   const server = http.createServer(app);
 
-  app.post("/api/auth/signup", async (req, res) => {
+app.post("/api/auth/signup", async (req, res) => {
   try {
+    console.log("📥 SIGNUP BODY:", req.body);
+
     let { username, password } = req.body;
 
     if (!username || !password) {
@@ -24,25 +26,27 @@ const User = require("./models/Users");
 
     username = username.trim().toLowerCase();
 
-    // check if user exists
-    const exists = await User.findOne({ username });
-    if (exists) {
+    const existingUser = await User.findOne({ username });
+
+    if (existingUser) {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    // hash password
-    const hashed = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    const newUser = await User.create({
       username,
-      password: hashed
+      password: hashedPassword
     });
 
-    res.json({ message: "Account created", user: username });
+    res.json({
+      message: "Account created",
+      user: username
+    });
 
   } catch (err) {
-    console.log("❌ SIGNUP ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+    console.log("❌ SIGNUP ERROR:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
   // ================= SOCKET =================
