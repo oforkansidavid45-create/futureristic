@@ -34,7 +34,9 @@ let users = {};
 function emitOnlineUsers() {
   io.emit("onlineUsers", Object.keys(users));
 }
-
+app.get("/test", (req, res) => {
+  res.send("Backend working");
+});
 // ================= AUTH SIGNUP =================
 app.post("/api/auth/signup", async (req, res) => {
   try {
