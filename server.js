@@ -40,6 +40,8 @@ app.get("/test", (req, res) => {
 // ================= AUTH SIGNUP =================
 app.post("/api/auth/signup", async (req, res) => {
   try {
+    console.log("BODY:", req.body);
+
     let { username, password } = req.body;
 
     if (!username || !password) {
@@ -61,14 +63,15 @@ app.post("/api/auth/signup", async (req, res) => {
       password: hashed
     });
 
+    console.log("USER CREATED:", user);
+
     res.json({ message: "User created", user: user.username });
 
   } catch (err) {
-    console.log("❌ SIGNUP ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+    console.log("❌ SIGNUP ERROR FULL:", err);
+    res.status(500).json({ error: err.message });
   }
 });
-
 // ================= AUTH LOGIN =================
 app.post("/api/auth/login", async (req, res) => {
   try {
