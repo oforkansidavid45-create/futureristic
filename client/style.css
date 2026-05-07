@@ -27,6 +27,8 @@
   display: flex;
   flex-direction: column;
   padding: 10px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 /* ===== MESSAGE WRAPPER ===== */
@@ -84,7 +86,6 @@
   background: #111827;
   border-top: 1px solid #1f2937;
 }
-
 .chat-input input {
   flex: 1;
   padding: 10px;
@@ -92,26 +93,23 @@
   background: #1f2937;
   border: none;
   color: white;
+  outline: none;
 }
-
 .chat-input button {
   border-radius: 50%;
   padding: 10px;
+  background: #0084ff;
+  color: white;
+  border: none;
 }
 /* CHAT LAYOUT FIX */
-.chat-box {
+#chatBox {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
 }
 
-/* MESSAGE AREA */
-.messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-}
 
 /* MESSAGE BUBBLES (Messenger style) */
 .msg {
@@ -175,4 +173,24 @@
   padding: 10px;
   border-radius: 20px;
   border: 1px solid #ccc;
+}.tick {
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.seen {
+  color: #4fc3f7;
+}.menu-item {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: rgba(255,255,255,0.1);
 }

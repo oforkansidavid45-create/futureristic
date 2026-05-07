@@ -151,8 +151,7 @@ function addMessage(user, msg, status = "") {
           minute: "2-digit"
         })}</span>
 
-        ${isMe ? `<span class="tick">${status}</span>` : ""}
-      </div>
+       ${isMe ? `<span class="msg-status">${status}</span>` : ""}
     </div>
   `;
 
