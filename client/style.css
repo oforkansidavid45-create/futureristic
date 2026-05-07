@@ -164,6 +164,8 @@ body {
 
 /* ================= CHAT INPUT (FIXED SMALL) ================= */
 .chat-input {
+    position: sticky;
+      bottom: 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -202,8 +204,50 @@ body {
 
 /* ================= MOBILE NAV ================= */
 .mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
   display: flex;
   justify-content: space-around;
-  padding: 10px;
+
   background: #111827;
+  padding: 10px;
+
+  z-index: 999;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}.feed {
+  flex: 1;
+  overflow-y: auto;
+}
+@media (max-width: 768px) {
+
+  .sidebar {
+    display: none;
+  }
+
+  .rightbar {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    bottom: 50px;
+  }
+
+  .feed {
+    width: 100%;
+  }
+
+  .app {
+    flex-direction: column;
+  }
 }
