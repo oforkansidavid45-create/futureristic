@@ -179,9 +179,10 @@ io.on("connection", (socket) => {
         });
       }
 
-    } catch (err) {
-      console.log("❌ MESSAGE ERROR:", err);
-    }
+  } catch (err) {
+  console.log("❌ SIGNUP ERROR:", err);
+  res.status(500).json({ error: "Server error" });
+}
   });
 
   // SEEN
