@@ -154,17 +154,20 @@ io.on("connection", (socket) => {
     try {
       const from = data.from?.trim().toLowerCase();
       const to = data.to?.trim().toLowerCase();
-      const message = (data.message || "").trim();
+    const message = (data.message || "").trim();
+const audio = data.audio || null;
 
-      if (!from || !to || !message) return;
+// allow message OR audio
+if (!from || !to || (!message && !audio)) return;
 
-      const payload = {
-        from,
-        to,
-        message,
-        status: "sent",
-        time: Date.now()
-      };
+   const payload = {
+  from,
+  to,
+  message,
+  audio,
+  status: "sent",
+  time: Date.now()
+};
 
       if (users[to]) {
         users[to].forEach(id => {

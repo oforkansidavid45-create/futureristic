@@ -183,7 +183,10 @@ function sendMessage() {
 // ================= RECEIVE MESSAGE =================
 
 // ====// ================= RECEIVE MESSAGE =================
+// ================= RECEIVE MESSAGE =================
+
 socket.on("privateMessage", (data) => {
+
   console.log("📩 RECEIVED:", data);
 
   if (!data) return;
@@ -194,23 +197,32 @@ socket.on("privateMessage", (data) => {
 
   const isMyMessage = from === me;
 
-  // ❌ IMPORTANT: STOP DUPLICATE
+  // STOP DUPLICATE
   if (isMyMessage) return;
 
-  // ✅ only show if chat open
+  // ONLY SHOW IF CHAT OPEN
   if (current !== from) return;
 
+  // ================= AUDIO =================
   if (data.audio) {
+
     addVoiceMessage(from, data.audio);
-  } else {
-    addMessage(from, data.message);
+
   }
 
-  // delivery
+  // ================= TEXT =================
+  else if (data.message) {
+
+    addMessage(from, data.message);
+
+  }
+
+  // DELIVERY
   socket.emit("delivered", {
     from,
     to: me
   });
+
 });
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
 function markSeen() {
