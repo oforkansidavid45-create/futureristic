@@ -1,21 +1,40 @@
-  require("dotenv").config();
+require("dotenv").config();
 
-  const express = require("express");
-  const http = require("http");
-  const cors = require("cors");
-  const path = require("path");
-  const mongoose = require("mongoose");
-  const { Server } = require("socket.io");
+const express = require("express");
+const http = require("http");
+const cors = require("cors");
+const path = require("path");
+const mongoose = require("mongoose");
+const { Server } = require("socket.io");
 const bcrypt = require("bcrypt");
 
-  const Post = require("./models/Post");
-  const Message = require("./models/Message");
+// ================= MODELS =================
+const Post = require("./models/Post");
+const Message = require("./models/Message");
 const User = require("./models/Users");
-  const app = express();
-  const server = http.createServer(app);
+
+// ================= APP INIT =================
+const app = express();
+const server = http.createServer(app);
+
+// ================= MIDDLEWARE =================
 app.use(cors());
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "client")));
-app.use(express.json()); // ✅ MUST BE HERE
+
+// ================= SOCKET =================
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
+// ================= USERS STORE =================
+let users = {};
+
+// ================= HELPERS =================
+function emitOnlineUsers() {
+  io.emit("onlineUsers", Object.keys(users));
+}
+
 // ================= AUTH SIGNUP =================
 app.post("/api/auth/signup", async (req, res) => {
   try {
@@ -79,49 +98,33 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-  // ================= SOCKET =================
-  const io = new Server(server, {
-    cors: { origin: "*" }
-  });
+// ================= LOAD MESSAGES =================
+app.get("/api/messages/:user1/:user2", async (req, res) => {
+  try {
+    const user1 = (req.params.user1 || "").trim();
+    const user2 = (req.params.user2 || "").trim();
 
+    const messages = await Message.find({
+      $or: [
+        { from: user1, to: user2 },
+        { from: user2, to: user1 }
+      ]
+    }).sort({ createdAt: 1 });
 
-  // ================= USERS =================
-  let users = {};
-
-  // ================= HELPERS =================
-  function emitOnlineUsers() {
-    io.emit("onlineUsers", Object.keys(users));
+    res.json(messages);
+  } catch (err) {
+    console.log("❌ MESSAGE LOAD ERROR:", err);
+    res.status(500).json({ error: "Server error" });
   }
+});
 
-  // ================= LOAD MESSAGES =================
-  app.get("/api/messages/:user1/:user2", async (req, res) => {
-    try {
-      const user1 = (req.params.user1 || "").trim();
-      const user2 = (req.params.user2 || "").trim();
-
-      const messages = await Message.find({
-        $or: [
-          { from: user1, to: user2 },
-          { from: user2, to: user1 }
-        ]
-      }).sort({ createdAt: 1 });
-
-      res.json(messages);
-    } catch (err) {
-      console.log("❌ MESSAGE LOAD ERROR:", err);
-      res.status(500).json({ error: "Server error" });
-    }
-  });
-
-  // ================= SOCKET =================
-
+// ================= SOCKET EVENTS =================
 io.on("connection", (socket) => {
-
   console.log("⚡ connected:", socket.id);
 
   emitOnlineUsers();
 
-  // ================= REGISTER =================
+  // REGISTER USER
   socket.on("register", (username) => {
     if (!username) return;
 
@@ -141,12 +144,9 @@ io.on("connection", (socket) => {
     emitOnlineUsers();
   });
 
-
-  // ================= PRIVATE MESSAGE (CLEAN + FIXED) =================
+  // PRIVATE MESSAGE
   socket.on("privateMessage", (data) => {
     try {
-      console.log("🔥 SERVER GOT MESSAGE:", data);
-
       const from = data.from?.trim().toLowerCase();
       const to = data.to?.trim().toLowerCase();
       const message = (data.message || "").trim();
@@ -161,7 +161,6 @@ io.on("connection", (socket) => {
         time: Date.now()
       };
 
-      // SEND TO RECEIVER
       if (users[to]) {
         users[to].forEach(id => {
           io.to(id).emit("privateMessage", {
@@ -171,7 +170,6 @@ io.on("connection", (socket) => {
         });
       }
 
-      // SEND BACK TO SENDER (tick update)
       if (users[from]) {
         users[from].forEach(id => {
           io.to(id).emit("messageStatus", {
@@ -186,7 +184,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ================= SEEN =================
+  // SEEN
   socket.on("seen", ({ from, to }) => {
     if (!from || !to) return;
 
@@ -202,7 +200,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ================= TYPING =================
+  // TYPING
   socket.on("typing", ({ from, to }) => {
     if (users[to]) {
       users[to].forEach(id => {
@@ -219,7 +217,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ================= DISCONNECT =================
+  // DISCONNECT
   socket.on("disconnect", () => {
     if (!socket.username) return;
 
@@ -235,87 +233,87 @@ io.on("connection", (socket) => {
 
     emitOnlineUsers();
   });
-
 });
-  // ================= POSTS =================
-  app.post("/api/posts", async (req, res) => {
-    try {
-      const { user, text } = req.body;
 
-      if (!user || !text || !text.trim()) {
-        return res.status(400).json({ error: "Missing data" });
-      }
+// ================= POSTS =================
+app.post("/api/posts", async (req, res) => {
+  try {
+    const { user, text } = req.body;
 
-      const post = await Post.create({
-        user: user.trim(),
-        text: text.trim(),
-        likes: 0,
-        comments: []
-      });
-
-      res.json(post);
-    } catch (err) {
-      console.log("❌ POST ERROR:", err);
-      res.status(500).json({ error: "Server error" });
+    if (!user || !text || !text.trim()) {
+      return res.status(400).json({ error: "Missing data" });
     }
-  });
 
-  app.get("/api/posts", async (req, res) => {
-    try {
-      const posts = await Post.find().sort({ createdAt: -1 });
-      res.json(posts);
-    } catch (err) {
-      console.log("❌ GET ERROR:", err);
-      res.status(500).json({ error: "Server error" });
+    const post = await Post.create({
+      user: user.trim(),
+      text: text.trim(),
+      likes: 0,
+      comments: []
+    });
+
+    res.json(post);
+  } catch (err) {
+    console.log("❌ POST ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get("/api/posts", async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ createdAt: -1 });
+    res.json(posts);
+  } catch (err) {
+    console.log("❌ GET ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.put("/api/posts/like/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    post.likes += 1;
+    await post.save();
+
+    res.json(post);
+  } catch (err) {
+    console.log("❌ LIKE ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/api/posts/comment/:id", async (req, res) => {
+  try {
+    const { user, text } = req.body;
+
+    if (!user || !text || !text.trim()) {
+      return res.status(400).json({ error: "Missing comment" });
     }
-  });
 
-  app.put("/api/posts/like/:id", async (req, res) => {
-    try {
-      const post = await Post.findById(req.params.id);
-      if (!post) return res.status(404).json({ error: "Post not found" });
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
 
-      post.likes += 1;
-      await post.save();
+    post.comments.push({
+      user: user.trim(),
+      text: text.trim()
+    });
 
-      res.json(post);
-    } catch (err) {
-      console.log("❌ LIKE ERROR:", err);
-      res.status(500).json({ error: "Server error" });
-    }
-  });
+    await post.save();
 
-  app.post("/api/posts/comment/:id", async (req, res) => {
-    try {
-      const { user, text } = req.body;
-
-      if (!user || !text || !text.trim()) {
-        return res.status(400).json({ error: "Missing comment" });
-      }
-
-      const post = await Post.findById(req.params.id);
-      if (!post) return res.status(404).json({ error: "Post not found" });
-
-      post.comments.push({
-        user: user.trim(),
-        text: text.trim()
-      });
-
-      await post.save();
-
-      res.json(post);
-    } catch (err) {
-      console.log("❌ COMMENT ERROR:", err);
-      res.status(500).json({ error: "Server error" });
-    }
-  });
+    res.json(post);
+  } catch (err) {
+    console.log("❌ COMMENT ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // ================= DB =================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("🔥 MongoDB connected"))
   .catch(err => console.log("❌ Mongo error:", err));
 
-// ================= START =================
+// ================= START SERVER =================
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
