@@ -295,16 +295,11 @@ socket.on("messageStatus", (data) => {
     }
   }
 });
-
-socket.on("messageSeen", (data) => {
-  const ticks = document.querySelectorAll(".tick");
-
-  if (ticks.length) {
-    const lastTick = ticks[ticks.length - 1];
-
-    lastTick.innerText = "✔✔";
-    lastTick.style.color = "cyan"; // WhatsApp blue
-  }
+socket.on("messageSeen", () => {
+  document.querySelectorAll(".msg-status").forEach(el => {
+    el.innerText = "✔✔";
+    el.style.color = "cyan";
+  });
 });
 // ================= POSTS =================
 async function loadPosts() {
@@ -353,6 +348,111 @@ async function createPost() {
 async function likePost(id) {
   await fetch(`${API}/api/posts/like/${id}`, { method: "PUT" });
   loadPosts();
+}
+// ================= VOICE RECORD =================
+
+async function startRecording() {
+
+  try {
+
+    // START RECORDING
+    if (!isRecording) {
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true
+      });
+
+      mediaRecorder = new MediaRecorder(stream);
+
+      audioChunks = [];
+
+      mediaRecorder.start();
+
+      isRecording = true;
+
+      console.log("🎙️ Recording started");
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+
+        const audioBlob = new Blob(audioChunks, {
+          type: "audio/webm"
+        });
+
+        const reader = new FileReader();
+
+        reader.readAsDataURL(audioBlob);
+
+        reader.onloadend = () => {
+
+          const base64Audio = reader.result;
+
+          // SHOW MY AUDIO
+          addVoiceMessage("You", base64Audio);
+
+          // SEND TO SERVER
+          socket.emit("privateMessage", {
+            from: username,
+            to: currentChatUser,
+            audio: base64Audio
+          });
+
+        };
+
+      };
+
+    }
+
+    // STOP RECORDING
+    else {
+
+      mediaRecorder.stop();
+
+      isRecording = false;
+
+      console.log("🛑 Recording stopped");
+
+    }
+
+  } catch (err) {
+
+    console.log("❌ MIC ERROR:", err);
+
+    alert("Microphone access denied");
+
+  }
+
+}
+
+// ================= VOICE UI =================
+
+function addVoiceMessage(user, audioSrc) {
+
+  const box = document.getElementById("messagesContainer");
+
+  if (!box) return;
+
+  const isMe = user === "You";
+
+  const div = document.createElement("div");
+
+  div.className = `msg ${isMe ? "me" : "other"}`;
+
+  div.innerHTML = `
+    <div class="bubble">
+      <audio controls>
+        <source src="${audioSrc}" type="audio/webm">
+      </audio>
+    </div>
+  `;
+
+  box.appendChild(div);
+
+  box.scrollTop = box.scrollHeight;
+
 }
 
 // ================= MOBILE =================
