@@ -139,22 +139,28 @@ function addMessage(user, msg, status = "") {
   const isMe = user === "You";
 
   const div = document.createElement("div");
-  div.className = isMe ? "msg me" : "msg other";
+  div.className = `msg ${isMe ? "me" : "other"}`;
 
   div.innerHTML = `
-    <div class="msg-bubble">
-      <div>${msg}</div>
-      <div class="msg-meta">
-        <span>${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-        ${isMe ? `<span class="msg-status">${status}</span>` : ""}
+    <div class="bubble">
+      <div class="text">${msg}</div>
+
+      <div class="meta">
+        <span class="time">${new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        })}</span>
+
+        ${isMe ? `<span class="tick">${status}</span>` : ""}
       </div>
     </div>
   `;
 
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
-}
 
+  return div; // ✅ IMPORTANT (we will update tick later)
+}
 // ================= SEND MESSAGE =================
 
 function sendMessage() {
@@ -164,8 +170,8 @@ function sendMessage() {
   const message = input.value.trim();
   if (!message || !currentChatUser) return;
 
-  // ✅ show instantly
-  addMessage("You", message, "✔");
+  // create message FIRST and keep reference
+  const msgEl = addMessage("You", message, "✔");
 
   socket.emit("privateMessage", {
     from: username,
@@ -278,13 +284,29 @@ socket.on("stopTyping", (data) => {
     bubble.innerText = "";
   }
 });
-socket.on("messageSeen", (data) => {
-  document.querySelectorAll(".msg-status").forEach(el => {
-    el.innerText = "✔✔";
-    el.style.color = "cyan";
-  });
+socket.on("messageStatus", (data) => {
+  const ticks = document.querySelectorAll(".tick");
+
+  if (ticks.length) {
+    const lastTick = ticks[ticks.length - 1];
+
+    if (data.status === "delivered") {
+      lastTick.innerText = "✔✔";
+      lastTick.style.color = "gray";
+    }
+  }
 });
 
+socket.on("messageSeen", (data) => {
+  const ticks = document.querySelectorAll(".tick");
+
+  if (ticks.length) {
+    const lastTick = ticks[ticks.length - 1];
+
+    lastTick.innerText = "✔✔";
+    lastTick.style.color = "cyan"; // WhatsApp blue
+  }
+});
 // ================= POSTS =================
 async function loadPosts() {
   const res = await fetch(`${API}/api/posts`);
