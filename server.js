@@ -7,6 +7,8 @@ const path = require("path");
 const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 const bcrypt = require("bcrypt");
+const multer = require("multer");
+const cloudinary = require("./config/cloudinary");
 
 // ================= MODELS =================
 const Post = require("./models/Post");
@@ -101,6 +103,65 @@ app.post("/api/auth/login", async (req, res) => {
     console.log("❌ LOGIN ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
+});// ================= PROFILE PIC =================
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+app.post("/api/upload-profile", upload.single("image"), async (req, res) => {
+
+  try {
+
+    const username = req.body.username;
+
+    if (!req.file) {
+      return res.status(400).json({
+        error: "No image"
+      });
+    }
+
+    const result = await cloudinary.uploader.upload_stream(
+      {
+        folder: "futurebook_profiles"
+      },
+
+      async (error, uploaded) => {
+
+        if (error) {
+          console.log(error);
+          return res.status(500).json({
+            error: "Upload failed"
+          });
+        }
+
+        const user = await User.findOneAndUpdate(
+          { username },
+          {
+            profilePic: uploaded.secure_url
+          },
+          { new: true }
+        );
+
+        res.json({
+          profilePic: user.profilePic
+        });
+
+      }
+
+    );
+
+    result.end(req.file.buffer);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: "Server error"
+    });
+
+  }
+
 });
 
 // ================= LOAD MESSAGES =================
@@ -122,6 +183,7 @@ app.get("/api/messages/:user1/:user2", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 // ================= SOCKET EVENTS =================
 io.on("connection", (socket) => {
