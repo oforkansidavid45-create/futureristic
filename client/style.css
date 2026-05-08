@@ -371,3 +371,16 @@ html,body{
     max-width:85%;
   }
 }
+/* PROFILE IMAGE */
+
+.avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #0084ff;
+}
+
+#profileInput {
+  display: none;
+}

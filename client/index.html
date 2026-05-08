@@ -103,9 +103,18 @@
 
       <div class="chat-user-info">
 
-        <div class="avatar">
-          <i class="fa-solid fa-user"></i>
-        </div>
+       <img id="profilePreview"
+     class="avatar"
+     src="https://i.imgur.com/HeIi0wU.png" />
+
+<input type="file"
+       id="profileInput"
+       hidden
+       onchange="uploadProfilePic()" />
+
+<button onclick="document.getElementById('profileInput').click()">
+  Change Photo
+</button>
 
         <div>
           <div id="chatTitle">Select a user</div>

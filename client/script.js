@@ -70,6 +70,11 @@ async function login() {
 
   socket.emit("register", username);
   loadPosts();
+  const savedPic = localStorage.getItem("profilePic");
+
+if (savedPic) {
+  document.getElementById("profilePreview").src = savedPic;
+}
 }
 // ================= USER STATUS =================
 socket.on("userStatus", (data) => {
@@ -183,6 +188,8 @@ function sendMessage() {
 // ================= RECEIVE MESSAGE =================
 
 // ====// ================= RECEIVE MESSAGE =================
+// ================= RECEIVE MESSAGE =================
+
 // ================= RECEIVE MESSAGE =================
 
 socket.on("privateMessage", (data) => {
@@ -476,6 +483,53 @@ function toggleChat() {
 function showFeed() {
   const panel = document.getElementById("chatPanel");
   if (panel) panel.classList.remove("active");
+}
+// ================= PROFILE PIC =================
+
+async function uploadProfilePic() {
+
+  const file =
+    document.getElementById("profileInput").files[0];
+
+  if (!file) return;
+
+  const formData = new FormData();
+
+  formData.append("image", file);
+  formData.append("username", username);
+
+  try {
+
+    const res = await fetch(
+      `${API}/api/upload-profile`,
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.profilePic) {
+
+      document.getElementById(
+        "profilePreview"
+      ).src = data.profilePic;
+
+      localStorage.setItem(
+        "profilePic",
+        data.profilePic
+      );
+
+    }
+
+  } catch (err) {
+
+    console.log(err);
+    alert("Upload failed");
+
+  }
+
 }
 
 function logout() {
