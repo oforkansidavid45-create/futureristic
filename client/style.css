@@ -442,4 +442,53 @@ html,body{
   right: 15px;
   cursor: pointer;
   font-size: 20px;
+}/* ================= POSTS ================= */
+
+.post {
+  background: #111827;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.post-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* FIX BIG AVATAR */
+.post-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #1f2937;
+}
+
+.post-user {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.post-time {
+  opacity: 0.6;
+  font-size: 11px;
+}
+
+.post-text {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.like-btn {
+  margin-top: 10px;
+  border: none;
+  background: #1f2937;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
 }
