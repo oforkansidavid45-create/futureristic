@@ -1,14 +1,14 @@
-/* ================= RESET ================= */
 *{
   margin:0;
   padding:0;
   box-sizing:border-box;
 }
 
-html,body{
+html, body{
   width:100%;
   height:100%;
-  overflow:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;
   font-family:Arial,sans-serif;
   background:#0f172a;
   color:white;
@@ -56,7 +56,6 @@ html,body{
   width:100%;
   height:100vh;
   overflow:hidden;
-  background:#0f172a;
 }
 
 /* ================= SIDEBAR ================= */
@@ -79,7 +78,6 @@ html,body{
   padding:12px;
   border-radius:10px;
   cursor:pointer;
-  transition:0.2s;
 }
 
 .menu-item:hover{
@@ -134,26 +132,45 @@ html,body{
 /* ================= POSTS ================= */
 .post{
   background:#111827;
-  padding:15px;
-  border-radius:14px;
-  margin-bottom:15px;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:12px;
 }
 
-.post p{
-  margin-top:8px;
+.post-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
   margin-bottom:10px;
 }
 
-.post button{
+.post-user{
+  font-size:14px;
+  font-weight:bold;
+}
+
+.post-time{
+  font-size:11px;
+  opacity:0.6;
+}
+
+.post-text{
+  font-size:14px;
+  line-height:1.4;
+  margin-top:8px;
+}
+
+.like-btn{
+  margin-top:10px;
   border:none;
-  background:#0084ff;
+  background:#1f2937;
   color:white;
   padding:8px 14px;
-  border-radius:10px;
+  border-radius:20px;
   cursor:pointer;
 }
 
-/* ================= CHAT SIDE ================= */
+/* ================= CHAT PANEL ================= */
 .rightbar{
   width:320px;
   background:#111827;
@@ -172,7 +189,6 @@ html,body{
   padding:10px;
   border-radius:10px;
   cursor:pointer;
-  margin-bottom:5px;
 }
 
 .online-user:hover{
@@ -191,8 +207,9 @@ html,body{
   gap:10px;
 }
 
-/* ================= CHAT AVATAR ================= */
+/* ================= AVATARS (FIXED CLEAN SYSTEM) ================= */
 
+/* chat avatar */
 .chat-avatar{
   width:40px;
   height:40px;
@@ -201,27 +218,25 @@ html,body{
   border:2px solid #0084ff;
 }
 
-/* ================= PROFILE AVATAR ================= */
-
-.profile-avatar{
-  width:80px;
-  height:80px;
-  border-radius:50%;
-  object-fit:cover;
-  border:3px solid #0084ff;
-}
-
-/* ================= POST AVATAR ================= */
-
+/* post avatar (FIXED BIG ISSUE) */
 .post-avatar{
-  width:42px !important;
-  height:42px !important;
+  width:42px;
+  height:42px;
   min-width:42px;
   min-height:42px;
   border-radius:50%;
   object-fit:cover;
   background:#1f2937;
   border:2px solid #0084ff;
+}
+
+/* profile avatar */
+.profile-avatar{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #0084ff;
 }
 
 /* ================= CHAT BOX ================= */
@@ -240,6 +255,7 @@ html,body{
   display:flex;
   flex-direction:column;
   gap:8px;
+  scroll-behavior:smooth;
 }
 
 .msg{
@@ -274,13 +290,11 @@ html,body{
   border-bottom-left-radius:5px;
 }
 
-/* ================= MESSAGE META ================= */
+/* ================= META ================= */
 .meta{
   display:flex;
   justify-content:flex-end;
-  align-items:center;
   gap:4px;
-  margin-top:4px;
   font-size:10px;
   opacity:0.7;
 }
@@ -291,13 +305,6 @@ html,body{
 
 .seen{
   color:#4fc3f7;
-}
-
-/* ================= TYPING ================= */
-.typing-bubble{
-  font-size:12px;
-  padding:5px 10px;
-  opacity:0.7;
 }
 
 /* ================= CHAT INPUT ================= */
@@ -330,17 +337,12 @@ html,body{
   cursor:pointer;
 }
 
-/* ================= MOBILE NAV ================= */
+/* ================= MOBILE ================= */
 .mobile-nav{
   display:none;
 }
 
-/* ================= MOBILE VERSION ================= */
 @media(max-width:768px){
-
-  body{
-    overflow:hidden;
-  }
 
   .sidebar{
     display:none;
@@ -372,10 +374,8 @@ html,body{
 
   .mobile-nav div{
     font-size:22px;
-    cursor:pointer;
   }
 
-  /* when chat opens on mobile */
   .rightbar.active{
     display:flex;
     position:fixed;
@@ -385,133 +385,4 @@ html,body{
     height:100%;
     z-index:1000;
   }
-
-  .chat-input{
-    padding-bottom:15px;
-  }
-
-  .bubble{
-    max-width:85%;
-  }
-}
-/* PROFILE IMAGE */
-
-.avatar {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #0084ff;
-}
-
-#profileInput {
-  display: none;
-}
-/* PROFILE MODAL */
-
-.profile-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.7);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.profile-content {
-  width: 90%;
-  max-width: 500px;
-  background: #111827;
-  border-radius: 20px;
-  overflow: hidden;
-  position: relative;
-}
-
-.profile-cover {
-  height: 140px;
-  background: linear-gradient(
-    45deg,
-    #0084ff,
-    #00e5ff
-  );
-}
-
-.profile-big-pic {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 4px solid #111827;
-  object-fit: cover;
-
-  margin-top: -50px;
-  margin-left: 20px;
-}
-
-#profileModalName {
-  padding-left: 20px;
-}
-
-.profile-post {
-  background: #1f2937;
-  margin: 10px;
-  padding: 12px;
-  border-radius: 12px;
-}
-
-.close-profile {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  cursor: pointer;
-  font-size: 20px;
-}/* ================= POSTS ================= */
-
-.post {
-  background: #111827;
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 12px;
-}
-
-.post-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-/* FIX BIG AVATAR */
-.post-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #1f2937;
-}
-
-.post-user {
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.post-time {
-  opacity: 0.6;
-  font-size: 11px;
-}
-
-.post-text {
-  margin-top: 8px;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.like-btn {
-  margin-top: 10px;
-  border: none;
-  background: #1f2937;
-  color: white;
-  padding: 8px 14px;
-  border-radius: 20px;
-  cursor: pointer;
 }
