@@ -191,14 +191,37 @@ html,body{
   gap:10px;
 }
 
-.avatar{
+/* ================= CHAT AVATAR ================= */
+
+.chat-avatar{
   width:40px;
   height:40px;
   border-radius:50%;
-  background:#0084ff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  object-fit:cover;
+  border:2px solid #0084ff;
+}
+
+/* ================= PROFILE AVATAR ================= */
+
+.profile-avatar{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #0084ff;
+}
+
+/* ================= POST AVATAR ================= */
+
+.post-avatar{
+  width:42px !important;
+  height:42px !important;
+  min-width:42px;
+  min-height:42px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#1f2937;
+  border:2px solid #0084ff;
 }
 
 /* ================= CHAT BOX ================= */
