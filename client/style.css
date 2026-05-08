@@ -144,6 +144,29 @@ html, body{
   margin-bottom:10px;
 }
 
+/* 🔥 FORCE SMALL AVATAR ALWAYS */
+.post-avatar{
+  width:38px !important;
+  height:38px !important;
+  min-width:38px !important;
+  min-height:38px !important;
+  max-width:38px !important;
+  max-height:38px !important;
+
+  border-radius:50%;
+  object-fit:cover;
+  background:#1f2937;
+  border:2px solid #0084ff;
+  flex-shrink:0;
+}
+
+/* post text stays clean */
+.post-text{
+  font-size:14px;
+  line-height:1.4;
+  margin-top:6px;
+}
+
 .post-user{
   font-size:14px;
   font-weight:bold;
@@ -154,11 +177,6 @@ html, body{
   opacity:0.6;
 }
 
-.post-text{
-  font-size:14px;
-  line-height:1.4;
-  margin-top:8px;
-}
 
 .like-btn{
   margin-top:10px;
