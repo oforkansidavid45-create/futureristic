@@ -156,10 +156,10 @@ function addMessage(user, msg, status = "") {
           minute: "2-digit"
         })}</span>
 
-       ${isMe ? `<span class="msg-status">${status}</span>` : ""}
+     ${isMe ? `<span class="msg-status">${status}</span>` : ""}
+      </div>
     </div>
   `;
-
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 
@@ -334,11 +334,27 @@ async function loadPosts() {
     const div = document.createElement("div");
     div.className = "post";
 
-    div.innerHTML = `
-      <b>${post.user}</b>
-      <p>${post.text}</p>
-      <button onclick="likePost('${post._id}')">❤️ ${post.likes}</button>
-    `;
+  div.innerHTML = `
+
+  <div class="post-user"
+       onclick="openProfile('${post.user}')">
+
+    <img
+      src="${post.profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
+      class="post-pfp"
+    />
+
+    <b>${post.user}</b>
+
+  </div>
+
+  <p>${post.text}</p>
+
+  <button onclick="likePost('${post._id}')">
+    ❤️ ${post.likes}
+  </button>
+
+`;
 
     container.appendChild(div);
   });
@@ -483,6 +499,48 @@ function toggleChat() {
 function showFeed() {
   const panel = document.getElementById("chatPanel");
   if (panel) panel.classList.remove("active");
+}
+// ================= PROFILE VIEW =================
+
+async function openProfile(user) {
+
+  document.getElementById(
+    "profileModal"
+  ).style.display = "flex";
+
+  document.getElementById(
+    "profileModalName"
+  ).innerText = user;
+
+  const res = await fetch(`${API}/api/posts`);
+  const posts = await res.json();
+
+  const userPosts =
+    posts.filter(p => p.user === user);
+
+  const container =
+    document.getElementById("profilePosts");
+
+  container.innerHTML = "";
+
+  userPosts.forEach(post => {
+
+    container.innerHTML += `
+      <div class="profile-post">
+        ${post.text}
+      </div>
+    `;
+
+  });
+
+}
+
+function closeProfile() {
+
+  document.getElementById(
+    "profileModal"
+  ).style.display = "none";
+
 }
 // ================= PROFILE PIC =================
 
