@@ -321,43 +321,64 @@ socket.on("messageSeen", () => {
   });
 });
 // ================= POSTS =================
+// ================= POSTS =================
 async function loadPosts() {
+
   const res = await fetch(`${API}/api/posts`);
   const posts = await res.json();
 
   const container = document.getElementById("posts");
+
   if (!container) return;
 
   container.innerHTML = "";
 
   posts.forEach(post => {
+
     const div = document.createElement("div");
+
     div.className = "post";
 
-  div.innerHTML = `
+    div.innerHTML = `
+    
+      <div class="post-top">
 
-  <div class="post-user"
-       onclick="openProfile('${post.user}')">
+        <img
+          src="${post.profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
+          class="post-avatar"
+        />
 
-    <img
-      src="${post.profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
-      class="post-pfp"
-    />
+        <div>
 
-    <b>${post.user}</b>
+          <div class="post-user">
+            ${post.user}
+          </div>
 
-  </div>
+          <small class="post-time">
+            Just now
+          </small>
 
-  <p>${post.text}</p>
+        </div>
 
-  <button onclick="likePost('${post._id}')">
-    ❤️ ${post.likes}
-  </button>
+      </div>
 
-`;
+      <div class="post-text">
+        ${post.text}
+      </div>
+
+      <button
+        class="like-btn"
+        onclick="likePost('${post._id}')"
+      >
+        ❤️ ${post.likes}
+      </button>
+
+    `;
 
     container.appendChild(div);
+
   });
+
 }
 
 async function createPost() {

@@ -146,18 +146,23 @@ html, body{
 
 /* 🔥 FORCE SMALL AVATAR ALWAYS */
 .post-avatar{
-  width:38px !important;
-  height:38px !important;
-  min-width:38px !important;
-  min-height:38px !important;
-  max-width:38px !important;
-  max-height:38px !important;
+  width:40px;
+  height:40px;
+
+  min-width:40px;
+  min-height:40px;
+
+  max-width:40px;
+  max-height:40px;
 
   border-radius:50%;
   object-fit:cover;
-  background:#1f2937;
-  border:2px solid #0084ff;
+
+  display:block;
   flex-shrink:0;
+
+  border:2px solid #0084ff;
+  background:#1f2937;
 }
 
 /* post text stays clean */
