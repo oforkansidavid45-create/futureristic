@@ -1,3 +1,8 @@
+// ================= HELPERS =================
+function cleanName(name) {
+  if (!name) return "";
+  return name.trim().toLowerCase();
+}
 require("dotenv").config();
 
 const express = require("express");
@@ -222,130 +227,73 @@ io.on("connection", (socket) => {
 
   // ================= REGISTER USER =================
 
-  socket.on("register", (username) => {
+socket.on("register", (username) => {
+  if (!username) return;
 
-    if (!username) return;
+  const clean = username.trim().toLowerCase();
 
-    username = username.trim().toLowerCase();
+  socket.username = clean;
 
-    socket.username = username;
+  if (!users[clean]) {
+    users[clean] = [];
+  }
 
-    // CREATE USER ARRAY
-    if (!users[username]) {
+  if (!users[clean].includes(socket.id)) {
+    users[clean].push(socket.id);
+  }
 
-      users[username] = [];
+  console.log("👤 REGISTERED USERS:", users);
 
-    }
-
-    // AVOID DUPLICATE SOCKET IDS
-    if (!users[username].includes(socket.id)) {
-
-      users[username].push(socket.id);
-
-    }
-
-    console.log("👤 REGISTERED USERS:", users);
-
-    emitOnlineUsers();
-
-  });
+  emitOnlineUsers();
+});
 
   // ================= PRIVATE MESSAGE =================
 
-  socket.on("privateMessage", async (data) => {
+socket.on("privateMessage", async (data) => {
+  try {
+    if (!data) return;
 
-    try {
+    const from = cleanName(data.from);
+    const to = cleanName(data.to);
 
-      if (!data) return;
+    const message = (data.message || "").trim();
+    const audio = data.audio || null;
+    const image = data.image || null;
+    const file = data.file || null;
 
-      const from =
-        cleanName(data.from || "");
+    if (!from || !to || (!message && !audio && !image && !file)) return;
 
-      const to =
-        cleanName(data.to || "");
+    const newMessage = new Message({
+      from,
+      to,
+      message,
+      audio,
+      image,
+      file
+    });
 
-      const message =
-        (data.message || "").trim();
+    await newMessage.save();
 
-      const audio =
-        data.audio || null;
+    const payload = { from, to, message, audio, image, file };
 
-      const image =
-        data.image || null;
-
-      const file =
-        data.file || null;
-
-      // ALLOW TEXT / AUDIO / IMAGE / FILE
-      if (
-        !from ||
-        !to ||
-        (!message &&
-         !audio &&
-         !image &&
-         !file)
-      ) return;
-
-      // SAVE MESSAGE
-      const newMessage =
-        new Message({
-          from,
-          to,
-          message,
-          audio,
-          image,
-          file
-        });
-
-      await newMessage.save();
-
-      const payload = {
-        from,
-        to,
-        message,
-        audio,
-        image,
-        file
-      };
-
-      // SEND TO RECEIVER
-      if (users[to]) {
-
-        users[to].forEach(id => {
-
-          io.to(id).emit(
-            "privateMessage",
-            payload
-          );
-
-        });
-
-      }
-
-      // SEND BACK TO SENDER
-      if (users[from]) {
-
-        users[from].forEach(id => {
-
-          io.to(id).emit(
-            "privateMessage",
-            payload
-          );
-
-        });
-
-      }
-
-    } catch (err) {
-
-      console.log(
-        "❌ MESSAGE ERROR:",
-        err
-      );
-
+    // SEND TO RECEIVER
+    if (users[to]) {
+      users[to].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
+      });
     }
 
-  });
+    // SEND TO SENDER
+    if (users[from]) {
+      users[from].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
+      });
+    }
+
+  } catch (err) {
+    console.log("❌ MESSAGE ERROR:", err);
+  }
+});
 
   // ================= SEEN =================
 
