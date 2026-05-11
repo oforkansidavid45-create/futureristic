@@ -94,15 +94,9 @@ function openChat(user) {
   document.getElementById("chatTitle").innerText =
     "Chat with " + currentChatUser;
 
-  const box = document.getElementById("chatBox");
-  if (!box) return;
+  // ❌ DO NOT rebuild DOM
+  document.getElementById("messagesContainer").innerHTML = "";
 
-  box.innerHTML = `
-    <div id="messagesContainer"></div>
-    <div id="typingIndicator" class="typing-bubble"></div>
-  `;
-
-  // ✅ THIS IS CORRECT PLACE FOR SEEN
   socket.emit("seen", {
     from: username,
     to: currentChatUser
