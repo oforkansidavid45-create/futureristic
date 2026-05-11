@@ -76,38 +76,66 @@ app.post("/api/auth/signup", async (req, res) => {
 });
 // ================= AUTH LOGIN =================
 app.post("/api/auth/login", async (req, res) => {
+
   try {
+
     let { username, password } = req.body;
 
+    console.log("LOGIN REQUEST:", req.body);
+
+    // ================= VALIDATION =================
     if (!username || !password) {
-      return res.status(400).json({ error: "Fill all fields" });
+      return res.status(400).json({
+        error: "Fill all fields"
+      });
     }
 
     username = username.trim().toLowerCase();
 
+    // ================= FIND USER =================
     const user = await User.findOne({ username });
 
     if (!user) {
-      return res.status(400).json({ error: "User not found" });
+      return res.status(400).json({
+        error: "User not found"
+      });
     }
 
-    const match = await bcrypt.compare(password, user.password);
+    // ================= CHECK PASSWORD =================
+    const match = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!match) {
-      return res.status(400).json({ error: "Wrong password" });
+      return res.status(400).json({
+        error: "Wrong password"
+      });
     }
 
-    res.json({ message: "Login successful", user: username });
+    // ================= SUCCESS =================
+    res.json({
+      message: "Login successful",
+      user: username
+    });
 
   } catch (err) {
+
     console.log("❌ LOGIN ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+
+    res.status(500).json({
+      error: "Server error"
+    });
+
   }
-});// ================= PROFILE PIC =================
+
+});
+
+
+// ================= PROFILE PIC =================
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
-
 app.post("/api/upload-profile", upload.single("image"), async (req, res) => {
 
   try {
