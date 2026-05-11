@@ -185,10 +185,6 @@ function sendMessage() {
 
   input.value = "";
 }
-// ================= RECEIVE MESSAGE =================
-
-// ====// ================= RECEIVE MESSAGE =================
-// ================= RECEIVE MESSAGE =================
 
 // ================= RECEIVE MESSAGE =================
 
@@ -199,18 +195,19 @@ socket.on("privateMessage", (data) => {
   if (!data) return;
 
   const from = cleanName(data.from || "");
+  const to = cleanName(data.to || "");
   const me = cleanName(username || "");
   const current = cleanName(currentChatUser || "");
 
   const isMyMessage = from === me;
 
-  // ONLY SHOW OPEN CHAT
+  // ================= ONLY SHOW OPEN CHAT =================
   if (
     current !== from &&
-    current !== data.to
+    current !== to
   ) return;
 
-  // TEXT
+  // ================= TEXT =================
   if (data.message) {
 
     addMessage(
@@ -220,7 +217,7 @@ socket.on("privateMessage", (data) => {
 
   }
 
-  // AUDIO
+  // ================= AUDIO =================
   if (data.audio) {
 
     addVoiceMessage(
@@ -230,7 +227,7 @@ socket.on("privateMessage", (data) => {
 
   }
 
-  // IMAGE
+  // ================= IMAGE =================
   if (data.image) {
 
     addImageMessage(
@@ -240,7 +237,7 @@ socket.on("privateMessage", (data) => {
 
   }
 
-  // FILE
+  // ================= FILE =================
   if (data.file) {
 
     addFileMessage(
@@ -250,14 +247,17 @@ socket.on("privateMessage", (data) => {
 
   }
 
+  // ================= DELIVERY =================
+  if (!isMyMessage) {
+
+    socket.emit("delivered", {
+      from,
+      to: me
+    });
+
+  }
+
 });
-
-  // DELIVERY
-  socket.emit("delivered", {
-    from,
-    to: me
-  });
-
 
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
 function markSeen() {
