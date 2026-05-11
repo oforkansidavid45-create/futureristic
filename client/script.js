@@ -188,6 +188,8 @@ function sendMessage() {
 
 // ================= RECEIVE MESSAGE =================
 
+// ================= RECEIVE MESSAGE =================
+
 socket.on("privateMessage", (data) => {
 
   console.log("📩 RECEIVED:", data);
@@ -201,11 +203,11 @@ socket.on("privateMessage", (data) => {
 
   const isMyMessage = from === me;
 
-  // ================= ONLY SHOW OPEN CHAT =================
-  if (
-    current !== from &&
-    current !== to
-  ) return;
+  // ================= CHECK ACTIVE CHAT =================
+  const chattingWith =
+    isMyMessage ? to : from;
+
+  if (current !== chattingWith) return;
 
   // ================= TEXT =================
   if (data.message) {
@@ -258,7 +260,6 @@ socket.on("privateMessage", (data) => {
   }
 
 });
-
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
 function markSeen() {
   if (!currentChatUser) return;
