@@ -147,10 +147,18 @@
         oninput="handleTyping()"
       />
 
-      <button onclick="startRecording()">
-        <i class="fa-solid fa-microphone"></i>
-      </button>
+    <input type="file"
+       id="fileInput"
+       hidden
+       onchange="sendFile()" />
 
+<button onclick="document.getElementById('fileInput').click()">
+  <i class="fa-solid fa-paperclip"></i>
+</button>
+
+<button onclick="startRecording()">
+  <i class="fa-solid fa-microphone"></i>
+</button>
       <button onclick="sendMessage()">
         <i class="fa-solid fa-paper-plane"></i>
       </button>

@@ -211,11 +211,23 @@ socket.on("privateMessage", (data) => {
   if (current !== from) return;
 
   // ================= AUDIO =================
-  if (data.audio) {
+if (data.audio) {
 
-    addVoiceMessage(from, data.audio);
+  addVoiceMessage(from, data.audio);
 
-  }
+}
+
+else if (data.file) {
+
+  addFileMessage(from, data.file);
+
+}
+
+else if (data.message) {
+
+  addMessage(from, data.message);
+
+}
 
   // ================= TEXT =================
   else if (data.message) {
@@ -511,6 +523,106 @@ function addVoiceMessage(user, audioSrc) {
   box.appendChild(div);
 
   box.scrollTop = box.scrollHeight;
+
+}
+// ================= FILE UI =================
+
+function addFileMessage(user, file) {
+
+  const box =
+    document.getElementById("messagesContainer");
+
+  if (!box) return;
+
+  const isMe = user === "You";
+
+  const div = document.createElement("div");
+
+  div.className =
+    `msg ${isMe ? "me" : "other"}`;
+
+  let content = "";
+
+  // IMAGE
+  if (file.type.startsWith("image/")) {
+
+    content = `
+      <img src="${file.data}"
+           class="chat-image">
+    `;
+
+  }
+
+  // VIDEO
+  else if (file.type.startsWith("video/")) {
+
+    content = `
+      <video controls class="chat-video">
+        <source src="${file.data}">
+      </video>
+    `;
+
+  }
+
+  // OTHER FILES
+  else {
+
+    content = `
+      <a href="${file.data}"
+         download="${file.name}"
+         class="file-link">
+         📁 ${file.name}
+      </a>
+    `;
+
+  }
+
+  div.innerHTML = `
+    <div class="bubble">
+      ${content}
+    </div>
+  `;
+
+  box.appendChild(div);
+
+  box.scrollTop = box.scrollHeight;
+
+}
+
+// ================= FILE SEND =================
+
+async function sendFile() {
+
+  const file =
+    document.getElementById("fileInput").files[0];
+
+  if (!file || !currentChatUser) return;
+
+  const reader = new FileReader();
+
+  reader.readAsDataURL(file);
+
+  reader.onload = () => {
+
+    const fileData = reader.result;
+
+    socket.emit("privateMessage", {
+      from: username,
+      to: currentChatUser,
+      file: {
+        name: file.name,
+        type: file.type,
+        data: fileData
+      }
+    });
+
+    addFileMessage("You", {
+      name: file.name,
+      type: file.type,
+      data: fileData
+    });
+
+  };
 
 }
 

@@ -418,4 +418,27 @@ html, body{
     height:100%;
     z-index:1000;
   }
+}/* ================= CHAT IMAGES ================= */
+
+.chat-image{
+  width:220px;
+  max-width:100%;
+  border-radius:12px;
+  object-fit:cover;
+}
+
+/* ================= CHAT VIDEO ================= */
+
+.chat-video{
+  width:240px;
+  max-width:100%;
+  border-radius:12px;
+}
+
+/* ================= FILE LINK ================= */
+
+.file-link{
+  color:white;
+  text-decoration:none;
+  font-size:14px;
 }
