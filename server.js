@@ -187,146 +187,237 @@ app.get("/api/messages/:user1/:user2", async (req, res) => {
 
 // ================= SOCKET EVENTS =================
 io.on("connection", (socket) => {
+
   console.log("⚡ connected:", socket.id);
 
   emitOnlineUsers();
 
-  // REGISTER USER
+  // ================= REGISTER USER =================
+
   socket.on("register", (username) => {
+
     if (!username) return;
 
     username = username.trim().toLowerCase();
+
     socket.username = username;
 
+    // CREATE USER ARRAY
     if (!users[username]) {
+
       users[username] = [];
+
     }
 
+    // AVOID DUPLICATE SOCKET IDS
     if (!users[username].includes(socket.id)) {
+
       users[username].push(socket.id);
+
     }
 
     console.log("👤 REGISTERED USERS:", users);
 
     emitOnlineUsers();
+
   });
 
-  // PRIVATE MESSAGE
-socket.on("privateMessage", async (data) => {
+  // ================= PRIVATE MESSAGE =================
 
-  try {
+  socket.on("privateMessage", async (data) => {
 
-    if (!data) return;
+    try {
 
-    const from = cleanName(data.from || "");
-    const to = cleanName(data.to || "");
+      if (!data) return;
 
-    const message = (data.message || "").trim();
+      const from =
+        cleanName(data.from || "");
 
-    const audio = data.audio || null;
+      const to =
+        cleanName(data.to || "");
 
-    const image = data.image || null;
+      const message =
+        (data.message || "").trim();
 
-    const file = data.file || null;
+      const audio =
+        data.audio || null;
 
-    // ALLOW MESSAGE OR AUDIO OR IMAGE OR FILE
-    if (
-      !from ||
-      !to ||
-      (!message && !audio && !image && !file)
-    ) return;
+      const image =
+        data.image || null;
 
-    // SAVE MESSAGE
-    const newMessage = new Message({
-      from,
-      to,
-      message,
-      audio,
-      image,
-      file
-    });
+      const file =
+        data.file || null;
 
-    await newMessage.save();
+      // ALLOW TEXT / AUDIO / IMAGE / FILE
+      if (
+        !from ||
+        !to ||
+        (!message &&
+         !audio &&
+         !image &&
+         !file)
+      ) return;
 
-    // SEND TO RECEIVER
-    io.to(users[to]).emit("privateMessage", {
-      from,
-      to,
-      message,
-      audio,
-      image,
-      file
-    });
+      // SAVE MESSAGE
+      const newMessage =
+        new Message({
+          from,
+          to,
+          message,
+          audio,
+          image,
+          file
+        });
 
-    // SEND BACK TO SENDER
-    io.to(users[from]).emit("privateMessage", {
-      from,
-      to,
-      message,
-      audio,
-      image,
-      file
-    });
+      await newMessage.save();
 
-  } catch (err) {
+      const payload = {
+        from,
+        to,
+        message,
+        audio,
+        image,
+        file
+      };
 
-    console.log("❌ MESSAGE ERROR:", err);
+      // SEND TO RECEIVER
+      if (users[to]) {
 
-  }
+        users[to].forEach(id => {
 
-});
+          io.to(id).emit(
+            "privateMessage",
+            payload
+          );
 
-  // SEEN
+        });
+
+      }
+
+      // SEND BACK TO SENDER
+      if (users[from]) {
+
+        users[from].forEach(id => {
+
+          io.to(id).emit(
+            "privateMessage",
+            payload
+          );
+
+        });
+
+      }
+
+    } catch (err) {
+
+      console.log(
+        "❌ MESSAGE ERROR:",
+        err
+      );
+
+    }
+
+  });
+
+  // ================= SEEN =================
+
   socket.on("seen", ({ from, to }) => {
+
     if (!from || !to) return;
 
-    const sender = from.trim().toLowerCase();
+    const sender =
+      from.trim().toLowerCase();
 
     if (users[sender]) {
+
       users[sender].forEach(id => {
-        io.to(id).emit("messageSeen", {
-          from: to,
-          status: "seen"
-        });
+
+        io.to(id).emit(
+          "messageSeen",
+          {
+            from: to,
+            status: "seen"
+          }
+        );
+
       });
+
     }
+
   });
 
-  // TYPING
+  // ================= TYPING =================
+
   socket.on("typing", ({ from, to }) => {
+
     if (users[to]) {
+
       users[to].forEach(id => {
-        io.to(id).emit("typing", { from });
+
+        io.to(id).emit(
+          "typing",
+          { from }
+        );
+
       });
+
     }
+
   });
+
+  // ================= STOP TYPING =================
 
   socket.on("stopTyping", ({ from, to }) => {
+
     if (users[to]) {
+
       users[to].forEach(id => {
-        io.to(id).emit("stopTyping", { from });
+
+        io.to(id).emit(
+          "stopTyping",
+          { from }
+        );
+
       });
+
     }
+
   });
 
-  // DISCONNECT
+  // ================= DISCONNECT =================
+
   socket.on("disconnect", () => {
+
     if (!socket.username) return;
 
     const user = socket.username;
 
     if (users[user]) {
-      users[user] = users[user].filter(id => id !== socket.id);
 
+      users[user] =
+        users[user].filter(
+          id => id !== socket.id
+        );
+
+      // REMOVE USER IF EMPTY
       if (users[user].length === 0) {
+
         delete users[user];
+
       }
+
     }
 
-    emitOnlineUsers();
-  });
-});
+    console.log(
+      "❌ DISCONNECTED:",
+      socket.id
+    );
 
+    emitOnlineUsers();
+
+  });
+
+});
 // ================= POSTS =================
 app.post("/api/posts", async (req, res) => {
   try {
