@@ -185,14 +185,9 @@ function sendMessage() {
 
   input.value = "";
 }
-
-// ================= RECEIVE MESSAGE =================
-
 // ================= RECEIVE MESSAGE =================
 
 socket.on("privateMessage", (data) => {
-
-  console.log("📩 RECEIVED:", data);
 
   if (!data) return;
 
@@ -203,60 +198,51 @@ socket.on("privateMessage", (data) => {
 
   const isMyMessage = from === me;
 
-  // ================= CHECK ACTIVE CHAT =================
-  const chattingWith =
-    isMyMessage ? to : from;
+  // ================= WHO SHOULD SEE MESSAGE =================
+  const isReceiver = to === me;
+  const isSender = from === me;
 
-  if (current !== chattingWith) return;
+  // ❗ ALWAYS SHOW IF I'M INVOLVED
+  if (!isReceiver && !isSender) return;
 
   // ================= TEXT =================
   if (data.message) {
-
     addMessage(
       isMyMessage ? "You" : from,
       data.message
     );
-
   }
 
   // ================= AUDIO =================
   if (data.audio) {
-
     addVoiceMessage(
       isMyMessage ? "You" : from,
       data.audio
     );
-
   }
 
   // ================= IMAGE =================
   if (data.image) {
-
     addImageMessage(
       isMyMessage ? "You" : from,
       data.image
     );
-
   }
 
   // ================= FILE =================
   if (data.file) {
-
     addFileMessage(
       isMyMessage ? "You" : from,
       data.file
     );
-
   }
 
-  // ================= DELIVERY =================
-  if (!isMyMessage) {
-
+  // DELIVERY (ONLY FOR RECEIVER)
+  if (isReceiver) {
     socket.emit("delivered", {
       from,
       to: me
     });
-
   }
 
 });
@@ -573,37 +559,7 @@ function addImageMessage(user, imageSrc) {
 
 }
 
-// ================= FILE MESSAGE =================
 
-function addFileMessage(user, fileUrl) {
-
-  const box =
-    document.getElementById("messagesContainer");
-
-  if (!box) return;
-
-  const isMe = user === "You";
-
-  const div = document.createElement("div");
-
-  div.className =
-    `msg ${isMe ? "me" : "other"}`;
-
-  div.innerHTML = `
-    <div class="bubble">
-      <a href="${fileUrl}"
-         target="_blank"
-         class="file-link">
-         📎 Open File
-      </a>
-    </div>
-  `;
-
-  box.appendChild(div);
-
-  box.scrollTop = box.scrollHeight;
-
-}
 // ================= FILE UI =================
 
 function addFileMessage(user, file) {
