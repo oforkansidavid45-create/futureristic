@@ -133,8 +133,18 @@ html, body{
 .post{
   background:#111827;
   padding:12px;
-  border-radius:12px;
-  margin-bottom:12px;
+  border-radius:14px;
+  margin-bottom:14px;
+
+  transition:0.25s ease;
+  border:1px solid transparent;
+}
+
+/* COOL BLUE HOVER EFFECT */
+.post:hover{
+  border:1px solid #0084ff;
+  box-shadow:0 0 12px rgba(0,132,255,0.35);
+  transform:translateY(-2px);
 }
 
 .post-top{

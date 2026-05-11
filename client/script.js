@@ -343,16 +343,19 @@ async function loadPosts() {
     
       <div class="post-top">
 
-        <img
-          src="${post.profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
-          class="post-avatar"
-        />
+      <img
+  src="${post.profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
+  class="post-avatar"
+  onclick="openProfile('${post.user}')"
+/>
 
         <div>
-
-          <div class="post-user">
-            ${post.user}
-          </div>
+<div
+  class="post-user"
+  onclick="openProfile('${post.user}')"
+>
+  ${post.user}
+</div>
 
           <small class="post-time">
             Just now
@@ -523,6 +526,8 @@ function showFeed() {
 }
 // ================= PROFILE VIEW =================
 
+// ================= PROFILE VIEW =================
+
 async function openProfile(user) {
 
   document.getElementById(
@@ -534,25 +539,57 @@ async function openProfile(user) {
   ).innerText = user;
 
   const res = await fetch(`${API}/api/posts`);
+
   const posts = await res.json();
 
   const userPosts =
-    posts.filter(p => p.user === user);
+    posts.filter(
+      p => cleanName(p.user) === cleanName(user)
+    );
+
+  // SET PROFILE PIC
+  const firstPost = userPosts[0];
+
+  document.getElementById(
+    "profileModalPic"
+  ).src =
+    firstPost?.profilePic ||
+    "https://i.imgur.com/HeIi0wU.png";
 
   const container =
     document.getElementById("profilePosts");
 
   container.innerHTML = "";
 
+  if (userPosts.length === 0) {
+
+    container.innerHTML =
+      "<p style='padding:20px;'>No posts yet</p>";
+
+    return;
+  }
+
   userPosts.forEach(post => {
 
     container.innerHTML += `
+    
       <div class="profile-post">
+
         ${post.text}
+
       </div>
+
     `;
 
   });
+
+}
+
+function closeProfile() {
+
+  document.getElementById(
+    "profileModal"
+  ).style.display = "none";
 
 }
 

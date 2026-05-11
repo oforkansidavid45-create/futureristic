@@ -71,15 +71,13 @@
   <div class="feed">
 
     <div class="topbar">
-      <input class="search"
-             placeholder="Search FutureBook..." />
+      <input class="search" placeholder="Search FutureBook..." />
     </div>
 
     <!-- CREATE POST -->
     <div class="create-post">
 
-      <input id="postInput"
-             placeholder="What's on your mind?" />
+      <input id="postInput" placeholder="What's on your mind?" />
 
       <button onclick="createPost()">Post</button>
 
@@ -103,21 +101,28 @@
 
       <div class="chat-user-info">
 
-     <img id="profilePreview"
-     class="chat-avatar"
-     src="https://i.imgur.com/HeIi0wU.png" />
-<input type="file"
-       id="profileInput"
-       hidden
-       onchange="uploadProfilePic()" />
+        <!-- PROFILE PIC -->
+        <img
+          id="profilePreview"
+          class="chat-avatar"
+          src="https://i.imgur.com/HeIi0wU.png"
+        />
 
-<button onclick="document.getElementById('profileInput').click()">
-  Change Photo
-</button>
+        <!-- HIDDEN FILE INPUT -->
+        <input
+          type="file"
+          id="profileInput"
+          hidden
+          onchange="uploadProfilePic()"
+        />
 
-        <div>
+        <!-- USER INFO -->
+        <div class="chat-user-text">
+
           <div id="chatTitle">Select a user</div>
+
           <small id="userStatus">offline</small>
+
         </div>
 
       </div>
@@ -127,21 +132,20 @@
     <!-- CHAT BOX -->
     <div id="chatBox" class="chat-box">
 
-      <!-- MESSAGES -->
       <div id="messagesContainer"></div>
 
-      <!-- TYPING -->
-      <div id="typingIndicator"
-           class="typing-bubble"></div>
+      <div id="typingIndicator" class="typing-bubble"></div>
 
     </div>
 
     <!-- CHAT INPUT -->
     <div class="chat-input">
 
-      <input id="chatInput"
-             placeholder="Type message..."
-             oninput="handleTyping()" />
+      <input
+        id="chatInput"
+        placeholder="Type message..."
+        oninput="handleTyping()"
+      />
 
       <button onclick="startRecording()">
         <i class="fa-solid fa-microphone"></i>
@@ -173,11 +177,46 @@
   </div>
 
 </div>
+<!-- ================= PROFILE MODAL ================= -->
 
-<!-- ================= SOCKET ================= -->
+<div
+  id="profileModal"
+  class="profile-modal"
+>
+
+  <div class="profile-content">
+
+    <span
+      class="close-profile"
+      onclick="closeProfile()"
+    >
+      ✖
+    </span>
+
+    <!-- COVER -->
+    <div class="profile-cover"></div>
+
+    <!-- PROFILE IMAGE -->
+    <img
+      id="profileModalPic"
+      class="profile-big-pic"
+      src="https://i.imgur.com/HeIi0wU.png"
+    />
+
+    <!-- USERNAME -->
+    <h2 id="profileModalName"></h2>
+
+    <!-- POSTS -->
+    <div id="profilePosts"></div>
+
+  </div>
+
+</div>
+
+<!-- SOCKET -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
-<!-- ================= SCRIPT ================= -->
+<!-- SCRIPT -->
 <script src="script.js"></script>
 
 </body>
