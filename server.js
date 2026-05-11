@@ -212,48 +212,69 @@ io.on("connection", (socket) => {
   });
 
   // PRIVATE MESSAGE
-  socket.on("privateMessage", (data) => {
-    try {
-      const from = data.from?.trim().toLowerCase();
-      const to = data.to?.trim().toLowerCase();
+socket.on("privateMessage", async (data) => {
+
+  try {
+
+    if (!data) return;
+
+    const from = cleanName(data.from || "");
+    const to = cleanName(data.to || "");
+
     const message = (data.message || "").trim();
-const audio = data.audio || null;
 
-// allow message OR audio
-if (!from || !to || (!message && !audio)) return;
+    const audio = data.audio || null;
 
-   const payload = {
-  from,
-  to,
-  message,
-  audio,
-  status: "sent",
-  time: Date.now()
-};
+    const image = data.image || null;
 
-      if (users[to]) {
-        users[to].forEach(id => {
-          io.to(id).emit("privateMessage", {
-            ...payload,
-            status: "delivered"
-          });
-        });
-      }
+    const file = data.file || null;
 
-      if (users[from]) {
-        users[from].forEach(id => {
-          io.to(id).emit("messageStatus", {
-            to,
-            status: "delivered"
-          });
-        });
-      }
+    // ALLOW MESSAGE OR AUDIO OR IMAGE OR FILE
+    if (
+      !from ||
+      !to ||
+      (!message && !audio && !image && !file)
+    ) return;
+
+    // SAVE MESSAGE
+    const newMessage = new Message({
+      from,
+      to,
+      message,
+      audio,
+      image,
+      file
+    });
+
+    await newMessage.save();
+
+    // SEND TO RECEIVER
+    io.to(users[to]).emit("privateMessage", {
+      from,
+      to,
+      message,
+      audio,
+      image,
+      file
+    });
+
+    // SEND BACK TO SENDER
+    io.to(users[from]).emit("privateMessage", {
+      from,
+      to,
+      message,
+      audio,
+      image,
+      file
+    });
 
   } catch (err) {
-  console.log("❌ SIGNUP ERROR:", err);
-  res.status(500).json({ error: "Server error" });
-}
-  });
+
+    console.log("❌ MESSAGE ERROR:", err);
+
+  }
+
+});
 
   // SEEN
   socket.on("seen", ({ from, to }) => {

@@ -204,37 +204,53 @@ socket.on("privateMessage", (data) => {
 
   const isMyMessage = from === me;
 
-  // STOP DUPLICATE
-  if (isMyMessage) return;
+  // ONLY SHOW OPEN CHAT
+  if (
+    current !== from &&
+    current !== data.to
+  ) return;
 
-  // ONLY SHOW IF CHAT OPEN
-  if (current !== from) return;
+  // TEXT
+  if (data.message) {
 
-  // ================= AUDIO =================
-if (data.audio) {
-
-  addVoiceMessage(from, data.audio);
-
-}
-
-else if (data.file) {
-
-  addFileMessage(from, data.file);
-
-}
-
-else if (data.message) {
-
-  addMessage(from, data.message);
-
-}
-
-  // ================= TEXT =================
-  else if (data.message) {
-
-    addMessage(from, data.message);
+    addMessage(
+      isMyMessage ? "You" : from,
+      data.message
+    );
 
   }
+
+  // AUDIO
+  if (data.audio) {
+
+    addVoiceMessage(
+      isMyMessage ? "You" : from,
+      data.audio
+    );
+
+  }
+
+  // IMAGE
+  if (data.image) {
+
+    addImageMessage(
+      isMyMessage ? "You" : from,
+      data.image
+    );
+
+  }
+
+  // FILE
+  if (data.file) {
+
+    addFileMessage(
+      isMyMessage ? "You" : from,
+      data.file
+    );
+
+  }
+
+});
 
   // DELIVERY
   socket.emit("delivered", {
@@ -242,7 +258,7 @@ else if (data.message) {
     to: me
   });
 
-});
+
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
 function markSeen() {
   if (!currentChatUser) return;
@@ -517,6 +533,68 @@ function addVoiceMessage(user, audioSrc) {
       <audio controls>
         <source src="${audioSrc}" type="audio/webm">
       </audio>
+    </div>
+  `;
+
+  box.appendChild(div);
+
+  box.scrollTop = box.scrollHeight;
+
+}
+// ================= IMAGE MESSAGE =================
+
+function addImageMessage(user, imageSrc) {
+
+  const box =
+    document.getElementById("messagesContainer");
+
+  if (!box) return;
+
+  const isMe = user === "You";
+
+  const div = document.createElement("div");
+
+  div.className =
+    `msg ${isMe ? "me" : "other"}`;
+
+  div.innerHTML = `
+    <div class="bubble">
+      <img
+        src="${imageSrc}"
+        class="chat-image"
+      >
+    </div>
+  `;
+
+  box.appendChild(div);
+
+  box.scrollTop = box.scrollHeight;
+
+}
+
+// ================= FILE MESSAGE =================
+
+function addFileMessage(user, fileUrl) {
+
+  const box =
+    document.getElementById("messagesContainer");
+
+  if (!box) return;
+
+  const isMe = user === "You";
+
+  const div = document.createElement("div");
+
+  div.className =
+    `msg ${isMe ? "me" : "other"}`;
+
+  div.innerHTML = `
+    <div class="bubble">
+      <a href="${fileUrl}"
+         target="_blank"
+         class="file-link">
+         📎 Open File
+      </a>
     </div>
   `;
 
