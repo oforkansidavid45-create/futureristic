@@ -277,18 +277,49 @@ socket.on("privateMessage", async (data) => {
     const payload = { from, to, message, audio, image, file };
 
     // SEND TO RECEIVER
-    if (users[to]) {
-      users[to].forEach(id => {
-        io.to(id).emit("privateMessage", payload);
-      });
-    }
+   // SEND TO RECEIVER
+if (users[to] && users[to].length > 0) {
 
-    // SEND TO SENDER
-    if (users[from]) {
-      users[from].forEach(id => {
-        io.to(id).emit("privateMessage", payload);
-      });
-    }
+  users[to].forEach(socketId => {
+
+    console.log(
+      "📨 Sending to receiver:",
+      to,
+      socketId
+    );
+
+    io.to(socketId).emit(
+      "privateMessage",
+      payload
+    );
+
+  });
+
+} else {
+
+  console.log("❌ RECEIVER NOT ONLINE:", to);
+
+}
+
+// SEND BACK TO SENDER
+if (users[from] && users[from].length > 0) {
+
+  users[from].forEach(socketId => {
+
+    console.log(
+      "📨 Sending back to sender:",
+      from,
+      socketId
+    );
+
+    io.to(socketId).emit(
+      "privateMessage",
+      payload
+    );
+
+  });
+
+}
 
   } catch (err) {
     console.log("❌ MESSAGE ERROR:", err);
