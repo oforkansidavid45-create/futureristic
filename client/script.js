@@ -248,39 +248,6 @@ socket.on("privateMessage", (data) => {
 
 });
 
-  // ================= AUDIO =================
-
-  if (data.audio) {
-
-    addVoiceMessage(
-      isMyMessage ? "You" : from,
-      data.audio
-    );
-
-  }
-
-  // ================= IMAGE =================
-
-  if (data.image) {
-
-    addImageMessage(
-      isMyMessage ? "You" : from,
-      data.image
-    );
-
-  }
-
-  // ================= FILE =================
-
-  if (data.file) {
-
-    addFileMessage(
-      isMyMessage ? "You" : from,
-      data.file
-    );
-
-  }
-
 
 
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
