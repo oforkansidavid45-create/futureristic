@@ -243,6 +243,10 @@ socket.on("register", (username) => {
   }
 
   console.log("👤 REGISTERED USERS:", users);
+  console.log("🔥 REGISTER EVENT:", username);
+console.log("🔥 SOCKET ID:", socket.id);
+console.log("🔥 USERS OBJECT:", users);
+  
 
   emitOnlineUsers();
 });

@@ -117,31 +117,13 @@ async function loadMessages(user) {
 
     msgBox.innerHTML = "";
 
- messages.forEach(m => {
+    messages.forEach(m => {
+      addMessage(
+        m.from === cleanName(username) ? "You" : m.from,
+        m.message
+      );
+    });
 
-  const isMe =
-    cleanName(m.from) === cleanName(username);
-
-  const sender =
-    isMe ? "You" : m.from;
-
-  if (m.message) {
-    addMessage(sender, m.message);
-  }
-
-  if (m.audio) {
-    addVoiceMessage(sender, m.audio);
-  }
-
-  if (m.image) {
-    addImageMessage(sender, m.image);
-  }
-
-  if (m.file) {
-    addFileMessage(sender, m.file);
-  }
-
-});
   } catch (err) {
     console.log("❌ loadMessages error:", err);
   }
@@ -180,27 +162,25 @@ function addMessage(user, msg, status = "") {
 // ================= SEND MESSAGE =================
 
 function sendMessage() {
-
-  const input =
-    document.getElementById("chatInput");
-
+  const input = document.getElementById("chatInput");
   if (!input) return;
 
-  const message =
-    input.value.trim();
-
+  const message = input.value.trim();
   if (!message || !currentChatUser) return;
 
-  // SEND ONLY
+  // create message FIRST and keep reference
+  const msgEl = addMessage("You", message, "✔");
+
   socket.emit("privateMessage", {
-    from: cleanName(username),
-    to: cleanName(currentChatUser),
+    from: username,
+    to: currentChatUser,
     message
   });
 
   input.value = "";
-
 }
+// ================= RECEIVE MESSAGE =================
+
 // ================= RECEIVE MESSAGE =================
 
 socket.on("privateMessage", (data) => {
@@ -209,27 +189,18 @@ socket.on("privateMessage", (data) => {
 
   if (!data) return;
 
-  const from =
-    cleanName(data.from || "");
+  const from = cleanName(data.from || "");
+  const to = cleanName(data.to || "");
+  const me = cleanName(username || "");
 
-  const to =
-    cleanName(data.to || "");
+  const isMyMessage = from === me;
 
-  const me =
-    cleanName(username || "");
+  // ================= CHECK IF I'M PART OF CHAT =================
 
-  const current =
-    cleanName(currentChatUser || "");
+  const involved =
+    from === me || to === me;
 
-  // ================= CHECK IF THIS CHAT IS OPEN =================
-
-  const activeChat =
-    from === me ? to : from;
-
-  if (current !== activeChat) return;
-
-  const isMyMessage =
-    from === me;
+  if (!involved) return;
 
   // ================= TEXT =================
 
@@ -237,8 +208,7 @@ socket.on("privateMessage", (data) => {
 
     addMessage(
       isMyMessage ? "You" : from,
-      data.message,
-      isMyMessage ? "✔" : ""
+      data.message
     );
 
   }
@@ -276,18 +246,43 @@ socket.on("privateMessage", (data) => {
 
   }
 
-  // ================= DELIVERED =================
+});
 
-  if (!isMyMessage) {
+  // ================= AUDIO =================
 
-    socket.emit("delivered", {
-      from,
-      to: me
-    });
+  if (data.audio) {
+
+    addVoiceMessage(
+      isMyMessage ? "You" : from,
+      data.audio
+    );
 
   }
 
-});
+  // ================= IMAGE =================
+
+  if (data.image) {
+
+    addImageMessage(
+      isMyMessage ? "You" : from,
+      data.image
+    );
+
+  }
+
+  // ================= FILE =================
+
+  if (data.file) {
+
+    addFileMessage(
+      isMyMessage ? "You" : from,
+      data.file
+    );
+
+  }
+
+
+
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
 function markSeen() {
   if (!currentChatUser) return;
@@ -360,8 +355,7 @@ socket.on("stopTyping", (data) => {
   }
 });
 socket.on("messageStatus", (data) => {
-  const ticks =
-  document.querySelectorAll(".msg-status");
+  const ticks = document.querySelectorAll(".tick");
 
   if (ticks.length) {
     const lastTick = ticks[ticks.length - 1];
@@ -378,7 +372,7 @@ socket.on("messageSeen", () => {
     el.style.color = "cyan";
   });
 });
-// ================= POSTS =================
+
 // ================= POSTS =================
 async function loadPosts() {
 
@@ -714,7 +708,7 @@ function showFeed() {
   const panel = document.getElementById("chatPanel");
   if (panel) panel.classList.remove("active");
 }
-// ================= PROFILE VIEW =================
+
 
 // ================= PROFILE VIEW =================
 
@@ -783,7 +777,13 @@ function closeProfile() {
 
 }
 
+function closeProfile() {
 
+  document.getElementById(
+    "profileModal"
+  ).style.display = "none";
+
+}
 // ================= PROFILE PIC =================
 
 async function uploadProfilePic() {
