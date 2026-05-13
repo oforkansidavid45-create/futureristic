@@ -208,39 +208,6 @@ socket.on("privateMessage", (data) => {
 
   }
 
-  // ================= SHOW AUDIO =================
-
-  if (data.audio) {
-
-    addVoiceMessage(
-      isMyMessage ? "You" : from,
-      data.audio
-    );
-
-  }
-
-  // ================= SHOW IMAGE =================
-
-  if (data.image) {
-
-    addImageMessage(
-      isMyMessage ? "You" : from,
-      data.image
-    );
-
-  }
-
-  // ================= SHOW FILE =================
-
-  if (data.file) {
-
-    addFileMessage(
-      isMyMessage ? "You" : from,
-      data.file
-    );
-
-  }
-
 });
 
 
