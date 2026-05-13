@@ -117,13 +117,31 @@ async function loadMessages(user) {
 
     msgBox.innerHTML = "";
 
-    messages.forEach(m => {
-      addMessage(
-        m.from === cleanName(username) ? "You" : m.from,
-        m.message
-      );
-    });
+ messages.forEach(m => {
 
+  const isMe =
+    cleanName(m.from) === cleanName(username);
+
+  const sender =
+    isMe ? "You" : m.from;
+
+  if (m.message) {
+    addMessage(sender, m.message);
+  }
+
+  if (m.audio) {
+    addVoiceMessage(sender, m.audio);
+  }
+
+  if (m.image) {
+    addImageMessage(sender, m.image);
+  }
+
+  if (m.file) {
+    addFileMessage(sender, m.file);
+  }
+
+});
   } catch (err) {
     console.log("❌ loadMessages error:", err);
   }
@@ -162,81 +180,111 @@ function addMessage(user, msg, status = "") {
 // ================= SEND MESSAGE =================
 
 function sendMessage() {
-  const input = document.getElementById("chatInput");
+
+  const input =
+    document.getElementById("chatInput");
+
   if (!input) return;
 
-  const message = input.value.trim();
+  const message =
+    input.value.trim();
+
   if (!message || !currentChatUser) return;
 
-  // create message FIRST and keep reference
-  const msgEl = addMessage("You", message, "✔");
-
+  // SEND ONLY
   socket.emit("privateMessage", {
-    from: username,
-    to: currentChatUser,
+    from: cleanName(username),
+    to: cleanName(currentChatUser),
     message
   });
 
   input.value = "";
+
 }
 // ================= RECEIVE MESSAGE =================
 
 socket.on("privateMessage", (data) => {
 
+  console.log("📩 RECEIVED:", data);
+
   if (!data) return;
 
-  const from = cleanName(data.from || "");
-  const to = cleanName(data.to || "");
-  const me = cleanName(username || "");
-  const current = cleanName(currentChatUser || "");
+  const from =
+    cleanName(data.from || "");
 
-  const isMyMessage = from === me;
+  const to =
+    cleanName(data.to || "");
 
-  // ================= WHO SHOULD SEE MESSAGE =================
-  const isReceiver = to === me;
-  const isSender = from === me;
+  const me =
+    cleanName(username || "");
 
-  // ❗ ALWAYS SHOW IF I'M INVOLVED
-  if (!isReceiver && !isSender) return;
+  const current =
+    cleanName(currentChatUser || "");
+
+  // ================= CHECK IF THIS CHAT IS OPEN =================
+
+  const activeChat =
+    from === me ? to : from;
+
+  if (current !== activeChat) return;
+
+  const isMyMessage =
+    from === me;
 
   // ================= TEXT =================
+
   if (data.message) {
+
     addMessage(
       isMyMessage ? "You" : from,
-      data.message
+      data.message,
+      isMyMessage ? "✔" : ""
     );
+
   }
 
   // ================= AUDIO =================
+
   if (data.audio) {
+
     addVoiceMessage(
       isMyMessage ? "You" : from,
       data.audio
     );
+
   }
 
   // ================= IMAGE =================
+
   if (data.image) {
+
     addImageMessage(
       isMyMessage ? "You" : from,
       data.image
     );
+
   }
 
   // ================= FILE =================
+
   if (data.file) {
+
     addFileMessage(
       isMyMessage ? "You" : from,
       data.file
     );
+
   }
 
-  // DELIVERY (ONLY FOR RECEIVER)
-  if (isReceiver) {
+  // ================= DELIVERED =================
+
+  if (!isMyMessage) {
+
     socket.emit("delivered", {
       from,
       to: me
     });
+
   }
 
 });
@@ -312,7 +360,8 @@ socket.on("stopTyping", (data) => {
   }
 });
 socket.on("messageStatus", (data) => {
-  const ticks = document.querySelectorAll(".tick");
+  const ticks =
+  document.querySelectorAll(".msg-status");
 
   if (ticks.length) {
     const lastTick = ticks[ticks.length - 1];
@@ -734,13 +783,7 @@ function closeProfile() {
 
 }
 
-function closeProfile() {
 
-  document.getElementById(
-    "profileModal"
-  ).style.display = "none";
-
-}
 // ================= PROFILE PIC =================
 
 async function uploadProfilePic() {
