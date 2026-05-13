@@ -183,6 +183,8 @@ function sendMessage() {
 
 // ================= RECEIVE MESSAGE =================
 
+// ================= RECEIVE MESSAGE =================
+
 socket.on("privateMessage", (data) => {
 
   console.log("📩 RECEIVED:", data);
@@ -195,14 +197,7 @@ socket.on("privateMessage", (data) => {
 
   const isMyMessage = from === me;
 
-  // ================= CHECK IF I'M PART OF CHAT =================
-
-  const involved =
-    from === me || to === me;
-
-  if (!involved) return;
-
-  // ================= TEXT =================
+  // ================= SHOW TEXT =================
 
   if (data.message) {
 
@@ -213,7 +208,7 @@ socket.on("privateMessage", (data) => {
 
   }
 
-  // ================= AUDIO =================
+  // ================= SHOW AUDIO =================
 
   if (data.audio) {
 
@@ -224,7 +219,7 @@ socket.on("privateMessage", (data) => {
 
   }
 
-  // ================= IMAGE =================
+  // ================= SHOW IMAGE =================
 
   if (data.image) {
 
@@ -235,7 +230,7 @@ socket.on("privateMessage", (data) => {
 
   }
 
-  // ================= FILE =================
+  // ================= SHOW FILE =================
 
   if (data.file) {
 
