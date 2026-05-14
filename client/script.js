@@ -158,17 +158,43 @@ function sendMessage() {
 
 // ================= RECEIVE MESSAGE (FIXED DUPLICATION BUG) =================
 socket.on("privateMessage", (data) => {
+
+  console.log("📩 RECEIVED:", data);
+
   if (!data) return;
 
-  const from = cleanName(data.from);
-  const me = cleanName(username);
+  const from = cleanName(data.from || "");
+  const me = cleanName(username || "");
 
-  const sender = from === me ? "You" : from;
+  const isMe = from === me;
 
-  if (data.message) addMessage(sender, data.message);
-  if (data.audio) addVoiceMessage(sender, data.audio);
-  if (data.image) addImageMessage(sender, data.image);
-  if (data.file) addFileMessage(sender, data.file);
+  // 🔥 DON'T DUPLICATE MY OWN TEXT
+  if (isMe && data.message) {
+    return;
+  }
+
+  const sender = isMe ? "You" : from;
+
+  // TEXT
+  if (data.message) {
+    addMessage(sender, data.message);
+  }
+
+  // VOICE
+  if (data.audio) {
+    addVoiceMessage(sender, data.audio);
+  }
+
+  // IMAGE
+  if (data.image) {
+    addImageMessage(sender, data.image);
+  }
+
+  // FILE
+  if (data.file) {
+    addFileMessage(sender, data.file);
+  }
+
 });
 
 // ================= ONLINE USERS =================
