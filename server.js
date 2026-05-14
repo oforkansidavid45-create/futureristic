@@ -60,7 +60,7 @@ app.post("/api/auth/signup", async (req, res) => {
       return res.status(400).json({ error: "Fill all fields" });
     }
 
-    username = username.trim().toLowerCase();
+   username = cleanName(username);
 
     const exists = await User.findOne({ username });
 
@@ -251,81 +251,53 @@ io.on("connection", (socket) => {
   });
 
   // ================= PRIVATE MESSAGE =================
+socket.on("privateMessage", async (data) => {
 
-  socket.on("privateMessage", async (data) => {
+  try {
 
-    try {
+    console.log("📩 RAW MESSAGE:", data);
 
-      console.log("📩 MESSAGE:", data);
+    const from = cleanName(data.from);
+    const to = cleanName(data.to);
 
-      const from = cleanName(data.from);
-      const to = cleanName(data.to);
+    console.log("FROM:", from);
+    console.log("TO:", to);
+    console.log("USERS:", users);
 
-      if (!from || !to) {
-        console.log("❌ INVALID USERS");
-        return;
-      }
+    const payload = {
+      from,
+      to,
+      message: data.message || "",
+      audio: data.audio || null,
+      image: data.image || null,
+      file: data.file || null
+    };
 
-      // SAVE MESSAGE
-      const newMessage = new Message({
-        from,
-        to,
-        message: data.message || "",
-        audio: data.audio || null,
-        image: data.image || null,
-        file: data.file || null
+    await new Message(payload).save();
+
+    // SEND TO RECEIVER
+    if (users[to]?.length) {
+      users[to].forEach(id => {
+        console.log("📨 TO RECEIVER SOCKET:", id);
+        io.to(id).emit("privateMessage", payload);
       });
-
-      await newMessage.save();
-
-      // SEND TO RECEIVER
-      if (users[to]) {
-
-        console.log("📨 SENT TO:", to);
-
-        io.to(users[to]).emit(
-          "privateMessage",
-          {
-            from,
-            to,
-            message: data.message || "",
-            audio: data.audio || null,
-            image: data.image || null,
-            file: data.file || null
-          }
-        );
-
-      } else {
-
-        console.log("❌ USER OFFLINE:", to);
-
-      }
-
-      // SEND BACK TO SENDER
-      if (users[from]) {
-
-        io.to(users[from]).emit(
-          "privateMessage",
-          {
-            from,
-            to,
-            message: data.message || "",
-            audio: data.audio || null,
-            image: data.image || null,
-            file: data.file || null
-          }
-        );
-
-      }
-
-    } catch (err) {
-
-      console.log("❌ MESSAGE ERROR:", err);
-
+    } else {
+      console.log("❌ RECEIVER OFFLINE:", to);
     }
 
-  });
+    // SEND BACK TO SENDER
+    if (users[from]?.length) {
+      users[from].forEach(id => {
+        console.log("📨 BACK TO SENDER:", id);
+        io.to(id).emit("privateMessage", payload);
+      });
+    }
 
+  } catch (err) {
+    console.log("❌ ERROR:", err);
+  }
+
+});
   // ================= TYPING =================
 
   socket.on("typing", ({ from, to }) => {

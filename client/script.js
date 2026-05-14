@@ -179,6 +179,10 @@ function sendMessage() {
 
   input.value = "";
 }
+
+// ================= RECEIVE MESSAGE =================
+
+
 socket.on("privateMessage", (data) => {
 
   console.log("📩 RECEIVED:", data);
@@ -186,80 +190,32 @@ socket.on("privateMessage", (data) => {
   if (!data) return;
 
   const from = cleanName(data.from || "");
-  const to = cleanName(data.to || "");
   const me = cleanName(username || "");
+  const isMe = from === me;
 
-  // ================= CHECK USER INVOLVED =================
+  const sender = isMe ? "You" : from;
 
-  const involved =
-    from === me || to === me;
-
-  if (!involved) return;
-
-  // ================= CHECK CURRENT CHAT =================
-
-  const chattingWith =
-    from === me ? to : from;
-
-  if (
-    cleanName(currentChatUser || "") !==
-    cleanName(chattingWith)
-  ) {
-    console.log("❌ CHAT NOT OPEN");
-    return;
-  }
-
-  // ================= AVOID DOUBLE MESSAGE =================
-
-  if (
-    from === me &&
-    document.querySelectorAll(".msg.me").length > 0
-  ) {
-    return;
-  }
-
-  // ================= SHOW MESSAGE =================
-
+  // TEXT MESSAGE
   if (data.message) {
-
-    addMessage(
-      from === me ? "You" : from,
-      data.message
-    );
-
+    addMessage(sender, data.message);
   }
 
-  // ================= AUDIO =================
-
+  // VOICE
   if (data.audio) {
-  addVoiceMessage(
-    isMyMessage ? "You" : from,
-    data.audio
-  );
-  return;
-}
+    addVoiceMessage(sender, data.audio);
+  }
 
-if (data.image) {
-  addImageMessage(
-    isMyMessage ? "You" : from,
-    data.image
-  );
-  return;
-}
+  // IMAGE
+  if (data.image) {
+    addImageMessage(sender, data.image);
+  }
 
-if (data.file) {
-  addFileMessage(
-    isMyMessage ? "You" : from,
-    data.file
-  );
-  return;
-}
+  // FILE
+  if (data.file) {
+    addFileMessage(sender, data.file);
+  }
 
 });
-// ================= RECEIVE MESSAGE =================
-
-
-
 
 // ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
 function markSeen() {
