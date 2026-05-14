@@ -183,10 +183,7 @@ function sendMessage() {
 
 // ================= RECEIVE MESSAGE =================
 
-// ================= RECEIVE MESSAGE =================
-
 socket.on("privateMessage", (data) => {
-
   console.log("📩 RECEIVED:", data);
 
   if (!data) return;
@@ -195,19 +192,26 @@ socket.on("privateMessage", (data) => {
   const to = cleanName(data.to || "");
   const me = cleanName(username || "");
 
-  const isMyMessage = from === me;
+  const involved = from === me || to === me;
+  if (!involved) return;
 
-  // ================= SHOW TEXT =================
+  const isMine = from === me;
 
   if (data.message) {
-
-    addMessage(
-      isMyMessage ? "You" : from,
-      data.message
-    );
-
+    addMessage(isMine ? "You" : from, data.message);
   }
 
+  if (data.audio) {
+    addVoiceMessage(isMine ? "You" : from, data.audio);
+  }
+
+  if (data.image) {
+    addImageMessage(isMine ? "You" : from, data.image);
+  }
+
+  if (data.file) {
+    addFileMessage(isMine ? "You" : from, data.file);
+  }
 });
 
 
