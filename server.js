@@ -219,139 +219,103 @@ app.get("/api/messages/:user1/:user2", async (req, res) => {
 
 
 // ================= SOCKET EVENTS =================
+// ================= SOCKET EVENTS =================
+
 io.on("connection", (socket) => {
 
-  console.log("⚡ connected:", socket.id);
+  console.log("⚡ CONNECTED:", socket.id);
 
-  emitOnlineUsers();
+  // ================= REGISTER =================
 
-  // ================= REGISTER USER =================
+  socket.on("register", (username) => {
 
-socket.on("register", (username) => {
-  if (!username) return;
+    if (!username) return;
 
-  const clean = username.trim().toLowerCase();
+    const clean = cleanName(username);
 
-  socket.username = clean;
+    socket.username = clean;
 
-  if (!users[clean]) {
-    users[clean] = [];
-  }
+    // SAVE USER SOCKET
+    users[clean] = socket.id;
 
-  if (!users[clean].includes(socket.id)) {
-    users[clean].push(socket.id);
-  }
+    console.log("✅ REGISTERED:", clean);
+    console.log("🔥 USERS:", users);
 
-  console.log("👤 REGISTERED USERS:", users);
-  console.log("🔥 REGISTER EVENT:", username);
-console.log("🔥 SOCKET ID:", socket.id);
-console.log("🔥 USERS OBJECT:", users);
-  
+    io.emit("onlineUsers", Object.keys(users));
 
-  emitOnlineUsers();
-});
+  });
 
   // ================= PRIVATE MESSAGE =================
 
-socket.on("privateMessage", async (data) => {
-  try {
-    if (!data) return;
+  socket.on("privateMessage", async (data) => {
 
-    const from = cleanName(data.from);
-    const to = cleanName(data.to);
+    try {
 
-    const message = (data.message || "").trim();
-    const audio = data.audio || null;
-    const image = data.image || null;
-    const file = data.file || null;
+      console.log("📩 MESSAGE:", data);
 
-    if (!from || !to || (!message && !audio && !image && !file)) return;
+      const from = cleanName(data.from);
+      const to = cleanName(data.to);
 
-    const newMessage = new Message({
-      from,
-      to,
-      message,
-      audio,
-      image,
-      file
-    });
+      if (!from || !to) {
+        console.log("❌ INVALID USERS");
+        return;
+      }
 
-    await newMessage.save();
+      // SAVE MESSAGE
+      const newMessage = new Message({
+        from,
+        to,
+        message: data.message || "",
+        audio: data.audio || null,
+        image: data.image || null,
+        file: data.file || null
+      });
 
-    const payload = { from, to, message, audio, image, file };
+      await newMessage.save();
 
-    // SEND TO RECEIVER
-   // SEND TO RECEIVER
-if (users[to] && users[to].length > 0) {
+      // SEND TO RECEIVER
+      if (users[to]) {
 
-  users[to].forEach(socketId => {
+        console.log("📨 SENT TO:", to);
 
-    console.log(
-      "📨 Sending to receiver:",
-      to,
-      socketId
-    );
-
-    io.to(socketId).emit(
-      "privateMessage",
-      payload
-    );
-
-  });
-
-} else {
-
-  console.log("❌ RECEIVER NOT ONLINE:", to);
-
-}
-
-// SEND BACK TO SENDER
-if (users[from] && users[from].length > 0) {
-
-  users[from].forEach(socketId => {
-
-    console.log(
-      "📨 Sending back to sender:",
-      from,
-      socketId
-    );
-
-    io.to(socketId).emit(
-      "privateMessage",
-      payload
-    );
-
-  });
-
-}
-
-  } catch (err) {
-    console.log("❌ MESSAGE ERROR:", err);
-  }
-});
-
-  // ================= SEEN =================
-
-  socket.on("seen", ({ from, to }) => {
-
-    if (!from || !to) return;
-
-    const sender =
-      from.trim().toLowerCase();
-
-    if (users[sender]) {
-
-      users[sender].forEach(id => {
-
-        io.to(id).emit(
-          "messageSeen",
+        io.to(users[to]).emit(
+          "privateMessage",
           {
-            from: to,
-            status: "seen"
+            from,
+            to,
+            message: data.message || "",
+            audio: data.audio || null,
+            image: data.image || null,
+            file: data.file || null
           }
         );
 
-      });
+      } else {
+
+        console.log("❌ USER OFFLINE:", to);
+
+      }
+
+      // SEND BACK TO SENDER
+      if (users[from]) {
+
+        io.to(users[from]).emit(
+          "privateMessage",
+          {
+            from,
+            to,
+            message: data.message || "",
+            audio: data.audio || null,
+            image: data.image || null,
+            file: data.file || null
+          }
+        );
+
+      }
+
+    } catch (err) {
+
+      console.log("❌ MESSAGE ERROR:", err);
 
     }
 
@@ -361,15 +325,12 @@ if (users[from] && users[from].length > 0) {
 
   socket.on("typing", ({ from, to }) => {
 
+    to = cleanName(to);
+
     if (users[to]) {
 
-      users[to].forEach(id => {
-
-        io.to(id).emit(
-          "typing",
-          { from }
-        );
-
+      io.to(users[to]).emit("typing", {
+        from
       });
 
     }
@@ -380,16 +341,29 @@ if (users[from] && users[from].length > 0) {
 
   socket.on("stopTyping", ({ from, to }) => {
 
+    to = cleanName(to);
+
     if (users[to]) {
 
-      users[to].forEach(id => {
-
-        io.to(id).emit(
-          "stopTyping",
-          { from }
-        );
-
+      io.to(users[to]).emit("stopTyping", {
+        from
       });
+
+    }
+
+  });
+
+  // ================= SEEN =================
+
+  socket.on("seen", ({ from, to }) => {
+
+    from = cleanName(from);
+
+    if (users[from]) {
+
+      io.to(users[from]).emit(
+        "messageSeen"
+      );
 
     }
 
@@ -399,32 +373,18 @@ if (users[from] && users[from].length > 0) {
 
   socket.on("disconnect", () => {
 
-    if (!socket.username) return;
+    console.log("❌ DISCONNECTED:", socket.id);
 
-    const user = socket.username;
+    if (socket.username) {
 
-    if (users[user]) {
-
-      users[user] =
-        users[user].filter(
-          id => id !== socket.id
-        );
-
-      // REMOVE USER IF EMPTY
-      if (users[user].length === 0) {
-
-        delete users[user];
-
-      }
+      delete users[socket.username];
 
     }
 
-    console.log(
-      "❌ DISCONNECTED:",
-      socket.id
+    io.emit(
+      "onlineUsers",
+      Object.keys(users)
     );
-
-    emitOnlineUsers();
 
   });
 
