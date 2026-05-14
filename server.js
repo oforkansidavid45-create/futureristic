@@ -232,23 +232,24 @@ io.on("connection", (socket) => {
 
   // ================= REGISTER =================
 
-  socket.on("register", (username) => {
+socket.on("register", (username) => {
+  if (!username) return;
 
-    if (!username) return;
+  const clean = String(username).trim().toLowerCase();
 
-    const clean = cleanName(username);
+  socket.username = clean;
 
-    socket.username = clean;
+  if (!users[clean]) users[clean] = [];
 
-    // SAVE USER SOCKET
-    users[clean] = socket.id;
+  if (!users[clean].includes(socket.id)) {
+    users[clean].push(socket.id);
+  }
 
-    console.log("✅ REGISTERED:", clean);
-    console.log("🔥 USERS:", users);
+  console.log("👤 REGISTERED:", clean);
+  console.log("🔥 USERS MAP:", JSON.stringify(users));
 
-    io.emit("onlineUsers", Object.keys(users));
-
-  });
+  emitOnlineUsers();
+});
 
   // ================= PRIVATE MESSAGE =================
 socket.on("privateMessage", async (data) => {
