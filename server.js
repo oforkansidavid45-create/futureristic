@@ -1,7 +1,12 @@
 // ================= HELPERS =================
 function cleanName(name) {
   if (!name) return "";
-  return name.trim().toLowerCase();
+
+  return name
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "");
 }
 require("dotenv").config();
 
@@ -95,7 +100,7 @@ app.post("/api/auth/login", async (req, res) => {
       });
     }
 
-    username = username.trim().toLowerCase();
+  username = cleanName(username);
 
     // ================= FIND USER =================
     const user = await User.findOne({ username });

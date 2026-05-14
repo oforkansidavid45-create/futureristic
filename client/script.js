@@ -63,7 +63,7 @@ async function login() {
 
   if (data.error) return alert(data.error);
 
-  username = data.user;
+ username = cleanName(data.user); 
 
   document.getElementById("authScreen").style.display = "none";
   document.querySelector(".app").style.display = "flex";
@@ -232,35 +232,28 @@ socket.on("privateMessage", (data) => {
   // ================= AUDIO =================
 
   if (data.audio) {
+  addVoiceMessage(
+    isMyMessage ? "You" : from,
+    data.audio
+  );
+  return;
+}
 
-    addVoiceMessage(
-      from === me ? "You" : from,
-      data.audio
-    );
+if (data.image) {
+  addImageMessage(
+    isMyMessage ? "You" : from,
+    data.image
+  );
+  return;
+}
 
-  }
-
-  // ================= IMAGE =================
-
-  if (data.image) {
-
-    addImageMessage(
-      from === me ? "You" : from,
-      data.image
-    );
-
-  }
-
-  // ================= FILE =================
-
-  if (data.file) {
-
-    addFileMessage(
-      from === me ? "You" : from,
-      data.file
-    );
-
-  }
+if (data.file) {
+  addFileMessage(
+    isMyMessage ? "You" : from,
+    data.file
+  );
+  return;
+}
 
 });
 // ================= RECEIVE MESSAGE =================
