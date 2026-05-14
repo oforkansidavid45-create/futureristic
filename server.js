@@ -224,6 +224,7 @@ app.get("/api/messages/:user1/:user2", async (req, res) => {
 
 
 // ================= SOCKET EVENTS =================
+
 // ================= SOCKET EVENTS =================
 
 io.on("connection", (socket) => {
@@ -232,75 +233,102 @@ io.on("connection", (socket) => {
 
   // ================= REGISTER =================
 
-socket.on("register", (username) => {
-  if (!username) return;
+  socket.on("register", (username) => {
 
-  const clean = String(username).trim().toLowerCase();
+    if (!username) return;
 
-  socket.username = clean;
+    const clean = cleanName(username);
 
-  if (!users[clean]) users[clean] = [];
+    socket.username = clean;
 
-  if (!users[clean].includes(socket.id)) {
-    users[clean].push(socket.id);
-  }
+    if (!users[clean]) {
+      users[clean] = [];
+    }
 
-  console.log("👤 REGISTERED:", clean);
-  console.log("🔥 USERS MAP:", JSON.stringify(users));
+    if (!users[clean].includes(socket.id)) {
+      users[clean].push(socket.id);
+    }
 
-  emitOnlineUsers();
-});
+    console.log("👤 REGISTERED:", clean);
+
+    io.emit("onlineUsers", Object.keys(users));
+
+  });
 
   // ================= PRIVATE MESSAGE =================
 
-socket.on("privateMessage", async (data) => {
+  socket.on("privateMessage", async (data) => {
 
-  try {
+    try {
 
-    console.log("📩 RAW MESSAGE:", data);
+      const from = cleanName(data.from);
+      const to = cleanName(data.to);
 
-    const from = cleanName(data.from);
-    const to = cleanName(data.to);
+      const payload = {
+        from,
+        to,
+        message: data.message || "",
+        audio: data.audio || null,
+        image: data.image || null,
+        file: data.file || null
+      };
 
-    if (!from || !to) return;
+      await new Message(payload).save();
 
-    const payload = {
-      from,
-      to,
-      message: data.message || "",
-      audio: data.audio || null,
-      image: data.image || null,
-      file: data.file || null
-    };
+      // SEND TO RECEIVER
+      if (users[to]?.length) {
 
-    await new Message(payload).save();
+        users[to].forEach(id => {
 
-    // ✅ ONLY SEND TO RECEIVER
-    if (users[to]?.length) {
-      users[to].forEach(id => {
-        console.log("📨 SENT TO RECEIVER:", id);
-        io.to(id).emit("privateMessage", payload);
-      });
-    } else {
-      console.log("❌ RECEIVER OFFLINE:", to);
+          io.to(id).emit(
+            "privateMessage",
+            payload
+          );
+
+        });
+
+      }
+
+      // SEND BACK TO SENDER
+      if (users[from]?.length) {
+
+        users[from].forEach(id => {
+
+          io.to(id).emit(
+            "privateMessage",
+            payload
+          );
+
+        });
+
+      }
+
+    } catch (err) {
+
+      console.log(
+        "❌ MESSAGE ERROR:",
+        err
+      );
+
     }
 
-  } catch (err) {
-    console.log("❌ ERROR:", err);
-  }
+  });
 
-});
-});
   // ================= TYPING =================
 
   socket.on("typing", ({ from, to }) => {
 
     to = cleanName(to);
 
-    if (users[to]) {
+    if (users[to]?.length) {
 
-      io.to(users[to]).emit("typing", {
-        from
+      users[to].forEach(id => {
+
+        io.to(id).emit(
+          "typing",
+          { from }
+        );
+
       });
 
     }
@@ -313,10 +341,15 @@ socket.on("privateMessage", async (data) => {
 
     to = cleanName(to);
 
-    if (users[to]) {
+    if (users[to]?.length) {
 
-      io.to(users[to]).emit("stopTyping", {
-        from
+      users[to].forEach(id => {
+
+        io.to(id).emit(
+          "stopTyping",
+          { from }
+        );
+
       });
 
     }
@@ -329,11 +362,15 @@ socket.on("privateMessage", async (data) => {
 
     from = cleanName(from);
 
-    if (users[from]) {
+    if (users[from]?.length) {
 
-      io.to(users[from]).emit(
-        "messageSeen"
-      );
+      users[from].forEach(id => {
+
+        io.to(id).emit(
+          "messageSeen"
+        );
+
+      });
 
     }
 
@@ -343,11 +380,28 @@ socket.on("privateMessage", async (data) => {
 
   socket.on("disconnect", () => {
 
-    console.log("❌ DISCONNECTED:", socket.id);
+    console.log(
+      "❌ DISCONNECTED:",
+      socket.id
+    );
 
-    if (socket.username) {
+    if (
+      socket.username &&
+      users[socket.username]
+    ) {
 
-      delete users[socket.username];
+      users[socket.username] =
+        users[socket.username].filter(
+          id => id !== socket.id
+        );
+
+      if (
+        users[socket.username].length === 0
+      ) {
+
+        delete users[socket.username];
+
+      }
 
     }
 
@@ -357,6 +411,8 @@ socket.on("privateMessage", async (data) => {
     );
 
   });
+
+});
 
 
 // ================= POSTS =================
