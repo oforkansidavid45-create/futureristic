@@ -169,7 +169,7 @@ function sendMessage() {
   if (!message || !currentChatUser) return;
 
   // create message FIRST and keep reference
-  const msgEl = addMessage("You", message, "✔");
+ addMessage("You", message, "✔");
 
   socket.emit("privateMessage", {
     from: username,
@@ -179,11 +179,8 @@ function sendMessage() {
 
   input.value = "";
 }
-// ================= RECEIVE MESSAGE =================
-
-// ================= RECEIVE MESSAGE =================
-
 socket.on("privateMessage", (data) => {
+
   console.log("📩 RECEIVED:", data);
 
   if (!data) return;
@@ -192,27 +189,82 @@ socket.on("privateMessage", (data) => {
   const to = cleanName(data.to || "");
   const me = cleanName(username || "");
 
-  const involved = from === me || to === me;
+  // ================= CHECK USER INVOLVED =================
+
+  const involved =
+    from === me || to === me;
+
   if (!involved) return;
 
-  const isMine = from === me;
+  // ================= CHECK CURRENT CHAT =================
+
+  const chattingWith =
+    from === me ? to : from;
+
+  if (
+    cleanName(currentChatUser || "") !==
+    cleanName(chattingWith)
+  ) {
+    console.log("❌ CHAT NOT OPEN");
+    return;
+  }
+
+  // ================= AVOID DOUBLE MESSAGE =================
+
+  if (
+    from === me &&
+    document.querySelectorAll(".msg.me").length > 0
+  ) {
+    return;
+  }
+
+  // ================= SHOW MESSAGE =================
 
   if (data.message) {
-    addMessage(isMine ? "You" : from, data.message);
+
+    addMessage(
+      from === me ? "You" : from,
+      data.message
+    );
+
   }
+
+  // ================= AUDIO =================
 
   if (data.audio) {
-    addVoiceMessage(isMine ? "You" : from, data.audio);
+
+    addVoiceMessage(
+      from === me ? "You" : from,
+      data.audio
+    );
+
   }
+
+  // ================= IMAGE =================
 
   if (data.image) {
-    addImageMessage(isMine ? "You" : from, data.image);
+
+    addImageMessage(
+      from === me ? "You" : from,
+      data.image
+    );
+
   }
 
+  // ================= FILE =================
+
   if (data.file) {
-    addFileMessage(isMine ? "You" : from, data.file);
+
+    addFileMessage(
+      from === me ? "You" : from,
+      data.file
+    );
+
   }
+
 });
+// ================= RECEIVE MESSAGE =================
+
 
 
 
