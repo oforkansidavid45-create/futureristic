@@ -8,10 +8,10 @@ let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
 
-// ================= CLEAN NAME =================
+// ================= CLEAN NAME (FIXED - MUST MATCH BACKEND) =================
 function cleanName(name) {
   if (!name) return "";
-  return name.toLowerCase().split("_")[0].trim();
+  return name.toString().trim().toLowerCase().replace(/\s+/g, "");
 }
 
 // ================= API + SOCKET =================
@@ -26,7 +26,7 @@ function getVal(id) {
 
 // ================= AUTH =================
 async function signup() {
-  const name = getVal("nameInput").trim().toLowerCase();
+  const name = cleanName(getVal("nameInput"));
   const pass = getVal("passwordInput");
 
   if (!name || !pass) return alert("Fill all fields");
@@ -39,18 +39,17 @@ async function signup() {
     });
 
     const data = await res.json();
-
     if (data.error) return alert(data.error);
 
     alert("Account created! Now login");
 
   } catch (err) {
-    console.log("❌ ERROR:", err);
-    alert("Server error");
+    console.log(err);
   }
 }
+
 async function login() {
-  const name = getVal("nameInput").trim().toLowerCase();
+  const name = cleanName(getVal("nameInput"));
   const pass = getVal("passwordInput");
 
   const res = await fetch(`${API}/api/auth/login`, {
@@ -60,26 +59,21 @@ async function login() {
   });
 
   const data = await res.json();
-
   if (data.error) return alert(data.error);
 
- username = cleanName(data.user); 
+  username = cleanName(data.user);
 
   document.getElementById("authScreen").style.display = "none";
   document.querySelector(".app").style.display = "flex";
 
   socket.emit("register", username);
   loadPosts();
-  const savedPic = localStorage.getItem("profilePic");
 
-if (savedPic) {
-  document.getElementById("profilePreview").src = savedPic;
+  const savedPic = localStorage.getItem("profilePic");
+  if (savedPic) {
+    document.getElementById("profilePreview").src = savedPic;
+  }
 }
-}
-// ================= USER STATUS =================
-socket.on("userStatus", (data) => {
-  console.log(data.user + " is " + data.status);
-});
 
 // ================= SOCKET CONNECT =================
 socket.on("connect", () => {
@@ -94,7 +88,6 @@ function openChat(user) {
   document.getElementById("chatTitle").innerText =
     "Chat with " + currentChatUser;
 
-  // ❌ DO NOT rebuild DOM
   document.getElementById("messagesContainer").innerHTML = "";
 
   socket.emit("seen", {
@@ -104,72 +97,55 @@ function openChat(user) {
 
   loadMessages(currentChatUser);
 }
+
 // ================= LOAD MESSAGES =================
 async function loadMessages(user) {
-  try {
-    const res = await fetch(
-      `${API}/api/messages/${cleanName(username)}/${cleanName(user)}`
-    );
+  const res = await fetch(
+    `${API}/api/messages/${cleanName(username)}/${cleanName(user)}`
+  );
 
-    const messages = await res.json();
-    const msgBox = document.getElementById("messagesContainer");
-    if (!msgBox) return;
+  const messages = await res.json();
+  const box = document.getElementById("messagesContainer");
 
-    msgBox.innerHTML = "";
+  box.innerHTML = "";
 
-    messages.forEach(m => {
-      addMessage(
-        m.from === cleanName(username) ? "You" : m.from,
-        m.message
-      );
-    });
-
-  } catch (err) {
-    console.log("❌ loadMessages error:", err);
-  }
+  messages.forEach(m => {
+    if (m.message) addMessage(m.from, m.message);
+    if (m.audio) addVoiceMessage(m.from, m.audio);
+    if (m.image) addImageMessage(m.from, m.image);
+    if (m.file) addFileMessage(m.from, m.file);
+  });
 }
 
 // ================= MESSAGE UI =================
-
 function addMessage(user, msg, status = "") {
   const box = document.getElementById("messagesContainer");
-  if (!box) return;
 
-  const isMe = user === "You";
+  const isMe = cleanName(user) === cleanName(username);
 
   const div = document.createElement("div");
   div.className = `msg ${isMe ? "me" : "other"}`;
 
   div.innerHTML = `
     <div class="bubble">
-      <div class="text">${msg}</div>
-
+      <div>${msg}</div>
       <div class="meta">
-        <span class="time">${new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit"
-        })}</span>
-
-     ${isMe ? `<span class="msg-status">${status}</span>` : ""}
+        <span>${new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}</span>
+        ${isMe ? `<span class="msg-status">${status}</span>` : ""}
       </div>
     </div>
   `;
+
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
-
-  return div; // ✅ IMPORTANT (we will update tick later)
 }
-// ================= SEND MESSAGE =================
 
+// ================= SEND MESSAGE =================
 function sendMessage() {
   const input = document.getElementById("chatInput");
-  if (!input) return;
-
   const message = input.value.trim();
-  if (!message || !currentChatUser) return;
 
-  // create message FIRST and keep reference
- addMessage("You", message, "✔");
+  if (!message || !currentChatUser) return;
 
   socket.emit("privateMessage", {
     from: username,
@@ -180,68 +156,32 @@ function sendMessage() {
   input.value = "";
 }
 
-// ================= RECEIVE MESSAGE =================
-
-
+// ================= RECEIVE MESSAGE (FIXED DUPLICATION BUG) =================
 socket.on("privateMessage", (data) => {
-
-  console.log("📩 RECEIVED:", data);
-
   if (!data) return;
 
-  const from = cleanName(data.from || "");
-  const me = cleanName(username || "");
-  const isMe = from === me;
+  const from = cleanName(data.from);
+  const me = cleanName(username);
 
-  const sender = isMe ? "You" : from;
+  const sender = from === me ? "You" : from;
 
-  // TEXT MESSAGE
-  if (data.message) {
-    addMessage(sender, data.message);
-  }
-
-  // VOICE
-  if (data.audio) {
-    addVoiceMessage(sender, data.audio);
-  }
-
-  // IMAGE
-  if (data.image) {
-    addImageMessage(sender, data.image);
-  }
-
-  // FILE
-  if (data.file) {
-    addFileMessage(sender, data.file);
-  }
-
+  if (data.message) addMessage(sender, data.message);
+  if (data.audio) addVoiceMessage(sender, data.audio);
+  if (data.image) addImageMessage(sender, data.image);
+  if (data.file) addFileMessage(sender, data.file);
 });
 
-// ================= SEEN (ONLY WHEN CHAT IS OPEN) =================
-function markSeen() {
-  if (!currentChatUser) return;
-
-  socket.emit("seen", {
-    from: username,
-    to: currentChatUser
-  });
-}
-//============= ONLINE USERS =================
+// ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
-  if (!username) return;
-
   const container = document.getElementById("onlineUsers");
-  if (!container) return;
 
-  container.innerHTML =
-    users
-      .filter(u => u && cleanName(u) !== cleanName(username))
-      .map(u => `
-        <div class="online-user" onclick="openChat('${u}')">
-          🟢 ${cleanName(u)}
-        </div>
-      `)
-      .join("");
+  container.innerHTML = users
+    .filter(u => cleanName(u) !== cleanName(username))
+    .map(u => `
+      <div class="online-user" onclick="openChat('${u}')">
+        🟢 ${u}
+      </div>
+    `).join("");
 });
 
 // ================= TYPING =================
@@ -263,510 +203,78 @@ function handleTyping() {
   }, 800);
 }
 
-socket.on("typing", (data) => {
-  if (!currentChatUser) return;
-
-  if (cleanName(data.from) !== cleanName(currentChatUser)) return;
-
-  const bubble = document.getElementById("typingIndicator");
-
-  if (bubble) {
-    bubble.style.display = "block";
-    bubble.innerText = cleanName(data.from) + " is typing...";
-  }
-});
-
-socket.on("stopTyping", (data) => {
-  if (!currentChatUser) return;
-
-  if (cleanName(data.from) !== cleanName(currentChatUser)) return;
-
-  const bubble = document.getElementById("typingIndicator");
-
-  if (bubble) {
-    bubble.style.display = "none";
-    bubble.innerText = "";
-  }
-});
-socket.on("messageStatus", (data) => {
-  const ticks = document.querySelectorAll(".tick");
-
-  if (ticks.length) {
-    const lastTick = ticks[ticks.length - 1];
-
-    if (data.status === "delivered") {
-      lastTick.innerText = "✔✔";
-      lastTick.style.color = "gray";
-    }
-  }
-});
-socket.on("messageSeen", () => {
-  document.querySelectorAll(".msg-status").forEach(el => {
-    el.innerText = "✔✔";
-    el.style.color = "cyan";
-  });
-});
-
-// ================= POSTS =================
-async function loadPosts() {
-
-  const res = await fetch(`${API}/api/posts`);
-  const posts = await res.json();
-
-  const container = document.getElementById("posts");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  posts.forEach(post => {
-
-    const div = document.createElement("div");
-
-    div.className = "post";
-
-    div.innerHTML = `
-    
-      <div class="post-top">
-
-      <img
-  src="${post.profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
-  class="post-avatar"
-  onclick="openProfile('${post.user}')"
-/>
-
-        <div>
-<div
-  class="post-user"
-  onclick="openProfile('${post.user}')"
->
-  ${post.user}
-</div>
-
-          <small class="post-time">
-            Just now
-          </small>
-
-        </div>
-
-      </div>
-
-      <div class="post-text">
-        ${post.text}
-      </div>
-
-      <button
-        class="like-btn"
-        onclick="likePost('${post._id}')"
-      >
-        ❤️ ${post.likes}
-      </button>
-
-    `;
-
-    container.appendChild(div);
-
-  });
-
-}
-
-async function createPost() {
-  const input = document.getElementById("postInput");
-  if (!input) return;
-
-  const text = input.value.trim();
-  if (!text || !username) return;
-
-  await fetch(`${API}/api/posts`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user: cleanName(username),
-      text
-    })
-  });
-
-  input.value = "";
-  loadPosts();
-}
-
-async function likePost(id) {
-  await fetch(`${API}/api/posts/like/${id}`, { method: "PUT" });
-  loadPosts();
-}
-// ================= VOICE RECORD =================
-
-async function startRecording() {
-
-  try {
-
-    // START RECORDING
-    if (!isRecording) {
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
-
-      mediaRecorder = new MediaRecorder(stream);
-
-      audioChunks = [];
-
-      mediaRecorder.start();
-
-      isRecording = true;
-
-      console.log("🎙️ Recording started");
-
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-      };
-
-      mediaRecorder.onstop = async () => {
-
-        const audioBlob = new Blob(audioChunks, {
-          type: "audio/webm"
-        });
-
-        const reader = new FileReader();
-
-        reader.readAsDataURL(audioBlob);
-
-        reader.onloadend = () => {
-
-          const base64Audio = reader.result;
-
-          // SHOW MY AUDIO
-          addVoiceMessage("You", base64Audio);
-
-          // SEND TO SERVER
-          socket.emit("privateMessage", {
-            from: username,
-            to: currentChatUser,
-            audio: base64Audio
-          });
-
-        };
-
-      };
-
-    }
-
-    // STOP RECORDING
-    else {
-
-      mediaRecorder.stop();
-
-      isRecording = false;
-
-      console.log("🛑 Recording stopped");
-
-    }
-
-  } catch (err) {
-
-    console.log("❌ MIC ERROR:", err);
-
-    alert("Microphone access denied");
-
-  }
-
-}
-
-// ================= VOICE UI =================
-
+// ================= VOICE =================
 function addVoiceMessage(user, audioSrc) {
-
   const box = document.getElementById("messagesContainer");
 
-  if (!box) return;
-
-  const isMe = user === "You";
+  const isMe = cleanName(user) === cleanName(username);
 
   const div = document.createElement("div");
-
   div.className = `msg ${isMe ? "me" : "other"}`;
 
   div.innerHTML = `
     <div class="bubble">
-      <audio controls>
-        <source src="${audioSrc}" type="audio/webm">
-      </audio>
+      <audio controls src="${audioSrc}"></audio>
     </div>
   `;
 
   box.appendChild(div);
-
-  box.scrollTop = box.scrollHeight;
-
 }
-// ================= IMAGE MESSAGE =================
 
-function addImageMessage(user, imageSrc) {
+// ================= IMAGE =================
+function addImageMessage(user, src) {
+  const box = document.getElementById("messagesContainer");
 
-  const box =
-    document.getElementById("messagesContainer");
-
-  if (!box) return;
-
-  const isMe = user === "You";
+  const isMe = cleanName(user) === cleanName(username);
 
   const div = document.createElement("div");
-
-  div.className =
-    `msg ${isMe ? "me" : "other"}`;
+  div.className = `msg ${isMe ? "me" : "other"}`;
 
   div.innerHTML = `
     <div class="bubble">
-      <img
-        src="${imageSrc}"
-        class="chat-image"
-      >
+      <img src="${src}" class="chat-image">
     </div>
   `;
 
   box.appendChild(div);
-
-  box.scrollTop = box.scrollHeight;
-
 }
 
-
-// ================= FILE UI =================
-
+// ================= FILE =================
 function addFileMessage(user, file) {
+  const box = document.getElementById("messagesContainer");
 
-  const box =
-    document.getElementById("messagesContainer");
-
-  if (!box) return;
-
-  const isMe = user === "You";
+  const isMe = cleanName(user) === cleanName(username);
 
   const div = document.createElement("div");
-
-  div.className =
-    `msg ${isMe ? "me" : "other"}`;
-
-  let content = "";
-
-  // IMAGE
-  if (file.type.startsWith("image/")) {
-
-    content = `
-      <img src="${file.data}"
-           class="chat-image">
-    `;
-
-  }
-
-  // VIDEO
-  else if (file.type.startsWith("video/")) {
-
-    content = `
-      <video controls class="chat-video">
-        <source src="${file.data}">
-      </video>
-    `;
-
-  }
-
-  // OTHER FILES
-  else {
-
-    content = `
-      <a href="${file.data}"
-         download="${file.name}"
-         class="file-link">
-         📁 ${file.name}
-      </a>
-    `;
-
-  }
+  div.className = `msg ${isMe ? "me" : "other"}`;
 
   div.innerHTML = `
     <div class="bubble">
-      ${content}
+      <a href="${file.data}" download>${file.name}</a>
     </div>
   `;
 
   box.appendChild(div);
-
-  box.scrollTop = box.scrollHeight;
-
 }
 
 // ================= FILE SEND =================
-
-async function sendFile() {
-
-  const file =
-    document.getElementById("fileInput").files[0];
-
+function sendFile() {
+  const file = document.getElementById("fileInput").files[0];
   if (!file || !currentChatUser) return;
 
   const reader = new FileReader();
 
-  reader.readAsDataURL(file);
-
   reader.onload = () => {
-
-    const fileData = reader.result;
-
     socket.emit("privateMessage", {
       from: username,
       to: currentChatUser,
       file: {
         name: file.name,
         type: file.type,
-        data: fileData
+        data: reader.result
       }
     });
-
-    addFileMessage("You", {
-      name: file.name,
-      type: file.type,
-      data: fileData
-    });
-
   };
 
-}
-
-// ================= MOBILE =================
-function toggleChat() {
-  const panel = document.getElementById("chatPanel");
-  if (panel) panel.classList.toggle("active");
-}
-
-function showFeed() {
-  const panel = document.getElementById("chatPanel");
-  if (panel) panel.classList.remove("active");
-}
-
-
-// ================= PROFILE VIEW =================
-
-async function openProfile(user) {
-
-  document.getElementById(
-    "profileModal"
-  ).style.display = "flex";
-
-  document.getElementById(
-    "profileModalName"
-  ).innerText = user;
-
-  const res = await fetch(`${API}/api/posts`);
-
-  const posts = await res.json();
-
-  const userPosts =
-    posts.filter(
-      p => cleanName(p.user) === cleanName(user)
-    );
-
-  // SET PROFILE PIC
-  const firstPost = userPosts[0];
-
-  document.getElementById(
-    "profileModalPic"
-  ).src =
-    firstPost?.profilePic ||
-    "https://i.imgur.com/HeIi0wU.png";
-
-  const container =
-    document.getElementById("profilePosts");
-
-  container.innerHTML = "";
-
-  if (userPosts.length === 0) {
-
-    container.innerHTML =
-      "<p style='padding:20px;'>No posts yet</p>";
-
-    return;
-  }
-
-  userPosts.forEach(post => {
-
-    container.innerHTML += `
-    
-      <div class="profile-post">
-
-        ${post.text}
-
-      </div>
-
-    `;
-
-  });
-
-}
-
-function closeProfile() {
-
-  document.getElementById(
-    "profileModal"
-  ).style.display = "none";
-
-}
-
-function closeProfile() {
-
-  document.getElementById(
-    "profileModal"
-  ).style.display = "none";
-
-}
-// ================= PROFILE PIC =================
-
-async function uploadProfilePic() {
-
-  const file =
-    document.getElementById("profileInput").files[0];
-
-  if (!file) return;
-
-  const formData = new FormData();
-
-  formData.append("image", file);
-  formData.append("username", username);
-
-  try {
-
-    const res = await fetch(
-      `${API}/api/upload-profile`,
-      {
-        method: "POST",
-        body: formData
-      }
-    );
-
-    const data = await res.json();
-
-    if (data.profilePic) {
-
-      document.getElementById(
-        "profilePreview"
-      ).src = data.profilePic;
-
-      localStorage.setItem(
-        "profilePic",
-        data.profilePic
-      );
-
-    }
-
-  } catch (err) {
-
-    console.log(err);
-    alert("Upload failed");
-
-  }
-
-}
-
-function logout() {
-  localStorage.removeItem("fb_user");
-  location.reload();
+  reader.readAsDataURL(file);
 }

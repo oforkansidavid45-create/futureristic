@@ -5,27 +5,41 @@ const MessageSchema = new mongoose.Schema(
     from: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      lowercase: true
     },
 
     to: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      lowercase: true
     },
 
-    // 🔥 FIX: must always be consistent (important for DM history)
+    // 🔥 optional but useful (NOT required)
     roomId: {
       type: String,
-      required: true,
       index: true
     },
 
-    text: {
+    message: {
       type: String,
-      required: true,
-      trim: true,
-      maxlength: 2000
+      default: ""
+    },
+
+    audio: {
+      type: String,
+      default: null
+    },
+
+    image: {
+      type: String,
+      default: null
+    },
+
+    file: {
+      type: Object,
+      default: null
     },
 
     status: {
@@ -34,22 +48,18 @@ const MessageSchema = new mongoose.Schema(
       default: "sent"
     },
 
-    // 🔥 read receipt support
     seenAt: {
       type: Date,
       default: null
     }
-
   },
   {
     timestamps: true
   }
 );
 
-// =========================
-// ⚡ INDEXES (GOOD)
-// =========================
-MessageSchema.index({ roomId: 1, createdAt: 1 });
+// INDEXES
 MessageSchema.index({ from: 1, to: 1, createdAt: -1 });
+MessageSchema.index({ roomId: 1 });
 
 module.exports = mongoose.model("Message", MessageSchema);

@@ -252,6 +252,7 @@ socket.on("register", (username) => {
 });
 
   // ================= PRIVATE MESSAGE =================
+
 socket.on("privateMessage", async (data) => {
 
   try {
@@ -261,9 +262,7 @@ socket.on("privateMessage", async (data) => {
     const from = cleanName(data.from);
     const to = cleanName(data.to);
 
-    console.log("FROM:", from);
-    console.log("TO:", to);
-    console.log("USERS:", users);
+    if (!from || !to) return;
 
     const payload = {
       from,
@@ -276,28 +275,21 @@ socket.on("privateMessage", async (data) => {
 
     await new Message(payload).save();
 
-    // SEND TO RECEIVER
+    // ✅ ONLY SEND TO RECEIVER
     if (users[to]?.length) {
       users[to].forEach(id => {
-        console.log("📨 TO RECEIVER SOCKET:", id);
+        console.log("📨 SENT TO RECEIVER:", id);
         io.to(id).emit("privateMessage", payload);
       });
     } else {
       console.log("❌ RECEIVER OFFLINE:", to);
     }
 
-    // SEND BACK TO SENDER
-    if (users[from]?.length) {
-      users[from].forEach(id => {
-        console.log("📨 BACK TO SENDER:", id);
-        io.to(id).emit("privateMessage", payload);
-      });
-    }
-
   } catch (err) {
     console.log("❌ ERROR:", err);
   }
 
+});
 });
   // ================= TYPING =================
 
@@ -366,7 +358,7 @@ socket.on("privateMessage", async (data) => {
 
   });
 
-});
+
 // ================= POSTS =================
 app.post("/api/posts", async (req, res) => {
   try {
