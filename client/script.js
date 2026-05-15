@@ -85,6 +85,7 @@ async function signup() {
 }
 
 async function login() {
+
   const name = cleanName(getVal("nameInput"));
   const pass = getVal("passwordInput");
 
@@ -95,24 +96,32 @@ async function login() {
   });
 
   const data = await res.json();
+
   if (data.error) return alert(data.error);
 
   username = cleanName(data.user);
+
+  if (!username) {
+    console.log("LOGIN FAILED");
+    return;
+  }
 
   document.getElementById("authScreen").style.display = "none";
   document.querySelector(".app").style.display = "flex";
 
   socket.emit("register", username);
+
   loadPosts();
 
   const savedPic = localStorage.getItem("profilePic");
   if (savedPic) {
     document.getElementById("profilePreview").src = savedPic;
   }
-}
-setInterval(loadNotifications, 5000);
-loadNotifications();
 
+  // ✅ START NOTIFICATIONS ONLY AFTER LOGIN
+  setInterval(loadNotifications, 5000);
+  loadNotifications();
+}
 // ================= SOCKET CONNECT =================
 socket.on("connect", () => {
   console.log("✅ CONNECTED:", socket.id);
@@ -962,6 +971,9 @@ function showNotifications() {
   panel.classList.toggle("active");
 
   loadNotifications();
+}
+function loadNotifications() {
+  if (!username) return; // ✅ STOP NULL REQUESTS
 }
 function showSettings() {
   showToast("Settings coming soon 🔧");

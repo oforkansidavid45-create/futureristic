@@ -149,44 +149,54 @@
     </div>
 
     <!-- CHAT INPUT -->
-    <div class="chat-input">
+  
+   <div class="chat-input">
 
-      <input
-        id="chatInput"
-        placeholder="Type message..."
-        oninput="handleTyping()"
-      />
+  <!-- FILE -->
+  <input
+    type="file"
+    id="fileInput"
+    hidden
+    onchange="sendFile()"
+  />
 
-    <input type="file"
-       id="fileInput"
-       hidden
-       onchange="sendFile()" />
+  <!-- IMAGE -->
+  <input
+    type="file"
+    id="imageInput"
+    accept="image/*"
+    hidden
+    onchange="sendImage()"
+  />
 
-<button onclick="document.getElementById('fileInput').click()">
-  <i class="fa-solid fa-paperclip"></i>
-</button>
+  <!-- 📎 ATTACH -->
+  <button onclick="document.getElementById('fileInput').click()">
+    <i class="fa-solid fa-paperclip"></i>
+  </button>
 
-<button onclick="startRecording()">
-  <i class="fa-solid fa-microphone"></i>
-</button>
-<input
-  type="file"
-  id="imageInput"
-  accept="image/*"
-  hidden
-  onchange="sendImage()"
-/>
+  <!-- 📷 IMAGE (NOW CLEAN ICON) -->
+  <button onclick="document.getElementById('imageInput').click()">
+    <i class="fa-solid fa-image"></i>
+  </button>
 
-<button
-  class="chat-icon-btn"
-  onclick="document.getElementById('imageInput').click()"
->
-  <i class="fa-solid fa-image"></i>
-</button>
-      <button onclick="sendMessage()">
-        <i class="fa-solid fa-paper-plane"></i>
-      </button>
-   
+  <!-- INPUT -->
+  <input
+    id="chatInput"
+    placeholder="Type message..."
+    oninput="handleTyping()"
+  />
+
+  <!-- MIC -->
+  <button onclick="startRecording()">
+    <i class="fa-solid fa-microphone"></i>
+  </button>
+
+  <!-- SEND -->
+  <button onclick="sendMessage()">
+    <i class="fa-solid fa-paper-plane"></i>
+  </button>
+
+</div>
 
 
     </div>

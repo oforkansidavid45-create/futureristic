@@ -48,6 +48,11 @@ let requests = {};       // pending requests
 function emitOnlineUsers() {
   io.emit("onlineUsers", Object.keys(users));
 }
+app.get("/api/friend-requests/:user", (req, res) => {
+  const user = cleanName(req.params.user);
+
+  res.json(requests[user] || []);
+});
 app.get("/test", (req, res) => {
   res.send("Backend working");
 });
@@ -259,69 +264,52 @@ io.on("connection", (socket) => {
 
   // ================= PRIVATE MESSAGE =================
 
-  socket.on("privateMessage", async (data) => {
+ socket.on("privateMessage", async (data) => {
 
-    try {
-const isFriend =
-  friends[from]?.includes(to);
+  try {
 
-if (!isFriend) {
-  console.log("❌ BLOCKED: not friends");
-  return;
-}
-      const from = cleanName(data.from);
-      const to = cleanName(data.to);
+    const from = cleanName(data.from);
+    const to = cleanName(data.to);
 
-      const payload = {
-        from,
-        to,
-        message: data.message || "",
-        audio: data.audio || null,
-        image: data.image || null,
-        file: data.file || null
-      };
+    // 🚨 FRIEND CHECK (FIXED)
+    const isFriend =
+      friends[from]?.includes(to);
 
-      await new Message(payload).save();
-
-      // SEND TO RECEIVER
-      if (users[to]?.length) {
-
-        users[to].forEach(id => {
-
-          io.to(id).emit(
-            "privateMessage",
-            payload
-          );
-
-        });
-
-      }
-
-      // SEND BACK TO SENDER
-      if (users[from]?.length) {
-
-        users[from].forEach(id => {
-
-          io.to(id).emit(
-            "privateMessage",
-            payload
-          );
-
-        });
-
-      }
-
-    } catch (err) {
-
-      console.log(
-        "❌ MESSAGE ERROR:",
-        err
-      );
-
+    if (!isFriend) {
+      console.log("❌ BLOCKED: not friends");
+      return;
     }
 
-  });
+    const payload = {
+      from,
+      to,
+      message: data.message || "",
+      audio: data.audio || null,
+      image: data.image || null,
+      file: data.file || null
+    };
 
+    await new Message(payload).save();
+
+    // SEND TO RECEIVER
+    if (users[to]?.length) {
+      users[to].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
+      });
+    }
+
+    // SEND TO SENDER
+    if (users[from]?.length) {
+      users[from].forEach(id => {
+        io.to(id).emit("privateMessage", payload);
+      });
+    }
+
+  } catch (err) {
+    console.log("❌ MESSAGE ERROR:", err);
+  }
+
+});
   // ================= TYPING =================
 
   socket.on("typing", ({ from, to }) => {
@@ -519,6 +507,14 @@ app.post("/api/friend-accept", (req, res) => {
   requests[to] = (requests[to] || []).filter(u => u !== from);
 
   res.json({ message: "friend added" });
+});
+app.post("/api/friend-reject", (req, res) => {
+  const { from, to } = req.body;
+
+  requests[to] =
+    (requests[to] || []).filter(u => u !== from);
+
+  res.json({ message: "rejected" });
 });
 
 // ================= DB =================
