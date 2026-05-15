@@ -1,3 +1,6 @@
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("UI READY");
+});
 console.log("🔥 script loaded");
 // ================= API + SOCKET =================
 const API = "https://futureristic.onrender.com";
@@ -133,10 +136,10 @@ async function loadMessages(user) {
 // ================= MESSAGE UI =================
 function addMessage(user, msg, status = "") {
   const box = document.getElementById("messagesContainer");
+  if (!box) return;
 
   const isMe =
-  user === "You" ||
-  cleanName(user) === cleanName(username);
+    cleanName(user) === cleanName(username);
 
   const div = document.createElement("div");
   div.className = `msg ${isMe ? "me" : "other"}`;
@@ -145,7 +148,10 @@ function addMessage(user, msg, status = "") {
     <div class="bubble">
       <div>${msg}</div>
       <div class="meta">
-        <span>${new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}</span>
+        <span>${new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        })}</span>
         ${isMe ? `<span class="msg-status">${status}</span>` : ""}
       </div>
     </div>
@@ -154,7 +160,6 @@ function addMessage(user, msg, status = "") {
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 }
-
 // ================= SEND MESSAGE =================
 function sendMessage() {
 
@@ -193,55 +198,42 @@ socket.on("privateMessage", (data) => {
 
   if (!data) return;
 
-  const from =
-    cleanName(data.from || "");
+  const from = cleanName(data.from || "");
+  const me = cleanName(username || "");
 
-  const me =
-    cleanName(username || "");
-
-  // DON'T SHOW MY OWN MESSAGE AGAIN
-  if (from === me) return;
+  const isMine = from === me;
 
   // TEXT
   if (data.message) {
-
     addMessage(
-      from,
+      isMine ? "You" : from,
       data.message
     );
-
   }
 
   // AUDIO
   if (data.audio) {
-
     addVoiceMessage(
-      from,
+      isMine ? "You" : from,
       data.audio
     );
-
   }
 
   // IMAGE
   if (data.image) {
-
     addImageMessage(
-      from,
+      isMine ? "You" : from,
       data.image
     );
-
   }
 
   // FILE
   if (data.file) {
-
     addFileMessage(
-      from,
+      isMine ? "You" : from,
       data.file
     );
-
   }
-
 });
 
 // ================= ONLINE USERS =================
