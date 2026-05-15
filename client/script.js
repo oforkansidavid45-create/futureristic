@@ -142,21 +142,36 @@ function addMessage(user, msg, status = "") {
 
 // ================= SEND MESSAGE =================
 function sendMessage() {
-  const input = document.getElementById("chatInput");
-  const message = input.value.trim();
 
-  if (!message || !currentChatUser) return;
+  const input =
+    document.getElementById("chatInput");
+
+  if (!input) return;
+
+  const message =
+    input.value.trim();
+
+  if (!message || !currentChatUser)
+    return;
+
+  // SHOW MY MESSAGE IMMEDIATELY
+  addMessage(
+    "You",
+    message,
+    "✔"
+  );
 
   socket.emit("privateMessage", {
+
     from: username,
     to: currentChatUser,
     message
+
   });
 
   input.value = "";
-}
 
-// ================= RECEIVE MESSAGE (FIXED DUPLICATION BUG) =================
+}
 socket.on("privateMessage", (data) => {
 
   console.log("📩 RECEIVED:", data);
@@ -168,31 +183,51 @@ socket.on("privateMessage", (data) => {
 
   const isMe = from === me;
 
-  // 🔥 DON'T DUPLICATE MY OWN TEXT
-  if (isMe && data.message) {
-    return;
-  }
-
   const sender = isMe ? "You" : from;
 
-  // TEXT
+  // TEXT MESSAGE
   if (data.message) {
-    addMessage(sender, data.message);
+
+    // ONLY ADD MY MESSAGE IF NOT ALREADY ADDED
+    if (!isMe) {
+
+      addMessage(sender, data.message);
+
+    }
+
   }
 
   // VOICE
   if (data.audio) {
-    addVoiceMessage(sender, data.audio);
+
+    if (!isMe) {
+
+      addVoiceMessage(sender, data.audio);
+
+    }
+
   }
 
   // IMAGE
   if (data.image) {
-    addImageMessage(sender, data.image);
+
+    if (!isMe) {
+
+      addImageMessage(sender, data.image);
+
+    }
+
   }
 
   // FILE
   if (data.file) {
-    addFileMessage(sender, data.file);
+
+    if (!isMe) {
+
+      addFileMessage(sender, data.file);
+
+    }
+
   }
 
 });
@@ -303,4 +338,11 @@ function sendFile() {
   };
 
   reader.readAsDataURL(file);
+}
+function closeProfile() {
+
+  document.getElementById(
+    "profileModal"
+  ).style.display = "none";
+
 }
