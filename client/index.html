@@ -44,6 +44,13 @@
 
 <!-- ================= MAIN APP ================= -->
 <div class="app" style="display:none;">
+  <div id="notificationPanel" class="notification-panel">
+
+  <h3>Friend Requests</h3>
+
+  <div id="notificationList"></div>
+
+</div>
 
   <!-- ================= SIDEBAR ================= -->
   <div class="sidebar">
@@ -55,26 +62,25 @@
       Home
     </div>
 
-    <div class="menu-item">
-      <i class="fa-solid fa-user"></i>
-      Profile
-    </div>
+<div class="menu-item" onclick="showProfile()">
+  <i class="fa-solid fa-user"></i>
+  Profile
+</div>
 
-    <div class="menu-item">
-      <i class="fa-solid fa-message"></i>
-      Messages
-    </div>
+<div class="menu-item" onclick="toggleChat()">
+  <i class="fa-solid fa-message"></i>
+  Messages
+</div>
 
-    <div class="menu-item">
-      <i class="fa-solid fa-bell"></i>
-      Notifications
-    </div>
+<div class="menu-item" onclick="toggleNotifications()">
+  <i class="fa-solid fa-bell"></i>
+  Notifications
+</div>
 
-    <div class="menu-item">
-      <i class="fa-solid fa-gear"></i>
-      Settings
-    </div>
-
+<div class="menu-item" onclick="toggleSettings()">
+  <i class="fa-solid fa-gear"></i>
+  Settings
+</div>
   </div>
 
   <!-- ================= FEED ================= -->
@@ -221,27 +227,15 @@
   </div>
 
 </div>
-<div id="notificationPanel" class="notification-panel">
 
-  <div class="notification-header">
-    Notifications
-  </div>
-
-  <div id="notificationList"></div>
-
-</div>
 <!-- ================= PROFILE MODAL ================= -->
 
-<div class="profile-actions">
-  <button onclick="sendRequest(currentProfileUser)">
-    Add Friend
-  </button>
-</div>
 
 <div
   id="profileModal"
   class="profile-modal"
 >
+
 
   <div class="profile-content">
 
@@ -264,6 +258,13 @@
 
     <!-- USERNAME -->
     <h2 id="profileModalName"></h2>
+    <div class="profile-actions">
+
+  <button id="addFriendBtn">
+    Add Friend
+  </button>
+
+</div>
 
     <!-- POSTS -->
     <div id="profilePosts"></div>
@@ -277,6 +278,15 @@
 
 <!-- SCRIPT -->
 <script src="script.js"></script>
+<div id="settingsPanel" class="settings-panel">
+
+  <h3>Settings</h3>
+
+  <button onclick="logout()">
+    Logout
+  </button>
+
+</div>
 
 </body>
 </html>

@@ -569,3 +569,10 @@ html, body{
   cursor: pointer;
 
 }
+#chatPanel {
+  transition: 0.3s;
+}
+
+#chatPanel.active {
+  display: flex !important;
+}

@@ -1,3 +1,4 @@
+let currentProfileUser = null;
 function showToast(message) {
 
   let toast =
@@ -46,6 +47,7 @@ let typingTimeout = null;
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
+let friendsList = [];
 
 // ================= CLEAN NAME (FIXED - MUST MATCH BACKEND) =================
 function cleanName(name) {
@@ -238,11 +240,17 @@ function sendMessage() {
 
 }
 socket.on("privateMessage", (data) => {
+  
 
   console.log("📩 RECEIVED:", data);
 
   if (!data) return;
-
+if (
+  cleanName(data.from) === cleanName(username) &&
+  data.message
+) {
+  return;
+}
   const from = cleanName(data.from || "");
   const me = cleanName(username || "");
 
@@ -288,10 +296,17 @@ socket.on("onlineUsers", (users) => {
   container.innerHTML = users
     .filter(u => cleanName(u) !== cleanName(username))
  .map(u => `
-  <div class="online-user">
+<div class="online-user">
+
+  <span onclick="openChat('${u}')">
     🟢 ${u}
-    <button onclick="sendRequest('${u}')">➕</button>
-  </div>
+  </span>
+
+  <button onclick="sendRequest('${u}')">
+    ➕
+  </button>
+
+</div>
 `)
     .join("");
 });
@@ -604,12 +619,36 @@ async function likePost(id) {
 // ================= PROFILE VIEW =================
 
 async function openProfile(user) {
+  currentProfileUser = cleanName(user);
+
+  
 
   document.getElementById(
     "profileModal"
   ).style.display = "flex";
 
  document.getElementById("profileModalName").innerText = "@" + user;
+
+ const addBtn =
+  document.getElementById("addFriendBtn");
+
+if (addBtn) {
+
+  if (cleanName(user) === cleanName(username)) {
+
+    addBtn.style.display = "none";
+
+  } else {
+
+    addBtn.style.display = "block";
+
+    addBtn.onclick = () => {
+      sendRequest(user);
+    };
+
+  }
+
+}
 
   try {
 
@@ -953,24 +992,41 @@ async function loadNotifications() {
     console.log("Notification error:", err);
   }
 }
+function showFeed() {
 
-function showHome() {
-  document.querySelector(".feed").style.display = "block";
+  const feed = document.querySelector(".feed");
+
+  if (feed) {
+    feed.style.display = "block";
+  }
+
 }
+
 function showProfile() {
   openProfile(username);
 }
-function showMessages() {
-  showChat();
+
+function toggleSettings() {
+  const el = document.getElementById("settingsPanel");
+  if (el) el.classList.toggle("active");
 }
-function showNotifications() {
-  const panel = document.getElementById("notificationPanel");
-  panel.classList.toggle("active");
+
+function toggleNotifications() {
+  const el = document.getElementById("notificationPanel");
+  if (el) el.classList.toggle("active");
 
   loadNotifications();
 }
 
-function showSettings() {
-  showToast("Settings coming soon 🔧");
+function toggleChat() {
+  const el = document.getElementById("chatPanel");
+  if (el) el.classList.toggle("active");
 }
+socket.on("friendRequest", (data) => {
+
+  showToast(`${data.from} sent you a request`);
+
+  loadNotifications();
+
+});
 
