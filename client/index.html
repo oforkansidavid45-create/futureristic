@@ -12,6 +12,16 @@
   <link rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+<div id="imageViewer" class="image-viewer">
+
+  <span class="close-viewer"
+        onclick="closeImageViewer()">
+        ✕
+  </span>
+
+  <img id="viewerImage">
+
+</div>
 
 <body>
 
@@ -159,10 +169,7 @@
 <button onclick="startRecording()">
   <i class="fa-solid fa-microphone"></i>
 </button>
-      <button onclick="sendMessage()">
-        <i class="fa-solid fa-paper-plane"></i>
-      </button>
-      <input
+<input
   type="file"
   id="imageInput"
   accept="image/*"
@@ -170,9 +177,17 @@
   onchange="sendImage()"
 />
 
-<button onclick="document.getElementById('imageInput').click()">
-  📷
+<button
+  class="chat-icon-btn"
+  onclick="document.getElementById('imageInput').click()"
+>
+  <i class="fa-solid fa-image"></i>
 </button>
+      <button onclick="sendMessage()">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+   
+
 
     </div>
 
@@ -194,6 +209,15 @@
   <div onclick="logout()">
     <i class="fa-solid fa-right-from-bracket"></i>
   </div>
+
+</div>
+<div id="notificationPanel" class="notification-panel">
+
+  <div class="notification-header">
+    Notifications
+  </div>
+
+  <div id="notificationList"></div>
 
 </div>
 <!-- ================= PROFILE MODAL ================= -->

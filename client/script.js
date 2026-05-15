@@ -1,3 +1,28 @@
+function showToast(message) {
+
+  let toast =
+    document.getElementById("toast");
+
+  if (!toast) {
+
+    toast =
+      document.createElement("div");
+
+    toast.id = "toast";
+
+    document.body.appendChild(toast);
+
+  }
+
+  toast.innerText = message;
+
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
+
+}
 document.addEventListener("DOMContentLoaded", () => {
   console.log("UI READY");
 });
@@ -776,16 +801,37 @@ async function startRecording() {
 
 }
 async function sendRequest(user) {
-  await fetch(`${API}/api/friend-request`, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      from: username,
-      to: user
-    })
-  });
 
-  alert("Request sent");
+  try {
+
+    const res = await fetch(
+      `${API}/api/friend-request`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: username,
+          to: user
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    showToast(
+      data.message || "Request sent"
+    );
+
+  } catch (err) {
+
+    console.log(err);
+
+    showToast("Request failed");
+
+  }
+
 }
 
 // ================= LOGOUT =================
