@@ -110,6 +110,8 @@ async function login() {
     document.getElementById("profilePreview").src = savedPic;
   }
 }
+setInterval(loadNotifications, 5000);
+loadNotifications();
 
 // ================= SOCKET CONNECT =================
 socket.on("connect", () => {
@@ -589,9 +591,7 @@ async function openProfile(user) {
     "profileModal"
   ).style.display = "flex";
 
-  document.getElementById(
-    "profileModalName"
-  ).innerText = user;
+ document.getElementById("profileModalName").innerText = "@" + user;
 
   try {
 
@@ -833,7 +833,36 @@ async function sendRequest(user) {
   }
 
 }
+async function acceptRequest(fromUser) {
 
+  await fetch(`${API}/api/friend-accept`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: fromUser,
+      to: username
+    })
+  });
+
+  loadNotifications();
+  showToast("Friend request accepted");
+
+}
+async function rejectRequest(fromUser) {
+
+  await fetch(`${API}/api/friend-reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: fromUser,
+      to: username
+    })
+  });
+
+  loadNotifications();
+  showToast("Request rejected");
+
+}
 // ================= LOGOUT =================
 
 function logout() {
@@ -880,6 +909,62 @@ function showNotifications() {
   }
 
   notif.classList.toggle("active");
+}
+async function loadNotifications() {
+  try {
+
+    const res = await fetch(`${API}/api/friend-requests/${username}`);
+    const requests = await res.json();
+
+    const box = document.getElementById("notificationList");
+    if (!box) return;
+
+    box.innerHTML = "";
+
+    requests.forEach(req => {
+
+      const div = document.createElement("div");
+      div.className = "notification-item";
+
+      div.innerHTML = `
+        <div>
+          <b>${req.from}</b> sent you a friend request
+        </div>
+
+        <button onclick="acceptRequest('${req.from}')">
+          Accept
+        </button>
+
+        <button onclick="rejectRequest('${req.from}')">
+          Reject
+        </button>
+      `;
+
+      box.appendChild(div);
+
+    });
+
+  } catch (err) {
+    console.log("Notification error:", err);
+  }
+}
+function showHome() {
+  document.querySelector(".feed").style.display = "block";
+}
+function showProfile() {
+  openProfile(username);
+}
+function showMessages() {
+  showChat();
+}
+function showNotifications() {
+  const panel = document.getElementById("notificationPanel");
+  panel.classList.toggle("active");
+
+  loadNotifications();
+}
+function showSettings() {
+  showToast("Settings coming soon 🔧");
 }
 
 function showSettings() {
