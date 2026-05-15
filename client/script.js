@@ -1,4 +1,8 @@
 console.log("🔥 script loaded");
+// ================= API + SOCKET =================
+const API = "https://futureristic.onrender.com";
+const socket = io(API);
+
 window.onerror = function(msg, url, line) {
   console.log(
     "❌ GLOBAL ERROR:",
@@ -6,8 +10,7 @@ window.onerror = function(msg, url, line) {
     "LINE:",
     line
   );
-};s
-
+};
 // ================= GLOBAL =================
 let username = null;
 let currentChatUser = null;
@@ -22,9 +25,6 @@ function cleanName(name) {
   return name.toString().trim().toLowerCase().replace(/\s+/g, "");
 }
 
-// ================= API + SOCKET =================
-const API = "https://futureristic.onrender.com";
-const socket = io(API);
 
 // ================= SAFE GET INPUT =================
 function getVal(id) {
