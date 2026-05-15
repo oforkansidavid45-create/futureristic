@@ -275,10 +275,6 @@ io.on("connection", (socket) => {
     const from = cleanName(data.from);
     const to = cleanName(data.to);
 
-    // 🚨 FRIEND CHECK (FIXED)
-   const from = cleanName(data.from);
-const to = cleanName(data.to);
-
 // ensure arrays exist
 if (!friends[from]) friends[from] = [];
 if (!friends[to]) friends[to] = [];
@@ -551,9 +547,6 @@ app.post("/api/friend-reject", (req, res) => {
 });
 
 // ================= DB =================
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("🔥 MongoDB connected"))
-  .catch(err => console.log("❌ Mongo error:", err));
 
 // ================= START SERVER =================
 const PORT = process.env.PORT || 5000;

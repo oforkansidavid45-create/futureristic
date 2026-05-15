@@ -918,16 +918,7 @@ function showChat() {
   if (chat) chat.style.display = "flex";
 }
 
-function showNotifications() {
-  const notif = document.getElementById("notificationPanel");
 
-  if (!notif) {
-    console.log("Notification panel missing in HTML");
-    return;
-  }
-
-  notif.classList.toggle("active");
-}
 async function loadNotifications() {
 
   if (!username) return; // 🔥 prevent null request
@@ -978,20 +969,8 @@ function showNotifications() {
 
   loadNotifications();
 }
-function loadNotifications() {
-  if (!username) return; // ✅ STOP NULL REQUESTS
-}
+
 function showSettings() {
   showToast("Settings coming soon 🔧");
 }
 
-function showSettings() {
-  const settings = document.getElementById("settingsPanel");
-
-  if (!settings) {
-    console.log("Settings panel missing in HTML");
-    return;
-  }
-
-  settings.classList.toggle("active");
-}
