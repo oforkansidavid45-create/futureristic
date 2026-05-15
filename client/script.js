@@ -1,4 +1,12 @@
 console.log("🔥 script loaded");
+window.onerror = function(msg, url, line) {
+  console.log(
+    "❌ GLOBAL ERROR:",
+    msg,
+    "LINE:",
+    line
+  );
+};s
 
 // ================= GLOBAL =================
 let username = null;
@@ -178,55 +186,52 @@ socket.on("privateMessage", (data) => {
 
   if (!data) return;
 
-  const from = cleanName(data.from || "");
-  const me = cleanName(username || "");
+  const from =
+    cleanName(data.from || "");
 
-  const isMe = from === me;
+  const me =
+    cleanName(username || "");
 
-  const sender = isMe ? "You" : from;
+  // DON'T SHOW MY OWN MESSAGE AGAIN
+  if (from === me) return;
 
-  // TEXT MESSAGE
+  // TEXT
   if (data.message) {
 
-    // ONLY ADD MY MESSAGE IF NOT ALREADY ADDED
-    if (!isMe) {
-
-      addMessage(sender, data.message);
-
-    }
+    addMessage(
+      from,
+      data.message
+    );
 
   }
 
-  // VOICE
+  // AUDIO
   if (data.audio) {
 
-    if (!isMe) {
-
-      addVoiceMessage(sender, data.audio);
-
-    }
+    addVoiceMessage(
+      from,
+      data.audio
+    );
 
   }
 
   // IMAGE
   if (data.image) {
 
-    if (!isMe) {
-
-      addImageMessage(sender, data.image);
-
-    }
+    addImageMessage(
+      from,
+      data.image
+    );
 
   }
 
   // FILE
   if (data.file) {
 
-    if (!isMe) {
-
-      addFileMessage(sender, data.file);
-
-    }
+    addFileMessage(
+      from,
+      data.file
+    );
 
   }
 
@@ -344,5 +349,387 @@ function closeProfile() {
   document.getElementById(
     "profileModal"
   ).style.display = "none";
+
+}// ================= POSTS =================
+
+async function loadPosts() {
+
+  try {
+
+    const res = await fetch(`${API}/api/posts`);
+
+    const posts = await res.json();
+
+    const container =
+      document.getElementById("posts");
+
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    posts.forEach(post => {
+
+      const div =
+        document.createElement("div");
+
+      div.className = "post";
+
+      div.innerHTML = `
+
+        <div class="post-top">
+
+          <img
+            src="${post.profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
+            class="post-avatar"
+            onclick="openProfile('${post.user}')"
+          >
+
+          <div>
+
+            <div
+              class="post-user"
+              onclick="openProfile('${post.user}')"
+            >
+              ${post.user}
+            </div>
+
+            <small class="post-time">
+              Just now
+            </small>
+
+          </div>
+
+        </div>
+
+        <div class="post-text">
+          ${post.text}
+        </div>
+
+        <button
+          class="like-btn"
+          onclick="likePost('${post._id}')"
+        >
+          ❤️ ${post.likes}
+        </button>
+
+      `;
+
+      container.appendChild(div);
+
+    });
+
+  } catch (err) {
+
+    console.log(
+      "❌ LOAD POSTS ERROR:",
+      err
+    );
+
+  }
+
+}
+
+// ================= CREATE POST =================
+
+async function createPost() {
+
+  const input =
+    document.getElementById("postInput");
+
+  if (!input) return;
+
+  const text =
+    input.value.trim();
+
+  if (!text || !username)
+    return;
+
+  try {
+
+    await fetch(`${API}/api/posts`, {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        user: username,
+        text
+      })
+
+    });
+
+    input.value = "";
+
+    loadPosts();
+
+  } catch (err) {
+
+    console.log(
+      "❌ CREATE POST ERROR:",
+      err
+    );
+
+  }
+
+}
+
+// ================= LIKE POST =================
+
+async function likePost(id) {
+
+  try {
+
+    await fetch(
+      `${API}/api/posts/like/${id}`,
+      {
+        method: "PUT"
+      }
+    );
+
+    loadPosts();
+
+  } catch (err) {
+
+    console.log(
+      "❌ LIKE ERROR:",
+      err
+    );
+
+  }
+
+}
+
+// ================= PROFILE VIEW =================
+
+async function openProfile(user) {
+
+  document.getElementById(
+    "profileModal"
+  ).style.display = "flex";
+
+  document.getElementById(
+    "profileModalName"
+  ).innerText = user;
+
+  try {
+
+    const res =
+      await fetch(`${API}/api/posts`);
+
+    const posts =
+      await res.json();
+
+    const userPosts =
+      posts.filter(
+        p =>
+          cleanName(p.user) ===
+          cleanName(user)
+      );
+
+    const firstPost =
+      userPosts[0];
+
+    document.getElementById(
+      "profileModalPic"
+    ).src =
+      firstPost?.profilePic ||
+      "https://i.imgur.com/HeIi0wU.png";
+
+    const container =
+      document.getElementById(
+        "profilePosts"
+      );
+
+    container.innerHTML = "";
+
+    if (userPosts.length === 0) {
+
+      container.innerHTML =
+        "<p style='padding:20px;'>No posts yet</p>";
+
+      return;
+
+    }
+
+    userPosts.forEach(post => {
+
+      container.innerHTML += `
+
+        <div class="profile-post">
+
+          ${post.text}
+
+        </div>
+
+      `;
+
+    });
+
+  } catch (err) {
+
+    console.log(
+      "❌ PROFILE ERROR:",
+      err
+    );
+
+  }
+
+}
+
+// ================= PROFILE PIC =================
+
+async function uploadProfilePic() {
+
+  const file =
+    document.getElementById(
+      "profileInput"
+    ).files[0];
+
+  if (!file) return;
+
+  const formData =
+    new FormData();
+
+  formData.append(
+    "image",
+    file
+  );
+
+  formData.append(
+    "username",
+    username
+  );
+
+  try {
+
+    const res =
+      await fetch(
+        `${API}/api/upload-profile`,
+        {
+          method: "POST",
+          body: formData
+        }
+      );
+
+    const data =
+      await res.json();
+
+    if (data.profilePic) {
+
+      document.getElementById(
+        "profilePreview"
+      ).src =
+        data.profilePic;
+
+      localStorage.setItem(
+        "profilePic",
+        data.profilePic
+      );
+
+    }
+
+  } catch (err) {
+
+    console.log(
+      "❌ PROFILE PIC ERROR:",
+      err
+    );
+
+  }
+
+}
+
+// ================= VOICE RECORD =================
+
+async function startRecording() {
+
+  try {
+
+    if (!isRecording) {
+
+      const stream =
+        await navigator
+          .mediaDevices
+          .getUserMedia({
+            audio: true
+          });
+
+      mediaRecorder =
+        new MediaRecorder(stream);
+
+      audioChunks = [];
+
+      mediaRecorder.start();
+
+      isRecording = true;
+
+      mediaRecorder.ondataavailable =
+        (e) => {
+          audioChunks.push(e.data);
+        };
+
+      mediaRecorder.onstop =
+        () => {
+
+          const blob =
+            new Blob(
+              audioChunks,
+              {
+                type: "audio/webm"
+              }
+            );
+
+          const reader =
+            new FileReader();
+
+          reader.readAsDataURL(blob);
+
+          reader.onloadend =
+            () => {
+
+              socket.emit(
+                "privateMessage",
+                {
+                  from: username,
+                  to: currentChatUser,
+                  audio: reader.result
+                }
+              );
+
+            };
+
+        };
+
+    } else {
+
+      mediaRecorder.stop();
+
+      isRecording = false;
+
+    }
+
+  } catch (err) {
+
+    console.log(
+      "❌ MIC ERROR:",
+      err
+    );
+
+  }
+
+}
+
+// ================= LOGOUT =================
+
+function logout() {
+
+  localStorage.removeItem(
+    "profilePic"
+  );
+
+  location.reload();
 
 }
