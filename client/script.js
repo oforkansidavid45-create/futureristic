@@ -290,26 +290,42 @@ const isMe =
   box.appendChild(div);
 }
 
-// ================= IMAGE =================
+// ================= IMAGE MESSAGE =================
+
 function addImageMessage(user, src) {
-  const box = document.getElementById("messagesContainer");
 
- const isMe =
-  user === "You" ||
-  cleanName(user) === cleanName(username);
+  const box =
+    document.getElementById("messagesContainer");
 
-  const div = document.createElement("div");
-  div.className = `msg ${isMe ? "me" : "other"}`;
+  const isMe =
+    user === "You" ||
+    cleanName(user) === cleanName(username);
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    `msg ${isMe ? "me" : "other"}`;
 
   div.innerHTML = `
+  
     <div class="bubble">
-      <img src="${src}" class="chat-image">
+
+      <img
+        src="${src}"
+        class="chat-image"
+        onclick="openImageViewer('${src}')"
+      >
+
     </div>
+
   `;
 
   box.appendChild(div);
-}
 
+  box.scrollTop = box.scrollHeight;
+
+}
 // ================= FILE =================
 function addFileMessage(user, file) {
   const box = document.getElementById("messagesContainer");
@@ -350,6 +366,38 @@ function sendFile() {
   };
 
   reader.readAsDataURL(file);
+}
+// ================= SEND IMAGE =================
+
+function sendImage() {
+
+  const file =
+    document.getElementById("imageInput").files[0];
+
+  if (!file || !currentChatUser) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+
+    const imageData = reader.result;
+
+    // SHOW MY IMAGE
+    addImageMessage("You", imageData);
+
+    // SEND TO RECEIVER
+    socket.emit("privateMessage", {
+
+      from: username,
+      to: currentChatUser,
+      image: imageData
+
+    });
+
+  };
+
+  reader.readAsDataURL(file);
+
 }
 function closeProfile() {
 
@@ -738,5 +786,26 @@ function logout() {
   );
 
   location.reload();
+
+}
+// ================= IMAGE VIEWER =================
+
+function openImageViewer(src) {
+
+  document.getElementById(
+    "imageViewer"
+  ).style.display = "flex";
+
+  document.getElementById(
+    "viewerImage"
+  ).src = src;
+
+}
+
+function closeImageViewer() {
+
+  document.getElementById(
+    "imageViewer"
+  ).style.display = "none";
 
 }

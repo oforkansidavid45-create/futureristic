@@ -424,3 +424,47 @@ html, body{
   font-size:14px;
   font-weight:bold;
 }
+/* ================= IMAGE VIEWER ================= */
+
+.image-viewer{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.95);
+
+  display:none;
+  justify-content:center;
+  align-items:center;
+
+  z-index:99999;
+}
+
+.image-viewer img{
+  max-width:95%;
+  max-height:95%;
+  border-radius:12px;
+}
+
+.close-viewer{
+  position:absolute;
+  top:20px;
+  right:25px;
+
+  font-size:32px;
+  color:white;
+  cursor:pointer;
+}
+
+/* ================= CLICKABLE CHAT IMAGE ================= */
+
+.chat-image{
+  width:220px;
+  max-width:100%;
+  border-radius:14px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.chat-image:hover{
+  opacity:0.9;
+  transform:scale(1.02);
+}
