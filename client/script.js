@@ -119,8 +119,17 @@ async function login() {
   }
 
   // ✅ START NOTIFICATIONS ONLY AFTER LOGIN
-  setInterval(loadNotifications, 5000);
-  loadNotifications();
+  // ================= NOTIFICATIONS =================
+
+  if (!window.notifInterval) {
+
+    loadNotifications(); // run once immediately
+
+    window.notifInterval = setInterval(() => {
+      loadNotifications();
+    }, 5000);
+
+  }
 }
 // ================= SOCKET CONNECT =================
 socket.on("connect", () => {
@@ -920,43 +929,40 @@ function showNotifications() {
   notif.classList.toggle("active");
 }
 async function loadNotifications() {
+
+  if (!username) return; // 🔥 prevent null request
+
   try {
 
-    const res = await fetch(`${API}/api/friend-requests/${username}`);
-    const requests = await res.json();
+    const res = await fetch(
+      `${API}/api/friend-requests/${username}`
+    );
+
+    const data = await res.json();
 
     const box = document.getElementById("notificationList");
+
     if (!box) return;
 
     box.innerHTML = "";
 
-    requests.forEach(req => {
+    data.forEach(user => {
+      box.innerHTML += `
+        <div class="notif-item">
+          <span>${user}</span>
 
-      const div = document.createElement("div");
-      div.className = "notification-item";
+          <button onclick="acceptRequest('${user}')">Accept</button>
+          <button onclick="rejectRequest('${user}')">Reject</button>
 
-      div.innerHTML = `
-        <div>
-          <b>${req.from}</b> sent you a friend request
         </div>
-
-        <button onclick="acceptRequest('${req.from}')">
-          Accept
-        </button>
-
-        <button onclick="rejectRequest('${req.from}')">
-          Reject
-        </button>
       `;
-
-      box.appendChild(div);
-
     });
 
   } catch (err) {
     console.log("Notification error:", err);
   }
 }
+
 function showHome() {
   document.querySelector(".feed").style.display = "block";
 }

@@ -342,13 +342,15 @@ html, body{
 }
 
 .chat-input button{
-  width:38px;
+  width:30px;
   height:38px;
   border:none;
   border-radius:50%;
-  background:#0084ff;
+  background:transparent !important;
+
   color:white;
   cursor:pointer;
+    padding: 5px;
 }
 
 /* ================= MOBILE ================= */

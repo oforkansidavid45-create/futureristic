@@ -51,7 +51,11 @@ function emitOnlineUsers() {
 app.get("/api/friend-requests/:user", (req, res) => {
   const user = cleanName(req.params.user);
 
-  res.json(requests[user] || []);
+  if (!user) {
+    return res.status(400).json({ error: "Missing user" });
+  }
+
+  return res.json(requests[user] || []);
 });
 app.get("/test", (req, res) => {
   res.send("Backend working");
@@ -272,13 +276,22 @@ io.on("connection", (socket) => {
     const to = cleanName(data.to);
 
     // 🚨 FRIEND CHECK (FIXED)
-    const isFriend =
-      friends[from]?.includes(to);
+   const from = cleanName(data.from);
+const to = cleanName(data.to);
 
-    if (!isFriend) {
-      console.log("❌ BLOCKED: not friends");
-      return;
-    }
+// ensure arrays exist
+if (!friends[from]) friends[from] = [];
+if (!friends[to]) friends[to] = [];
+
+// check both sides (IMPORTANT)
+const isFriend =
+  friends[from].includes(to) ||
+  friends[to].includes(from);
+
+if (!isFriend) {
+  console.log("❌ BLOCKED: not friends");
+  return;
+}
 
     const payload = {
       from,
@@ -486,13 +499,25 @@ app.post("/api/posts/comment/:id", async (req, res) => {
 app.post("/api/friend-request", (req, res) => {
   const { from, to } = req.body;
 
-  if (!requests[to]) requests[to] = [];
+  const f = cleanName(from);
+  const t = cleanName(to);
 
-  if (!requests[to].includes(from)) {
-    requests[to].push(from);
+  if (!requests[t]) requests[t] = [];
+
+  if (!requests[t].includes(f)) {
+    requests[t].push(f);
   }
 
-  res.json({ message: "request sent" });
+  // 🔥 REAL TIME NOTIFICATION
+  if (users[t]) {
+    users[t].forEach(id => {
+      io.to(id).emit("friendRequest", {
+        from: f
+      });
+    });
+  }
+
+  res.json({ message: "Request sent" });
 });
 app.post("/api/friend-accept", (req, res) => {
   const { from, to } = req.body;
@@ -500,8 +525,16 @@ app.post("/api/friend-accept", (req, res) => {
   if (!friends[from]) friends[from] = [];
   if (!friends[to]) friends[to] = [];
 
+ if (!friends[from]) friends[from] = [];
+if (!friends[to]) friends[to] = [];
+
+if (!friends[from].includes(to)) {
   friends[from].push(to);
+}
+
+if (!friends[to].includes(from)) {
   friends[to].push(from);
+}
 
   // remove request
   requests[to] = (requests[to] || []).filter(u => u !== from);
