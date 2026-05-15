@@ -41,6 +41,8 @@ const io = new Server(server, {
 
 // ================= USERS STORE =================
 let users = {};
+let friends = {};        // confirmed friends
+let requests = {};       // pending requests
 
 // ================= HELPERS =================
 function emitOnlineUsers() {
@@ -486,6 +488,31 @@ app.post("/api/posts/comment/:id", async (req, res) => {
     console.log("❌ COMMENT ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
+});
+app.post("/api/friend-request", (req, res) => {
+  const { from, to } = req.body;
+
+  if (!requests[to]) requests[to] = [];
+
+  if (!requests[to].includes(from)) {
+    requests[to].push(from);
+  }
+
+  res.json({ message: "request sent" });
+});
+app.post("/api/friend-accept", (req, res) => {
+  const { from, to } = req.body;
+
+  if (!friends[from]) friends[from] = [];
+  if (!friends[to]) friends[to] = [];
+
+  friends[from].push(to);
+  friends[to].push(from);
+
+  // remove request
+  requests[to] = (requests[to] || []).filter(u => u !== from);
+
+  res.json({ message: "friend added" });
 });
 
 // ================= DB =================

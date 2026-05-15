@@ -91,6 +91,10 @@ socket.on("connect", () => {
 
 // ================= CHAT OPEN =================
 function openChat(user) {
+  if (!friendsList?.includes(user)) {
+  alert("You are not friends yet");
+  return;
+}
   currentChatUser = cleanName(user);
 
   document.getElementById("chatTitle").innerText =
@@ -105,6 +109,7 @@ function openChat(user) {
 
   loadMessages(currentChatUser);
 }
+
 
 // ================= LOAD MESSAGES =================
 async function loadMessages(user) {
@@ -245,11 +250,13 @@ socket.on("onlineUsers", (users) => {
 
   container.innerHTML = users
     .filter(u => cleanName(u) !== cleanName(username))
-    .map(u => `
-      <div class="online-user" onclick="openChat('${u}')">
-        🟢 ${u}
-      </div>
-    `).join("");
+ .map(u => `
+  <div class="online-user">
+    🟢 ${u}
+    <button onclick="sendRequest('${u}')">➕</button>
+  </div>
+`)
+    .join("");
 });
 
 // ================= TYPING =================
@@ -776,6 +783,18 @@ async function startRecording() {
   }
 
 }
+async function sendRequest(user) {
+  await fetch(`${API}/api/friend-request`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      from: username,
+      to: user
+    })
+  });
+
+  alert("Request sent");
+}
 
 // ================= LOGOUT =================
 
@@ -808,4 +827,30 @@ function closeImageViewer() {
     "imageViewer"
   ).style.display = "none";
 
+}
+function showChat() {
+  const chat = document.getElementById("chatPanel");
+  if (chat) chat.style.display = "flex";
+}
+
+function showNotifications() {
+  const notif = document.getElementById("notificationPanel");
+
+  if (!notif) {
+    console.log("Notification panel missing in HTML");
+    return;
+  }
+
+  notif.classList.toggle("active");
+}
+
+function showSettings() {
+  const settings = document.getElementById("settingsPanel");
+
+  if (!settings) {
+    console.log("Settings panel missing in HTML");
+    return;
+  }
+
+  settings.classList.toggle("active");
 }
