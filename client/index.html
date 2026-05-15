@@ -52,6 +52,24 @@
 
 </div>
 
+<div class="stories-bar">
+
+  <div class="story add-story">
+    +
+  </div>
+
+  <div class="story">
+    <img src="https://i.imgur.com/HeIi0wU.png">
+    <span>Mike</span>
+  </div>
+
+  <div class="story">
+    <img src="https://i.imgur.com/HeIi0wU.png">
+    <span>Sarah</span>
+  </div>
+
+</div>
+
   <!-- ================= SIDEBAR ================= -->
   <div class="sidebar">
 
@@ -72,7 +90,7 @@
   Messages
 </div>
 
-<div class="menu-item" onclick="toggleNotifications()">
+<div class="menu-item"onclick="showNotificationsPage()">
   <i class="fa-solid fa-bell"></i>
   Notifications
 </div>
@@ -84,28 +102,31 @@
   </div>
 
   <!-- ================= FEED ================= -->
-  <div class="feed">
+
+
+  <!-- ================= CHAT PANEL ================= -->
+  <div class="main-content" id="mainContent">
+
+  <!-- STORIES -->
+  <div id="storiesBar" class="stories-bar"></div>
+
+  <!-- HOME FEED -->
+  <div id="homeFeed">
 
     <div class="topbar">
       <input class="search" placeholder="Search FutureBook..." />
     </div>
 
-    <!-- CREATE POST -->
     <div class="create-post">
-
       <input id="postInput" placeholder="What's on your mind?" />
-
       <button onclick="createPost()">Post</button>
-
     </div>
 
-    <!-- POSTS -->
     <div id="posts"></div>
 
   </div>
 
-  <!-- ================= CHAT PANEL ================= -->
-  <div class="rightbar" id="chatPanel">
+</div>
 
     <!-- ONLINE USERS -->
     <h3 style="padding:10px;">🟢 Online Users</h3>
