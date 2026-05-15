@@ -129,7 +129,9 @@ async function loadMessages(user) {
 function addMessage(user, msg, status = "") {
   const box = document.getElementById("messagesContainer");
 
-  const isMe = cleanName(user) === cleanName(username);
+  const isMe =
+  user === "You" ||
+  cleanName(user) === cleanName(username);
 
   const div = document.createElement("div");
   div.className = `msg ${isMe ? "me" : "other"}`;
@@ -272,8 +274,9 @@ function handleTyping() {
 // ================= VOICE =================
 function addVoiceMessage(user, audioSrc) {
   const box = document.getElementById("messagesContainer");
-
-  const isMe = cleanName(user) === cleanName(username);
+const isMe =
+  user === "You" ||
+  cleanName(user) === cleanName(username);
 
   const div = document.createElement("div");
   div.className = `msg ${isMe ? "me" : "other"}`;
@@ -291,7 +294,9 @@ function addVoiceMessage(user, audioSrc) {
 function addImageMessage(user, src) {
   const box = document.getElementById("messagesContainer");
 
-  const isMe = cleanName(user) === cleanName(username);
+ const isMe =
+  user === "You" ||
+  cleanName(user) === cleanName(username);
 
   const div = document.createElement("div");
   div.className = `msg ${isMe ? "me" : "other"}`;
@@ -309,7 +314,9 @@ function addImageMessage(user, src) {
 function addFileMessage(user, file) {
   const box = document.getElementById("messagesContainer");
 
-  const isMe = cleanName(user) === cleanName(username);
+const isMe =
+  user === "You" ||
+  cleanName(user) === cleanName(username);
 
   const div = document.createElement("div");
   div.className = `msg ${isMe ? "me" : "other"}`;
