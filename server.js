@@ -262,7 +262,13 @@ io.on("connection", (socket) => {
   socket.on("privateMessage", async (data) => {
 
     try {
+const isFriend =
+  friends[from]?.includes(to);
 
+if (!isFriend) {
+  console.log("❌ BLOCKED: not friends");
+  return;
+}
       const from = cleanName(data.from);
       const to = cleanName(data.to);
 
