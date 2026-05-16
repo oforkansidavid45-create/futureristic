@@ -20,6 +20,11 @@ function showToast(message) {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("UI READY");
 });
+document.getElementById("imageInput")
+.addEventListener("change", sendImage);
+
+document.getElementById("fileInput")
+.addEventListener("change", sendFile);
 
 console.log("🔥 script loaded");
 
@@ -115,7 +120,8 @@ if (
     loadNotifications();
     window.notifInterval = setInterval(loadNotifications, 5000);
   }
-}
+}    showHome();
+
 async function loadFriends() {
   const res = await fetch(`${API}/api/friends/${username}`);
   friendsList = await res.json();
@@ -128,24 +134,7 @@ socket.on("connect", () => {
 });
 
 // ================= CHAT OPEN (FIXED) =================
-function openChat(user) {
-
-  showView("chatView");
-
-  if (!friendsList.map(cleanName).includes(cleanName(user))) {
-    alert("You are not friends yet");
-    return;
-  }
-
-  currentChatUser = cleanName(user);
-
-  document.getElementById("chatTitle").innerText =
-    "Chat with " + currentChatUser;
-
-  document.getElementById("messagesContainer").innerHTML = "";
-
-  loadMessages(currentChatUser);
-}
+ 
 
 // ================= LOAD MESSAGES (SAFE) =================
 async function loadMessages(user) {
@@ -204,19 +193,25 @@ div.innerHTML = `
 
 // ================= SEND MESSAGE =================
 function sendMessage() {
+
   const input = document.getElementById("chatInput");
+
   if (!input) return;
 
   const message = input.value.trim();
+
   if (!message || !currentChatUser) return;
 
-  addMessage("You", message, "✔");
+  addMessage(username, message, "✔");
 
-
+  socket.emit("privateMessage", {
+    from: username,
+    to: currentChatUser,
+    message
+  });
 
   input.value = "";
 }
-
 // ================= SOCKET RECEIVE =================
 socket.on("privateMessage", (data) => {
   if (!data) return;
@@ -622,6 +617,11 @@ async function openProfile(user) {
   ).innerText = "@" + user;
 
 }
+function showProfile() {
+
+  openProfile(username);
+
+}
 
 function closeProfile() {
 
@@ -737,7 +737,7 @@ async function loadNotifications() {
       await res.json();
 
     const box =
-      document.getElementById("notificationList");
+document.getElementById("sidebarNotifications");
 
     if (!box) return;
 
@@ -842,29 +842,27 @@ function showNotificationsPage() {
 
   loadNotifications();
 }
+function openChat(user) {
 
-function showView(view) {
+  if (!friendsList.map(cleanName).includes(cleanName(user))) {
+    alert("You are not friends yet");
+    return;
+  }
 
-  const views = ["homeView", "chatView", "notificationView", "profileView"];
+  currentChatUser = cleanName(user);
 
-  views.forEach(v => {
-    const el = document.getElementById(v);
-    if (el) el.style.display = "none";
-  });
+  document.getElementById("chatTitle").innerText =
+    "Chat with " + user;
 
-  const active = document.getElementById(view);
-  if (active) active.style.display = "block";
+  document.getElementById("messagesContainer").innerHTML = "";
+
+  showMessages();
+
+  loadMessages(currentChatUser);
+  document.getElementById("chatInputArea").style.display = "flex";
 }
-function showHome() {
-  showView("homeView");
-}
-function showMessages() {
-  showView("chatView");
-}
-function showNotificationsPage() {
-  showView("notificationView");
-  loadNotifications();
-}
+
+
 // ================= LOGOUT =================
 function logout() {
 

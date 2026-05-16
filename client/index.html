@@ -23,7 +23,13 @@
 
 <!-- AUTH SCREEN -->
 <div id="authScreen">
+<div class="auth-logo">
+
+  <img src="logo.png">
+
   <h2>FutureBook</h2>
+
+</div>
 
   <input id="nameInput" placeholder="Enter your name" />
   <input id="passwordInput" type="password" placeholder="Password" />
@@ -60,13 +66,21 @@
 
   <!-- MAIN LAYOUT -->
   <div class="fb-layout">
+    <!-- RIGHT SIDEBAR -->
+<div class="fb-right">
+
+  <h3>Online Users</h3>
+
+  <div id="onlineUsers"></div>
+
+</div>
 
     <!-- LEFT SIDEBAR -->
     <div class="fb-left">
 
       <div class="menu-item" onclick="showHome()">Home</div>
       <div class="menu-item" onclick="showProfile()">Profile</div>
-      <div class="menu-item" onclick="showChatPage()">Messages</div>
+      <div class="menu-item" onclick="showMessages()">Messages</div>
       <div class="menu-item" onclick="showNotificationsPage()">Notifications</div>
       <div class="menu-item" onclick="toggleSettings()">Settings</div>
 
@@ -74,11 +88,7 @@
 
     <!-- CENTER CONTENT -->
     <div class="fb-center" id="mainContent">
-      <div id="homeView" class="view"></div>
-<div id="chatView" class="view" style="display:none;"></div>
-<div id="notificationView" class="view" style="display:none;"></div>
-<div id="profileView" class="view" style="display:none;"></div>
-    
+
 <!-- CHAT PAGE -->
 <div id="chatPage" style="display:none;">
 
@@ -90,7 +100,7 @@
 
   <div id="typingIndicator" class="typing"></div>
 
-  <div class="chat-input-area">
+<div class="chat-input-area" id="chatInputArea" style="display:none;"></div>
 
     <input
       id="chatInput"
@@ -138,10 +148,9 @@
 
   <h2>Notifications</h2>
 
-  <div id="notificationList"></div>
+<div id="sidebarNotifications"></div>
 
 </div>
-
 
 
       <!-- STORIES -->
@@ -166,20 +175,9 @@
     </div>
 
     <!-- RIGHT SIDEBAR -->
-    <div class="fb-right">
-
-      <h3>Online Users</h3>
-      <div id="onlineUsers"></div>
-
-      <h3>Notifications</h3>
-      <div id="notificationList"></div>
-
+  
     </div>
-
   </div>
-
-</div>
-
 <!-- PROFILE MODAL -->
 <div id="profileModal" class="profile-modal">
 
