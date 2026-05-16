@@ -1,26 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FutureBook ⚡</title>
-
-<link rel="stylesheet" href="style.css"/>
-
-<!-- FONT AWESOME (Facebook-style icons) -->
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
-
 <body>
 
-<!-- ================= SPLASH SCREEN ================= -->
+<!-- SPLASH -->
 <div id="splashScreen">
   <img src="logo.png" class="splash-logo" />
   <h2>FutureBook</h2>
 </div>
 
-<!-- ================= AUTH SCREEN ================= -->
+<!-- AUTH -->
 <div id="authScreen">
   <div class="auth-logo">
     <img src="logo.png">
@@ -34,121 +20,84 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   <button onclick="login()">Login</button>
 </div>
 
-<!-- ================= APP ================= -->
+<!-- APP -->
 <div class="app" style="display:none;">
 
-<!-- LEFT SIDEBAR (FACEBOOK STYLE ICONS) -->
-<div class="fb-left">
-
-  <div class="menu-item" onclick="showHome()">
-    <i class="fa-solid fa-house"></i>
+  <!-- LEFT NAV -->
+  <div class="fb-left">
+    <i class="fa-solid fa-house" onclick="showHome()"></i>
+    <i class="fa-solid fa-comment" onclick="showMessages()"></i>
+    <i class="fa-solid fa-bell" onclick="showNotificationsPage()"></i>
+    <i class="fa-solid fa-user" onclick="showProfile()"></i>
   </div>
 
-  <div class="menu-item" onclick="showMessages()">
-    <i class="fa-solid fa-message"></i>
-  </div>
+  <!-- CENTER -->
+  <div class="fb-center">
 
-  <div class="menu-item" onclick="showNotificationsPage()">
-    <i class="fa-solid fa-bell"></i>
-  </div>
+    <div id="homeView"></div>
 
-  <div class="menu-item" onclick="showProfile()">
-    <i class="fa-solid fa-user"></i>
-  </div>
+    <div id="chatView" style="display:none;"></div>
 
-  <div class="menu-item" onclick="toggleSettings()">
-    <i class="fa-solid fa-gear"></i>
-  </div>
-
-</div>
-
-<!-- CENTER -->
-<div class="fb-center">
-<div id="profileView" style="display:none;"></div>
-  <!-- HOME -->
-  <div id="homeView">
-    <div class="create-post">
-      <input id="postInput" placeholder="What's on your mind?" />
-      <button onclick="createPost()">Post</button>
+    <div id="notificationView" style="display:none;">
+      <div id="notificationList"></div>
     </div>
 
-    <div id="posts"></div>
-  </div>
-
-  <!-- CHAT -->
-  <div id="chatView" style="display:none;">
-
-    <div class="chat-header">
-      <h3 id="chatTitle">Chat</h3>
-    </div>
-
-    <div id="messagesContainer"></div>
-
-    <div id="typingIndicator"></div>
-
-    <div class="chat-input-area">
-
-      <input id="chatInput" placeholder="Type message..." oninput="handleTyping()" />
-
-      <input type="file" id="imageInput" hidden />
-      <input type="file" id="fileInput" hidden />
-
-     <button onclick="sendMessage()" class="send-btn">
-  <i class="fa fa-paper-plane"></i>
-</button>
-
-<button onclick="document.getElementById('imageInput').click()">
-  <i class="fa fa-image"></i>
-</button>
-
-<button onclick="document.getElementById('fileInput').click()">
-  <i class="fa fa-paperclip"></i>
-</button>
-
-<button onclick="startRecording()">
-  <i class="fa fa-microphone"></i>
-</button>
-    </div>
+    <div id="profileView" style="display:none;"></div>
 
   </div>
 
-  <!-- NOTIFICATIONS -->
-  <div id="notificationView" style="display:none;">
-    <h2>Notifications</h2>
-    <div id="notificationList"></div>
+  <!-- RIGHT -->
+  <div class="fb-right">
+    <h3>Online Users</h3>
+    <div id="onlineUsers"></div>
   </div>
 
-  <!-- PROFILE -->
-  <div id="profileView" style="display:none;">
-    <h2>Profile</h2>
+</div>
+<div class="chat-input-area">
+
+  <input id="chatInput"
+         placeholder="Type message..."
+         oninput="handleTyping()" />
+
+  <input type="file" id="imageInput" hidden />
+  <input type="file" id="fileInput" hidden />
+
+  <div class="chat-actions">
+
+    <button onclick="sendMessage()" class="send-btn">
+      <i class="fa fa-paper-plane"></i>
+    </button>
+
+    <button onclick="document.getElementById('imageInput').click()">
+      <i class="fa fa-image"></i>
+    </button>
+
+    <button onclick="document.getElementById('fileInput').click()">
+      <i class="fa fa-paperclip"></i>
+    </button>
+
+    <button onclick="startRecording()">
+      <i class="fa fa-microphone"></i>
+    </button>
+
   </div>
 
 </div>
 
-<!-- RIGHT SIDEBAR -->
-<div class="fb-right">
-  <h3>Online Users</h3>
-  <div id="onlineUsers"></div>
-</div>
-
-</div>
-
-<!-- PROFILE MODAL -->
-
+<!-- PROFILE MODAL (FIXED) -->
+<div id="profileModal" class="profile-modal">
   <div class="profile-content">
     <span class="close-profile" onclick="closeProfile()">✖</span>
 
     <div class="profile-cover"></div>
 
-    <img id="profileModalPic" class="profile-big-pic"
-    src="https://i.imgur.com/HeIi0wU.png" />
+    <img id="profileModalPic"
+         class="profile-big-pic"
+         src="https://i.imgur.com/HeIi0wU.png" />
 
     <h2 id="profileModalName"></h2>
 
-    <div class="profile-actions">
-      <button id="addFriendBtn">Add Friend</button>
-    </div>
-
+    <button id="addFriendBtn">Add Friend</button>
   </div>
 </div>
 
@@ -158,9 +107,8 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   <button onclick="logout()">Logout</button>
 </div>
 
-<!-- SOCKET -->
+<!-- SCRIPTS -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="script.js"></script>
 
 </body>
-</html>

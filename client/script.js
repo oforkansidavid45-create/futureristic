@@ -133,7 +133,7 @@ async function loadMessages(user) {
     );
 
     const messages = await res.json();
-    const box = document.getElementById("messagesContainer");
+   const box = document.getElementById("notificationList");
 
     if (!box) return;
 
@@ -848,6 +848,10 @@ function showView(view) {
 
   const active = document.getElementById(view);
   if (active) active.style.display = "block";
+
+  // RESET UI STATE
+  const chatInputArea = document.getElementById("chatInputArea");
+  if (chatInputArea) chatInputArea.style.display = "none";
 }
 
 
