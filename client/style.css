@@ -520,3 +520,18 @@ html, body {
   background:#1e293b;
   transform:scale(1.1);
 }
+.chat-input-area button {
+  background:#0084ff;
+  border:none;
+  padding:10px;
+  border-radius:50%;
+  color:white;
+  cursor:pointer;
+  margin-left:5px;
+  transition:0.2s;
+}
+
+.chat-input-area button:hover {
+  transform:scale(1.1);
+  background:#1877f2;
+}

@@ -153,6 +153,22 @@ async function loadMessages(user) {
   }
 }
 
+async function loadUserPosts(user) {
+  const res = await fetch(`${API}/api/posts`);
+  const posts = await res.json();
+
+  const filtered = posts.filter(p => p.user === user);
+
+  document.getElementById("profileView").innerHTML = `
+    <h2>@${user}</h2>
+    ${filtered.map(p => `
+      <div class="post">
+        <div class="post-text">${p.text}</div>
+        <small>❤️ ${p.likes}</small>
+      </div>
+    `).join("")}
+  `;
+}
 // ================= MESSAGE =================
 function addMessage(user, msg, status = "") {
   const box = document.getElementById("messagesContainer");
@@ -200,6 +216,16 @@ function sendMessage() {
   });
 
   input.value = "";
+}
+function openProfile(user) {
+  showView("profileView");
+
+  document.getElementById("profileView").innerHTML = `
+    <div class="profile-feed">
+      <h2>@${user}</h2>
+      <p>Loading posts...</p>
+    </div>
+  `;
 }
 // ================= SOCKET RECEIVE =================
 socket.on("privateMessage", (data) => {
