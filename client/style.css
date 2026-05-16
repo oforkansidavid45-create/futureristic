@@ -552,4 +552,10 @@ body{
   }
 
 }
+.chat-input-area {
+  display: none;
+}
 
+#chatView.active .chat-input-area {
+  display: flex;
+}

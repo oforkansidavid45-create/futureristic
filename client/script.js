@@ -129,6 +129,9 @@ socket.on("connect", () => {
 
 // ================= CHAT OPEN (FIXED) =================
 function openChat(user) {
+
+  showView("chatView");
+
   if (!friendsList.map(cleanName).includes(cleanName(user))) {
     alert("You are not friends yet");
     return;
@@ -140,11 +143,6 @@ function openChat(user) {
     "Chat with " + currentChatUser;
 
   document.getElementById("messagesContainer").innerHTML = "";
-
-  socket.emit("seen", {
-    from: username,
-    to: currentChatUser
-  });
 
   loadMessages(currentChatUser);
 }
@@ -845,6 +843,28 @@ function showNotificationsPage() {
   loadNotifications();
 }
 
+function showView(view) {
+
+  const views = ["homeView", "chatView", "notificationView", "profileView"];
+
+  views.forEach(v => {
+    const el = document.getElementById(v);
+    if (el) el.style.display = "none";
+  });
+
+  const active = document.getElementById(view);
+  if (active) active.style.display = "block";
+}
+function showHome() {
+  showView("homeView");
+}
+function showMessages() {
+  showView("chatView");
+}
+function showNotificationsPage() {
+  showView("notificationView");
+  loadNotifications();
+}
 // ================= LOGOUT =================
 function logout() {
 
