@@ -60,6 +60,9 @@ app.get("/api/friend-requests/:user", (req, res) => {
 app.get("/test", (req, res) => {
   res.send("Backend working");
 });
+function ensureUser(obj, key) {
+  if (!obj[key]) obj[key] = [];
+}
 // ================= AUTH SIGNUP =================
 app.post("/api/auth/signup", async (req, res) => {
   try {
@@ -518,21 +521,17 @@ app.post("/api/friend-request", (req, res) => {
 app.post("/api/friend-accept", (req, res) => {
   const { from, to } = req.body;
 
-  if (!friends[from]) friends[from] = [];
-  if (!friends[to]) friends[to] = [];
+  ensureUser(friends, from);
+  ensureUser(friends, to);
 
- if (!friends[from]) friends[from] = [];
-if (!friends[to]) friends[to] = [];
+  if (!friends[from].includes(to)) {
+    friends[from].push(to);
+  }
 
-if (!friends[from].includes(to)) {
-  friends[from].push(to);
-}
+  if (!friends[to].includes(from)) {
+    friends[to].push(from);
+  }
 
-if (!friends[to].includes(from)) {
-  friends[to].push(from);
-}
-
-  // remove request
   requests[to] = (requests[to] || []).filter(u => u !== from);
 
   res.json({ message: "friend added" });

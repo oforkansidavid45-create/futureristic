@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,223 +9,166 @@
 
   <link rel="stylesheet" href="style.css"/>
 
-  <!-- FONT AWESOME -->
   <link rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
-<div id="imageViewer" class="image-viewer">
-
-  <span class="close-viewer"
-        onclick="closeImageViewer()">
-        ✕
-  </span>
-
-  <img id="viewerImage">
-
-</div>
 
 <body>
 
-<!-- ================= AUTH ================= -->
-<div id="authScreen">
+<!-- IMAGE VIEWER -->
+<div id="imageViewer" class="image-viewer">
+  <span class="close-viewer" onclick="closeImageViewer()">✕</span>
+  <img id="viewerImage">
+</div>
 
-  <h2>⚡ FutureBook</h2>
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <h2>FutureBook</h2>
 
   <input id="nameInput" placeholder="Enter your name" />
-
-  <input id="passwordInput"
-         type="password"
-         placeholder="Password" />
+  <input id="passwordInput" type="password" placeholder="Password" />
 
   <button onclick="signup()">Create Account</button>
-
   <button onclick="login()">Login</button>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" style="display:none;">
+
+  <!-- TOP NAVBAR (FACEBOOK STYLE) -->
+  <div class="fb-navbar">
+
+    <div class="fb-logo">
+      FutureBook
+    </div>
+
+    <div class="fb-nav-icons">
+
+      <button onclick="showHome()">Home</button>
+
+      <button onclick="showMessages()">Messages</button>
+
+      <button onclick="showNotificationsPage()">Notifications</button>
+
+    </div>
+
+    <div class="fb-profile">
+      <img id="profilePreview" onclick="showProfile()" />
+    </div>
+
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="fb-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="fb-left">
+
+      <div class="menu-item" onclick="showHome()">Home</div>
+      <div class="menu-item" onclick="showProfile()">Profile</div>
+      <div class="menu-item" onclick="showChatPage()">Messages</div>
+      <div class="menu-item" onclick="showNotificationsPage()">Notifications</div>
+      <div class="menu-item" onclick="toggleSettings()">Settings</div>
+
+    </div>
+
+    <!-- CENTER CONTENT -->
+    <div class="fb-center" id="mainContent">
+    
+<!-- CHAT PAGE -->
+<div id="chatPage" style="display:none;">
+
+  <div class="chat-header">
+    <h3 id="chatTitle">Chat</h3>
+  </div>
+
+  <div id="messagesContainer" class="messages-container"></div>
+
+  <div id="typingIndicator" class="typing"></div>
+
+  <div class="chat-input-area">
+
+    <input
+      id="chatInput"
+      placeholder="Type message..."
+      oninput="handleTyping()"
+    />
+
+    <input
+      type="file"
+      id="imageInput"
+      accept="image/*"
+      hidden
+    />
+
+    <input
+      type="file"
+      id="fileInput"
+      hidden
+    />
+
+    <button onclick="sendMessage()">Send</button>
+
+    <button
+      onclick="document.getElementById('imageInput').click()"
+    >
+      📷
+    </button>
+
+    <button
+      onclick="document.getElementById('fileInput').click()"
+    >
+      📎
+    </button>
+
+    <button onclick="startRecording()">
+      🎤
+    </button>
+
+  </div>
 
 </div>
 
-<!-- ================= MAIN APP ================= -->
-<div class="app" style="display:none;">
-  <div id="notificationPanel" class="notification-panel">
+<!-- NOTIFICATIONS PAGE -->
+<div id="notificationsPage" style="display:none;">
 
-  <h3>Friend Requests</h3>
+  <h2>Notifications</h2>
 
   <div id="notificationList"></div>
 
 </div>
 
-<div class="stories-bar">
-
-  <div class="story add-story">
-    +
-  </div>
-
-  <div class="story">
-    <img src="https://i.imgur.com/HeIi0wU.png">
-    <span>Mike</span>
-  </div>
-
-  <div class="story">
-    <img src="https://i.imgur.com/HeIi0wU.png">
-    <span>Sarah</span>
-  </div>
-
-</div>
-
-  <!-- ================= SIDEBAR ================= -->
-  <div class="sidebar">
-
-    <div class="logo">⚡ FutureBook</div>
-
-    <div class="menu-item">
-      <i class="fa-solid fa-house"></i>
-      Home
-    </div>
-
-<div class="menu-item" onclick="showProfile()">
-  <i class="fa-solid fa-user"></i>
-  Profile
-</div>
-
-<div class="menu-item" onclick="toggleChat()">
-  <i class="fa-solid fa-message"></i>
-  Messages
-</div>
-
-<div class="menu-item"onclick="showNotificationsPage()">
-  <i class="fa-solid fa-bell"></i>
-  Notifications
-</div>
-
-<div class="menu-item" onclick="toggleSettings()">
-  <i class="fa-solid fa-gear"></i>
-  Settings
-</div>
-  </div>
-
-  <!-- ================= FEED ================= -->
 
 
-  <!-- ================= CHAT PANEL ================= -->
-  <div class="main-content" id="mainContent">
+      <!-- STORIES -->
+      <div id="storiesBar" class="stories-bar"></div>
 
-  <!-- STORIES -->
-  <div id="storiesBar" class="stories-bar"></div>
+      <!-- HOME FEED -->
+      <div id="homeFeed">
 
-  <!-- HOME FEED -->
-  <div id="homeFeed">
-
-    <div class="topbar">
-      <input class="search" placeholder="Search FutureBook..." />
-    </div>
-
-    <div class="create-post">
-      <input id="postInput" placeholder="What's on your mind?" />
-      <button onclick="createPost()">Post</button>
-    </div>
-
-    <div id="posts"></div>
-
-  </div>
-
-</div>
-
-    <!-- ONLINE USERS -->
-    <h3 style="padding:10px;">🟢 Online Users</h3>
-
-    <div id="onlineUsers"></div>
-
-    <!-- CHAT HEADER -->
-    <div class="chat-header">
-
-      <div class="chat-user-info">
-
-        <!-- PROFILE PIC -->
-        <img
-          id="profilePreview"
-          class="chat-avatar"
-          src="https://i.imgur.com/HeIi0wU.png"
-        />
-
-        <!-- HIDDEN FILE INPUT -->
-        <input
-          type="file"
-          id="profileInput"
-          hidden
-          onchange="uploadProfilePic()"
-        />
-
-        <!-- USER INFO -->
-        <div class="chat-user-text">
-
-          <div id="chatTitle">Select a user</div>
-
-          <small id="userStatus">offline</small>
-
+        <div class="topbar">
+          <input class="search" placeholder="Search FutureBook..." />
         </div>
+
+        <div class="create-post">
+          <input id="postInput" placeholder="What's on your mind?" />
+          <button onclick="createPost()">Post</button>
+        </div>
+
+        <div id="posts"></div>
 
       </div>
 
     </div>
 
-    <!-- CHAT BOX -->
-    <div id="chatBox" class="chat-box">
+    <!-- RIGHT SIDEBAR -->
+    <div class="fb-right">
 
-      <div id="messagesContainer"></div>
+      <h3>Online Users</h3>
+      <div id="onlineUsers"></div>
 
-      <div id="typingIndicator" class="typing-bubble"></div>
-
-    </div>
-
-    <!-- CHAT INPUT -->
-  
-   <div class="chat-input">
-
-  <!-- FILE -->
-  <input
-    type="file"
-    id="fileInput"
-    hidden
-    onchange="sendFile()"
-  />
-
-  <!-- IMAGE -->
-  <input
-    type="file"
-    id="imageInput"
-    accept="image/*"
-    hidden
-    onchange="sendImage()"
-  />
-
-  <!-- 📎 ATTACH -->
-  <button onclick="document.getElementById('fileInput').click()">
-    <i class="fa-solid fa-paperclip"></i>
-  </button>
-
-  <!-- 📷 IMAGE (NOW CLEAN ICON) -->
-  <button onclick="document.getElementById('imageInput').click()">
-    <i class="fa-solid fa-image"></i>
-  </button>
-
-  <!-- INPUT -->
-  <input
-    id="chatInput"
-    placeholder="Type message..."
-    oninput="handleTyping()"
-  />
-
-  <!-- MIC -->
-  <button onclick="startRecording()">
-    <i class="fa-solid fa-microphone"></i>
-  </button>
-
-  <!-- SEND -->
-  <button onclick="sendMessage()">
-    <i class="fa-solid fa-paper-plane"></i>
-  </button>
-
-</div>
-
+      <h3>Notifications</h3>
+      <div id="notificationList"></div>
 
     </div>
 
@@ -232,82 +176,40 @@
 
 </div>
 
-<!-- ================= MOBILE NAV ================= -->
-<div class="mobile-nav">
-
-  <div onclick="showFeed()">
-    <i class="fa-solid fa-house"></i>
-  </div>
-
-  <div onclick="toggleChat()">
-    <i class="fa-solid fa-message"></i>
-  </div>
-
-  <div onclick="logout()">
-    <i class="fa-solid fa-right-from-bracket"></i>
-  </div>
-
-</div>
-
-<!-- ================= PROFILE MODAL ================= -->
-
-
-<div
-  id="profileModal"
-  class="profile-modal"
->
-
+<!-- PROFILE MODAL -->
+<div id="profileModal" class="profile-modal">
 
   <div class="profile-content">
 
-    <span
-      class="close-profile"
-      onclick="closeProfile()"
-    >
-      ✖
-    </span>
+    <span class="close-profile" onclick="closeProfile()">✖</span>
 
-    <!-- COVER -->
     <div class="profile-cover"></div>
 
-    <!-- PROFILE IMAGE -->
-    <img
-      id="profileModalPic"
-      class="profile-big-pic"
-      src="https://i.imgur.com/HeIi0wU.png"
-    />
+    <img id="profileModalPic"
+         class="profile-big-pic"
+         src="https://i.imgur.com/HeIi0wU.png" />
 
-    <!-- USERNAME -->
     <h2 id="profileModalName"></h2>
+
     <div class="profile-actions">
+      <button id="addFriendBtn">Add Friend</button>
+    </div>
 
-  <button id="addFriendBtn">
-    Add Friend
-  </button>
-
-</div>
-
-    <!-- POSTS -->
     <div id="profilePosts"></div>
 
   </div>
 
 </div>
 
+<!-- SETTINGS -->
+<div id="settingsPanel" class="settings-panel">
+  <h3>Settings</h3>
+  <button onclick="logout()">Logout</button>
+</div>
+
 <!-- SOCKET -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
-<!-- SCRIPT -->
 <script src="script.js"></script>
-<div id="settingsPanel" class="settings-panel">
-
-  <h3>Settings</h3>
-
-  <button onclick="logout()">
-    Logout
-  </button>
-
-</div>
 
 </body>
 </html>
