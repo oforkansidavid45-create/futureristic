@@ -98,29 +98,18 @@ async function login() {
   document.getElementById("authScreen").style.display = "none";
   document.querySelector(".app").style.display = "flex";
 
-socket.emit("register", username);
+  socket.emit("register", username);
 
-if (typeof loadFriends === "function") {
   await loadFriends();
+  loadPosts();
+
+  loadNotifications();
+
+  window.notifInterval = setInterval(loadNotifications, 5000);
+
+  showView("homeView"); // ✅ FIX HERE
 }
-loadPosts();
-
- const savedPic = localStorage.getItem("profilePic");
-
-if (
-  savedPic &&
-  document.getElementById("profileModalPic")
-) {
-  document.getElementById(
-    "profileModalPic"
-  ).src = savedPic;
-}
-
-  if (!window.notifInterval) {
-    loadNotifications();
-    window.notifInterval = setInterval(loadNotifications, 5000);
-  }
-}    showHome();
+ 
 
 async function loadFriends() {
   const res = await fetch(`${API}/api/friends/${username}`);
@@ -823,25 +812,32 @@ function toggleSettings() {
 
 
 
+function showView(view) {
+  const views = ["homeView", "chatView", "notificationView", "profileView"];
+
+  views.forEach(v => {
+    const el = document.getElementById(v);
+    if (el) el.style.display = "none";
+  });
+
+  const active = document.getElementById(view);
+  if (active) active.style.display = "block";
+}
+
+
 function showHome() {
-  document.getElementById("homeFeed").style.display = "block";
-  document.getElementById("chatPage").style.display = "none";
-  document.getElementById("notificationsPage").style.display = "none";
+  showView("homeView");
 }
 
 function showMessages() {
-  document.getElementById("homeFeed").style.display = "none";
-  document.getElementById("chatPage").style.display = "block";
-  document.getElementById("notificationsPage").style.display = "none";
+  showView("chatView");
 }
 
 function showNotificationsPage() {
-  document.getElementById("homeFeed").style.display = "none";
-  document.getElementById("chatPage").style.display = "none";
-  document.getElementById("notificationsPage").style.display = "block";
-
+  showView("notificationView");
   loadNotifications();
 }
+
 function openChat(user) {
 
   if (!friendsList.map(cleanName).includes(cleanName(user))) {
@@ -856,12 +852,20 @@ function openChat(user) {
 
   document.getElementById("messagesContainer").innerHTML = "";
 
-  showMessages();
+  showView("chatView"); // 🔥 FIXED
 
   loadMessages(currentChatUser);
+
   document.getElementById("chatInputArea").style.display = "flex";
 }
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    const splash = document.getElementById("splashScreen");
+    if (splash) splash.style.display = "none";
 
+    document.getElementById("authScreen").style.display = "flex";
+  }, 2000);
+});
 
 // ================= LOGOUT =================
 function logout() {

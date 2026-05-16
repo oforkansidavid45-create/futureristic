@@ -1,35 +1,31 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FutureBook ⚡</title>
 
-  <title>FutureBook ⚡</title>
+<link rel="stylesheet" href="style.css"/>
 
-  <link rel="stylesheet" href="style.css"/>
-
-  <link rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<!-- FONT AWESOME (Facebook-style icons) -->
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
 
-<!-- IMAGE VIEWER -->
-<div id="imageViewer" class="image-viewer">
-  <span class="close-viewer" onclick="closeImageViewer()">✕</span>
-  <img id="viewerImage">
-</div>
-
-<!-- AUTH SCREEN -->
-<div id="authScreen">
-<div class="auth-logo">
-
-  <img src="logo.png">
-
+<!-- ================= SPLASH SCREEN ================= -->
+<div id="splashScreen">
+  <img src="logo.png" class="splash-logo" />
   <h2>FutureBook</h2>
-
 </div>
+
+<!-- ================= AUTH SCREEN ================= -->
+<div id="authScreen">
+  <div class="auth-logo">
+    <img src="logo.png">
+    <h2>FutureBook</h2>
+  </div>
 
   <input id="nameInput" placeholder="Enter your name" />
   <input id="passwordInput" type="password" placeholder="Password" />
@@ -38,158 +34,104 @@
   <button onclick="login()">Login</button>
 </div>
 
-<!-- MAIN APP -->
+<!-- ================= APP ================= -->
 <div class="app" style="display:none;">
 
-  <!-- TOP NAVBAR (FACEBOOK STYLE) -->
-  <div class="fb-navbar">
+<!-- LEFT SIDEBAR (FACEBOOK STYLE ICONS) -->
+<div class="fb-left">
 
-    <div class="fb-logo">
-      FutureBook
+  <div class="menu-item" onclick="showHome()">
+    <i class="fa-solid fa-house"></i>
+  </div>
+
+  <div class="menu-item" onclick="showMessages()">
+    <i class="fa-solid fa-message"></i>
+  </div>
+
+  <div class="menu-item" onclick="showNotificationsPage()">
+    <i class="fa-solid fa-bell"></i>
+  </div>
+
+  <div class="menu-item" onclick="showProfile()">
+    <i class="fa-solid fa-user"></i>
+  </div>
+
+  <div class="menu-item" onclick="toggleSettings()">
+    <i class="fa-solid fa-gear"></i>
+  </div>
+
+</div>
+
+<!-- CENTER -->
+<div class="fb-center">
+
+  <!-- HOME -->
+  <div id="homeView">
+    <div class="create-post">
+      <input id="postInput" placeholder="What's on your mind?" />
+      <button onclick="createPost()">Post</button>
     </div>
 
-    <div class="fb-nav-icons">
+    <div id="posts"></div>
+  </div>
 
-      <button onclick="showHome()">Home</button>
+  <!-- CHAT -->
+  <div id="chatView" style="display:none;">
 
-      <button onclick="showMessages()">Messages</button>
-
-      <button onclick="showNotificationsPage()">Notifications</button>
-
+    <div class="chat-header">
+      <h3 id="chatTitle">Chat</h3>
     </div>
 
-    <div class="fb-profile">
-      <img id="profilePreview" onclick="showProfile()" />
+    <div id="messagesContainer"></div>
+
+    <div id="typingIndicator"></div>
+
+    <div class="chat-input-area">
+
+      <input id="chatInput" placeholder="Type message..." oninput="handleTyping()" />
+
+      <input type="file" id="imageInput" hidden />
+      <input type="file" id="fileInput" hidden />
+
+      <button onclick="sendMessage()">Send</button>
+      <button onclick="document.getElementById('imageInput').click()">📷</button>
+      <button onclick="document.getElementById('fileInput').click()">📎</button>
+      <button onclick="startRecording()">🎤</button>
+
     </div>
 
   </div>
 
-  <!-- MAIN LAYOUT -->
-  <div class="fb-layout">
-    <!-- RIGHT SIDEBAR -->
+  <!-- NOTIFICATIONS -->
+  <div id="notificationView" style="display:none;">
+    <h2>Notifications</h2>
+    <div id="notificationList"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="profileView" style="display:none;">
+    <h2>Profile</h2>
+  </div>
+
+</div>
+
+<!-- RIGHT SIDEBAR -->
 <div class="fb-right">
-
   <h3>Online Users</h3>
-
   <div id="onlineUsers"></div>
+</div>
 
 </div>
 
-    <!-- LEFT SIDEBAR -->
-    <div class="fb-left">
-
-      <div class="menu-item" onclick="showHome()">Home</div>
-      <div class="menu-item" onclick="showProfile()">Profile</div>
-      <div class="menu-item" onclick="showMessages()">Messages</div>
-      <div class="menu-item" onclick="showNotificationsPage()">Notifications</div>
-      <div class="menu-item" onclick="toggleSettings()">Settings</div>
-
-    </div>
-
-    <!-- CENTER CONTENT -->
-    <div class="fb-center" id="mainContent">
-
-<!-- CHAT PAGE -->
-<div id="chatPage" style="display:none;">
-
-  <div class="chat-header">
-    <h3 id="chatTitle">Chat</h3>
-  </div>
-
-  <div id="messagesContainer" class="messages-container"></div>
-
-  <div id="typingIndicator" class="typing"></div>
-
-<div class="chat-input-area" id="chatInputArea" style="display:none;"></div>
-
-    <input
-      id="chatInput"
-      placeholder="Type message..."
-      oninput="handleTyping()"
-    />
-
-    <input
-      type="file"
-      id="imageInput"
-      accept="image/*"
-      hidden
-    />
-
-    <input
-      type="file"
-      id="fileInput"
-      hidden
-    />
-
-    <button onclick="sendMessage()">Send</button>
-
-    <button
-      onclick="document.getElementById('imageInput').click()"
-    >
-      📷
-    </button>
-
-    <button
-      onclick="document.getElementById('fileInput').click()"
-    >
-      📎
-    </button>
-
-    <button onclick="startRecording()">
-      🎤
-    </button>
-
-  </div>
-
-</div>
-
-<!-- NOTIFICATIONS PAGE -->
-<div id="notificationsPage" style="display:none;">
-
-  <h2>Notifications</h2>
-
-<div id="sidebarNotifications"></div>
-
-</div>
-
-
-      <!-- STORIES -->
-      <div id="storiesBar" class="stories-bar"></div>
-
-      <!-- HOME FEED -->
-      <div id="homeFeed">
-
-        <div class="topbar">
-          <input class="search" placeholder="Search FutureBook..." />
-        </div>
-
-        <div class="create-post">
-          <input id="postInput" placeholder="What's on your mind?" />
-          <button onclick="createPost()">Post</button>
-        </div>
-
-        <div id="posts"></div>
-
-      </div>
-
-    </div>
-
-    <!-- RIGHT SIDEBAR -->
-  
-    </div>
-  </div>
 <!-- PROFILE MODAL -->
 <div id="profileModal" class="profile-modal">
-
   <div class="profile-content">
-
     <span class="close-profile" onclick="closeProfile()">✖</span>
 
     <div class="profile-cover"></div>
 
-    <img id="profileModalPic"
-         class="profile-big-pic"
-         src="https://i.imgur.com/HeIi0wU.png" />
+    <img id="profileModalPic" class="profile-big-pic"
+    src="https://i.imgur.com/HeIi0wU.png" />
 
     <h2 id="profileModalName"></h2>
 
@@ -197,10 +139,7 @@
       <button id="addFriendBtn">Add Friend</button>
     </div>
 
-    <div id="profilePosts"></div>
-
   </div>
-
 </div>
 
 <!-- SETTINGS -->
