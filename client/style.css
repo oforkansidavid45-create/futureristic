@@ -534,4 +534,11 @@ html, body {
 .chat-input-area button:hover {
   transform:scale(1.1);
   background:#1877f2;
+}.chat-actions button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: white;
+  margin: 5px;
+  cursor: pointer;
 }
