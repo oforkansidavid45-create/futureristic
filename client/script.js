@@ -110,9 +110,24 @@ async function login() {
   showView("homeView"); // ✅ FIX HERE
 }
  
-
 async function loadFriends() {
-  friendsList = [];
+
+  try {
+
+    const res = await fetch(
+      `${API}/api/friends/${username}`
+    );
+
+    friendsList = await res.json();
+
+    console.log("FRIENDS:", friendsList);
+
+  } catch (err) {
+
+    console.log("FRIEND LOAD ERROR:", err);
+
+  }
+
 }
 
 // ================= SOCKET =================
@@ -132,7 +147,7 @@ async function loadMessages(user) {
     );
 
     const messages = await res.json();
-   const box = document.getElementById("notificationList");
+  const box = document.getElementById("messagesContainer"); 
 
     if (!box) return;
 
@@ -216,16 +231,7 @@ function sendMessage() {
 
   input.value = "";
 }
-function openProfile(user) {
-  showView("profileView");
 
-  document.getElementById("profileView").innerHTML = `
-    <div class="profile-feed">
-      <h2>@${user}</h2>
-      <p>Loading posts...</p>
-    </div>
-  `;
-}
 // ================= SOCKET RECEIVE =================
 socket.on("privateMessage", (data) => {
   if (!data) return;
@@ -623,40 +629,55 @@ function showProfile() {
   openProfile(username);
 }
 
-async function openProfile(user) {
+async function openProfile(user){
 
-  showView("profileView");
+currentProfileUser = user;
 
-  const profile = document.getElementById("profileView");
+document.getElementById(
+"profileModal"
+).style.display = "flex";
 
-  profile.innerHTML = `
-    <div class="profile-feed">
+document.getElementById(
+"profileModalName"
+).innerText = "@" + user;
 
-      <img src="https://i.imgur.com/HeIi0wU.png"
-      class="profile-pic-large">
+const res =
+await fetch(`${API}/api/posts`);
 
-      <h2>@${user}</h2>
+const posts =
+await res.json();
 
-      <div id="userPosts"></div>
+const userPosts =
+posts.filter(
+p => cleanName(p.user)
+=== cleanName(user)
+);
+document.querySelector(
+".profile-content"
+).innerHTML = `
 
+  <div id="profilePosts">
+
+
+${userPosts.map(post => `
+
+  <div class="post">
+
+    <div class="post-text">
+      ${post.text}
     </div>
-  `;
 
-  const res = await fetch(`${API}/api/posts`);
-  const posts = await res.json();
+  </div>
 
-  const filtered = posts.filter(
-    p => cleanName(p.user) === cleanName(user)
-  );
+`).join("")}
 
-  document.getElementById("userPosts").innerHTML =
-    filtered.map(p => `
-      <div class="post">
-        <div class="post-text">${p.text}</div>
-      </div>
-    `).join("");
+
+  </div>
+
+`;
 
 }
+
 
 
 // ================= FRIEND REQUEST =================
@@ -700,29 +721,30 @@ async function sendRequest(user) {
 // ================= ACCEPT =================
 async function acceptRequest(fromUser) {
 
-  await fetch(
-    `${API}/api/friend-accept`,
-    {
+await fetch(
+`${API}/api/friend-accept`,
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+from:fromUser,
+to:username
+})
+}
+);
 
-      method: "POST",
+await loadFriends();
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+loadNotifications();
 
-      body: JSON.stringify({
-        from: fromUser,
-        to: username
-      })
-
-    }
-  );
-
-  loadFriends();
-
-  loadNotifications();
+showToast("Friend added");
 
 }
+
+
+
 
 // ================= REJECT =================
 async function rejectRequest(fromUser) {
@@ -773,23 +795,32 @@ document.getElementById("notificationList");
 
     data.forEach(user => {
 
-      box.innerHTML += `
+  box.innerHTML += `
 
-        <div class="notif-item">
+<img
+  src="https://i.imgur.com/HeIi0wU.png"
+  class="notif-avatar"
+>
 
-          <span>${user}</span>
+<div>
+  <b>${user}</b>
+  <div>sent you a friend request</div>
+</div>
+<button
+  class="accept-btn"
+  onclick="acceptRequest('${user}')"
+>
+  Accept
+</button>
 
-          <button onclick="acceptRequest('${user}')">
-            Accept
-          </button>
+<button
+  class="reject-btn"
+  onclick="rejectRequest('${user}')"
+>
+  Reject
+</button>
 
-          <button onclick="rejectRequest('${user}')">
-            Reject
-          </button>
-
-        </div>
-
-      `;
+`;
 
     });
 
@@ -799,29 +830,83 @@ document.getElementById("notificationList");
 
   }
 
+
+
+async function uploadProfilePic(e){
+
+const file = e.target.files[0];
+
+if(!file) return;
+
+const formData = new FormData();
+
+formData.append("image", file);
+formData.append("username", username);
+
+const res = await fetch(
+`${API}/api/upload-profile`,
+{
+method:"POST",
+body:formData
 }
+);
+
+const data = await res.json();
+
+document.getElementById(
+"profileModalPic"
+).src = data.profilePic;
+
+loadPosts();
+
+}
+
 
 // ================= ONLINE USERS =================
 socket.on("onlineUsers", (users) => {
 
-  const container = document.getElementById("onlineUsers");
+  const container =
+    document.getElementById("onlineUsers");
+
   if (!container) return;
 
   container.innerHTML = users
-    .filter(u => cleanName(u) !== cleanName(username))
+    .filter(u =>
+      cleanName(u) !== cleanName(username)
+    )
+
     .map(u => `
 
-      <div class="online-user">
+      <div class="online-card">
 
-        <span onclick="openChat('${u}')">
-          ${u}
-        </span>
+        <img
+          src="https://i.imgur.com/HeIi0wU.png"
+          class="online-avatar"
+        >
 
-        <button onclick="sendRequest('${u}')">+</button>
+        <div class="online-info">
+
+          <div class="online-name">
+            ${u}
+          </div>
+
+          <div class="online-status">
+            online
+          </div>
+
+        </div>
+
+        <button
+          class="add-btn"
+          onclick="sendRequest('${u}')"
+        >
+          +
+        </button>
 
       </div>
 
     `)
+
     .join("");
 
 });
@@ -884,13 +969,27 @@ function showNotificationsPage() {
   showView("notificationView");
   loadNotifications();
 }
-
 function openChat(user) {
 
-  if (!friendsList.map(cleanName).includes(cleanName(user))) {
-    alert("You are not friends yet");
-    return;
-  }
+  currentChatUser = cleanName(user);
+
+  document.getElementById(
+    "chatTitle"
+  ).innerText = "Chat with " + user;
+
+  document.getElementById(
+    "messagesContainer"
+  ).innerHTML = "";
+
+  showView("chatView");
+
+  document.getElementById(
+    "chatArea"
+  ).style.display = "flex";
+
+  loadMessages(user);
+
+}
 
   currentChatUser = cleanName(user);
 
@@ -914,27 +1013,49 @@ window.addEventListener("load", () => {
 });
 function showMessages() {
 
-  document.getElementById(
-  "chatArea"
-).style.display = "flex";
+  showView("chatView");
 
   const list =
     document.getElementById("friendsList");
 
   list.innerHTML = "";
 
+  if (friendsList.length === 0) {
+
+    list.innerHTML = `
+      <div class="no-friends">
+        No friends yet
+      </div>
+    `;
+
+    return;
+  }
+
   friendsList.forEach(friend => {
 
     list.innerHTML += `
 
-      <div class="friend-item"
-        onclick="openChat('${friend}')">
+      <div
+        class="friend-item"
+        onclick="openChat('${friend}')"
+      >
 
         <img
-        src="https://i.imgur.com/HeIi0wU.png"
-        class="friend-avatar">
+          src="https://i.imgur.com/HeIi0wU.png"
+          class="friend-avatar"
+        >
 
-        <span>${friend}</span>
+        <div class="friend-info">
+
+          <div class="friend-name">
+            ${friend}
+          </div>
+
+          <div class="friend-status">
+            Tap to chat
+          </div>
+
+        </div>
 
       </div>
 
@@ -943,6 +1064,16 @@ function showMessages() {
   });
 
 }
+
+
+document.getElementById(
+"profilePicInput"
+).addEventListener(
+"change",
+uploadProfilePic
+);
+
+
 function showSettings() {
   showView("settingsView");
 }
