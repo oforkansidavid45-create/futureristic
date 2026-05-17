@@ -74,6 +74,19 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
     <div id="posts"></div>
   </div>
+  <div id="settingsView" style="display:none;">
+
+  <div class="settings-page">
+
+    <h2>Settings</h2>
+
+    <button onclick="logout()">
+      Logout
+    </button>
+
+  </div>
+
+</div>
 
   <!-- CHAT -->
   <div id="chatView" style="display:none;">
@@ -153,10 +166,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 </div>
 
 <!-- SETTINGS -->
-<div id="settingsPanel" class="settings-panel">
-  <h3>Settings</h3>
-  <button onclick="logout()">Logout</button>
-</div>
+
 
 <!-- SOCKET -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>

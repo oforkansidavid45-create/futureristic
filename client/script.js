@@ -839,7 +839,13 @@ function toggleSettings() {
 
 
 function showView(view) {
-  const views = ["homeView", "chatView", "notificationView", "profileView"];
+ const views = [
+  "homeView",
+  "chatView",
+  "notificationView",
+  "profileView",
+  "settingsView"
+];
 
   views.forEach(v => {
     const el = document.getElementById(v);
@@ -896,6 +902,9 @@ window.addEventListener("load", () => {
     document.getElementById("authScreen").style.display = "flex";
   }, 2000);
 });
+function showSettings() {
+  showView("settingsView");
+}
 
 // ================= LOGOUT =================
 function logout() {
