@@ -765,7 +765,7 @@ async function loadNotifications() {
       await res.json();
 
     const box =
-document.getElementById("sidebarNotifications");
+document.getElementById("notificationList");
 
     if (!box) return;
 
@@ -914,20 +914,33 @@ window.addEventListener("load", () => {
 });
 function showMessages() {
 
-  showView("chatView");
+  document.getElementById(
+  "chatArea"
+).style.display = "flex";
 
-  const list = document.getElementById("friendsList");
+  const list =
+    document.getElementById("friendsList");
 
-  list.innerHTML = friendsList.map(friend => `
+  list.innerHTML = "";
 
-    <div class="friend-item"
-      onclick="openChat('${friend}')">
+  friendsList.forEach(friend => {
 
-      ${friend}
+    list.innerHTML += `
 
-    </div>
+      <div class="friend-item"
+        onclick="openChat('${friend}')">
 
-  `).join("");
+        <img
+        src="https://i.imgur.com/HeIi0wU.png"
+        class="friend-avatar">
+
+        <span>${friend}</span>
+
+      </div>
+
+    `;
+
+  });
 
 }
 function showSettings() {
