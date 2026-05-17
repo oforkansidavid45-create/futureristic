@@ -112,8 +112,7 @@ async function login() {
  
 
 async function loadFriends() {
-  const res = await fetch(`${API}/api/friends/${username}`);
-  friendsList = await res.json();
+  friendsList = [];
 }
 
 // ================= SOCKET =================
@@ -619,32 +618,46 @@ async function likePost(id) {
 }
 
 // ================= PROFILE =================
+
+function showProfile() {
+  openProfile(username);
+}
+
 async function openProfile(user) {
 
-  currentProfileUser = cleanName(user);
+  showView("profileView");
 
-  document.getElementById(
-    "profileModal"
-  ).style.display = "flex";
+  const profile = document.getElementById("profileView");
 
-  document.getElementById(
-    "profileModalName"
-  ).innerText = "@" + user;
+  profile.innerHTML = `
+    <div class="profile-feed">
+
+      <img src="https://i.imgur.com/HeIi0wU.png"
+      class="profile-pic-large">
+
+      <h2>@${user}</h2>
+
+      <div id="userPosts"></div>
+
+    </div>
+  `;
+
+  const res = await fetch(`${API}/api/posts`);
+  const posts = await res.json();
+
+  const filtered = posts.filter(
+    p => cleanName(p.user) === cleanName(user)
+  );
+
+  document.getElementById("userPosts").innerHTML =
+    filtered.map(p => `
+      <div class="post">
+        <div class="post-text">${p.text}</div>
+      </div>
+    `).join("");
 
 }
-function showProfile() {
 
-  openProfile(username);
-
-}
-
-function closeProfile() {
-
-  document.getElementById(
-    "profileModal"
-  ).style.display = "none";
-
-}
 
 // ================= FRIEND REQUEST =================
 async function sendRequest(user) {
@@ -865,9 +878,7 @@ function showHome() {
   showView("homeView");
 }
 
-function showMessages() {
-  showView("chatView");
-}
+
 
 function showNotificationsPage() {
   showView("notificationView");
@@ -887,8 +898,7 @@ function openChat(user) {
     "Chat with " + user;
 
   document.getElementById("messagesContainer").innerHTML = "";
-
-  showView("chatView"); // 🔥 FIXED
+document.getElementById("chatArea").style.display = "block"; // 🔥 FIXED
 
   loadMessages(currentChatUser);
 
@@ -902,6 +912,24 @@ window.addEventListener("load", () => {
     document.getElementById("authScreen").style.display = "flex";
   }, 2000);
 });
+function showMessages() {
+
+  showView("chatView");
+
+  const list = document.getElementById("friendsList");
+
+  list.innerHTML = friendsList.map(friend => `
+
+    <div class="friend-item"
+      onclick="openChat('${friend}')">
+
+      ${friend}
+
+    </div>
+
+  `).join("");
+
+}
 function showSettings() {
   showView("settingsView");
 }

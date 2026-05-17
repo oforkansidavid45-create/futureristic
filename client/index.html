@@ -89,17 +89,21 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 </div>
 
   <!-- CHAT -->
-  <div id="chatView" style="display:none;">
+<div id="friendsList"></div>
 
-    <div class="chat-header">
-      <h3 id="chatTitle">Chat</h3>
-    </div>
+<div id="chatArea" style="display:none;">
 
-    <div id="messagesContainer"></div>
+  <div class="chat-header">
+    <h3 id="chatTitle"></h3>
+  </div>
 
-    <div id="typingIndicator"></div>
+  <div id="messagesContainer"></div>
 
-    <div class="chat-input-area">
+  <div class="chat-input-area">
+
+    <input id="chatInput">
+
+  </div>
 
       <input id="chatInput" placeholder="Type message..." oninput="handleTyping()" />
 
