@@ -778,16 +778,14 @@ async function loadNotifications() {
 
   try {
 
-    const res =
-      await fetch(
-        `${API}/api/friend-requests/${username}`
-      );
+    const res = await fetch(
+      `${API}/api/friend-requests/${username}`
+    );
 
-    const data =
-      await res.json();
+    const data = await res.json();
 
     const box =
-document.getElementById("notificationList");
+      document.getElementById("notificationList");
 
     if (!box) return;
 
@@ -795,32 +793,41 @@ document.getElementById("notificationList");
 
     data.forEach(user => {
 
-  box.innerHTML += `
+      box.innerHTML += `
 
-<img
-  src="https://i.imgur.com/HeIi0wU.png"
-  class="notif-avatar"
->
+      <div class="notif-card">
 
-<div>
-  <b>${user}</b>
-  <div>sent you a friend request</div>
-</div>
-<button
-  class="accept-btn"
-  onclick="acceptRequest('${user}')"
->
-  Accept
-</button>
+        <img
+          src="https://i.imgur.com/HeIi0wU.png"
+          class="notif-avatar"
+        >
 
-<button
-  class="reject-btn"
-  onclick="rejectRequest('${user}')"
->
-  Reject
-</button>
+        <div class="notif-info">
+          <b>${user}</b>
+          <p>sent you a friend request</p>
+        </div>
 
-`;
+        <div class="notif-actions">
+
+          <button
+            class="accept-btn"
+            onclick="acceptRequest('${user}')"
+          >
+            Accept
+          </button>
+
+          <button
+            class="reject-btn"
+            onclick="rejectRequest('${user}')"
+          >
+            Reject
+          </button>
+
+        </div>
+
+      </div>
+
+      `;
 
     });
 
@@ -830,36 +837,9 @@ document.getElementById("notificationList");
 
   }
 
-
-
-async function uploadProfilePic(e){
-
-const file = e.target.files[0];
-
-if(!file) return;
-
-const formData = new FormData();
-
-formData.append("image", file);
-formData.append("username", username);
-
-const res = await fetch(
-`${API}/api/upload-profile`,
-{
-method:"POST",
-body:formData
 }
-);
 
-const data = await res.json();
 
-document.getElementById(
-"profileModalPic"
-).src = data.profilePic;
-
-loadPosts();
-
-}
 
 
 // ================= ONLINE USERS =================
@@ -933,6 +913,8 @@ function toggleSettings() {
   panel.classList.toggle("active");
 
 }
+
+
 
 
 
@@ -1064,14 +1046,52 @@ function showMessages() {
   });
 
 }
+// ================= PROFILE UPLOAD =================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const picInput =
+    document.getElementById("profilePicInput");
+
+  if (picInput) {
+    picInput.addEventListener(
+      "change",
+      uploadProfilePic
+    );
+  }
+
+});
+
+async function uploadProfilePic(e){
+
+  const file = e.target.files[0];
+
+  if(!file) return;
+
+  const formData = new FormData();
+
+  formData.append("image", file);
+  formData.append("username", username);
+
+  const res = await fetch(
+    `${API}/api/upload-profile`,
+    {
+      method:"POST",
+      body:formData
+    }
+  );
+
+  const data = await res.json();
+
+  document.getElementById(
+    "profileModalPic"
+  ).src = data.profilePic;
+
+  loadPosts();
+
+}
 
 
-document.getElementById(
-"profilePicInput"
-).addEventListener(
-"change",
-uploadProfilePic
-);
 
 
 function showSettings() {
