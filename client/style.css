@@ -886,3 +886,7 @@ cursor:pointer;
   overflow-y:auto;
   padding:20px;
 }
+.app{
+  display:none;
+  height:100vh;
+}

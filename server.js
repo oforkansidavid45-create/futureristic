@@ -46,7 +46,7 @@ let requests = {};       // pending requests
 
 // ================= HELPERS =================
 function emitOnlineUsers() {
-  io.emit("onlineUsers", Object.keys(users));
+emitOnlineUsers();
 }
 app.get("/api/friend-requests/:user", (req, res) => {
   const user = cleanName(req.params.user);
@@ -98,6 +98,13 @@ app.post("/api/auth/signup", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+if (password.length < 4) {
+  return res.status(400).json({
+    error: "Password too short"
+  });
+}
+
 // ================= AUTH LOGIN =================
 app.post("/api/auth/login", async (req, res) => {
 
@@ -155,54 +162,28 @@ app.post("/api/auth/login", async (req, res) => {
 
 });
 
+// ================= GET PROFILE =================
 
-// ================= PROFILE PIC =================
-
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-app.post("/api/upload-profile", upload.single("image"), async (req, res) => {
+app.get("/api/user/:username", async (req, res) => {
 
   try {
 
-    const username = req.body.username;
+    const username =
+      cleanName(req.params.username);
 
-    if (!req.file) {
-      return res.status(400).json({
-        error: "No image"
+    const user =
+      await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found"
       });
     }
 
-    const result = await cloudinary.uploader.upload_stream(
-      {
-        folder: "futurebook_profiles"
-      },
-
-      async (error, uploaded) => {
-
-        if (error) {
-          console.log(error);
-          return res.status(500).json({
-            error: "Upload failed"
-          });
-        }
-
-        const user = await User.findOneAndUpdate(
-          { username },
-          {
-            profilePic: uploaded.secure_url
-          },
-          { new: true }
-        );
-
-        res.json({
-          profilePic: user.profilePic
-        });
-
-      }
-
-    );
-
-    result.end(req.file.buffer);
+    res.json({
+      username: user.username,
+      profilePic: user.profilePic || ""
+    });
 
   } catch (err) {
 
@@ -216,12 +197,83 @@ app.post("/api/upload-profile", upload.single("image"), async (req, res) => {
 
 });
 
+// ================= PROFILE PIC =================
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+app.post(
+  "/api/upload-profile",
+  upload.single("image"),
+  async (req, res) => {
+
+    try {
+
+      const username =
+        cleanName(req.body.username);
+
+      if (!req.file) {
+        return res.status(400).json({
+          error: "No image"
+        });
+      }
+
+      const stream =
+        cloudinary.uploader.upload_stream(
+          {
+            folder: "futurebook_profiles"
+          },
+
+          async (error, uploaded) => {
+
+            if (error) {
+
+              console.log(error);
+
+              return res.status(500).json({
+                error: "Upload failed"
+              });
+
+            }
+
+            const user =
+              await User.findOneAndUpdate(
+                { username },
+                {
+                  profilePic:
+                    uploaded.secure_url
+                },
+                { new: true }
+              );
+
+            res.json({
+              profilePic:
+                user.profilePic
+            });
+
+          }
+        );
+
+      stream.end(req.file.buffer);
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        error: "Server error"
+      });
+
+    }
+
+});
+
+
 // ================= LOAD MESSAGES =================
 app.get("/api/messages/:user1/:user2", async (req, res) => {
   try {
-    const user1 = (req.params.user1 || "").trim();
-    const user2 = (req.params.user2 || "").trim();
-
+   const user1 = cleanName(req.params.user1);
+     const user2 = cleanName(req.params.user2);
     const messages = await Message.find({
       $or: [
         { from: user1, to: user2 },
@@ -516,6 +568,22 @@ app.post("/api/friend-request", (req, res) => {
     });
   }
 
+if (f === t) {
+  return res.status(400).json({
+    error: "Cannot add yourself"
+  });
+}
+
+if (
+  friends[f]?.includes(t)
+) {
+  return res.json({
+    message: "Already friends"
+  });
+}
+
+
+
   res.json({ message: "Request sent" });
 });
 app.post("/api/friend-accept", (req, res) => {
@@ -543,6 +611,11 @@ app.post("/api/friend-reject", (req, res) => {
     (requests[to] || []).filter(u => u !== from);
 
   res.json({ message: "rejected" });
+});
+app.get("/api/friends/:user", (req, res) => {
+  const user = cleanName(req.params.user);
+
+  res.json(friends[user] || []);
 });
 
 // ================= DB =================

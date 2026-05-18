@@ -96,7 +96,7 @@ async function login() {
   username = cleanName(data.user);
 
   document.getElementById("authScreen").style.display = "none";
-  document.querySelector(".app").style.display = "flex";
+ document.getElementById("app").style.display = "flex";
 
   socket.emit("register", username);
 
@@ -843,6 +843,8 @@ async function loadNotifications() {
 
 
 // ================= ONLINE USERS =================
+// ================= ONLINE USERS =================
+
 socket.on("onlineUsers", (users) => {
 
   const container =
@@ -851,7 +853,8 @@ socket.on("onlineUsers", (users) => {
   if (!container) return;
 
   container.innerHTML = users
-    .filter(u =>
+    .filter(
+      u =>
       cleanName(u) !== cleanName(username)
     )
 
@@ -859,28 +862,32 @@ socket.on("onlineUsers", (users) => {
 
       <div class="online-card">
 
-        <img
-          src="https://i.imgur.com/HeIi0wU.png"
-          class="online-avatar"
-        >
+        <div class="online-left">
 
-        <div class="online-info">
+          <img
+            src="https://i.imgur.com/HeIi0wU.png"
+            class="online-avatar"
+          >
 
-          <div class="online-name">
-            ${u}
-          </div>
+          <div>
 
-          <div class="online-status">
-            online
+            <div class="online-name">
+              ${u}
+            </div>
+
+            <small class="online-status">
+              online
+            </small>
+
           </div>
 
         </div>
 
         <button
-          class="add-btn"
+          class="add-friend-btn"
           onclick="sendRequest('${u}')"
         >
-          +
+          Add
         </button>
 
       </div>
@@ -969,6 +976,10 @@ function openChat(user) {
     "chatArea"
   ).style.display = "flex";
 
+  document.getElementById(
+    "chatInputArea"
+  ).style.display = "flex";
+
   loadMessages(user);
 
 }
@@ -984,7 +995,7 @@ document.getElementById("chatArea").style.display = "block"; // 🔥 FIXED
   loadMessages(currentChatUser);
 
   document.getElementById("chatInputArea").style.display = "flex";
-}
+
 window.addEventListener("load", () => {
   setTimeout(() => {
     const splash = document.getElementById("splashScreen");
