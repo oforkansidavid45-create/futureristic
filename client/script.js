@@ -1,5 +1,5 @@
 let user = null;
-let currentChatUser = null;
+
 let currentProfileUser = null;
 
 function showToast(message) {

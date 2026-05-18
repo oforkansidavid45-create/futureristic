@@ -35,156 +35,135 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 </div>
 
 <!-- ================= APP ================= -->
-<div class="app" id="app" style="display:none;"></div>
+```html id="m7kz9j"
+<!-- ================= APP ================= -->
+<div class="app" id="app" style="display:none;">
 
-<!-- LEFT SIDEBAR (FACEBOOK STYLE ICONS) -->
-<div class="fb-left">
+  <!-- LEFT SIDEBAR -->
+  <div class="fb-left">
 
-  <div class="menu-item" onclick="showHome()">
-    <i class="fa-solid fa-house"></i>
-  </div>
-
-  <div class="menu-item" onclick="showMessages()">
-    <i class="fa-solid fa-message"></i>
-  </div>
-
-  <div class="menu-item" onclick="showNotificationsPage()">
-    <i class="fa-solid fa-bell"></i>
-  </div>
-
-  <div class="menu-item" onclick="showProfile()">
-    <i class="fa-solid fa-user"></i>
-  </div>
-
-<div class="menu-item" onclick="showSettings()">
-  <i class="fa-solid fa-gear"></i>
-</div>
-</div>
-
-
-
-<!-- CENTER -->
-<div class="fb-center">
-<div class="nova-bar">
-
-  <div class="nova-card create-nova">
-    <div class="nova-plus">+</div>
-    <span>Create Nova</span>
-  </div>
-
-  <div class="nova-card">
-    <img src="https://i.imgur.com/HeIi0wU.png">
-    <span>David</span>
-  </div>
-
-  <div class="nova-card">
-    <img src="https://i.imgur.com/HeIi0wU.png">
-    <span>Alex</span>
-  </div>
-
-</div>
-
-</div>
-
-  <!-- HOME -->
-  <div id="homeView">
-    <div class="create-post">
-      <input id="postInput" placeholder="What's on your mind?" />
-      <button onclick="createPost()">Post</button>
+    <div class="menu-item" onclick="showHome()">
+      <i class="fa-solid fa-house"></i>
     </div>
 
-    <div id="posts"></div>
-  </div>
-  <div id="settingsView" style="display:none;">
-
-  <div class="settings-page">
-
-    <h2>Settings</h2>
-
-    <button onclick="logout()">
-      Logout
-    </button>
-
-  </div>
-
-</div>
-
-  <!-- CHAT -->
-<!-- CHAT -->
-<div id="chatView" style="display:none;">
-
-  <!-- FRIENDS LIST -->
-  <div id="friendsList"></div>
-
-  <!-- CHAT AREA -->
-  <div id="chatArea" style="display:none;">
-
-    <div class="chat-header">
-      <h3 id="chatTitle"></h3>
+    <div class="menu-item" onclick="showMessages()">
+      <i class="fa-solid fa-message"></i>
     </div>
 
-    <div id="messagesContainer"></div>
+    <div class="menu-item" onclick="showNotificationsPage()">
+      <i class="fa-solid fa-bell"></i>
+    </div>
 
-    <div id="typingIndicator"></div>
+    <div class="menu-item" onclick="showProfile()">
+      <i class="fa-solid fa-user"></i>
+    </div>
 
-    <div class="chat-input-area" id="chatInputArea">
-
-      <input
-        id="chatInput"
-        placeholder="Type message..."
-        oninput="handleTyping()"
-      />
-
-      <input type="file" id="imageInput" hidden />
-      <input type="file" id="fileInput" hidden />
-
-      <button onclick="sendMessage()" class="send-btn">
-        <i class="fa fa-paper-plane"></i>
-      </button>
-
-      <button onclick="document.getElementById('imageInput').click()">
-        <i class="fa fa-image"></i>
-      </button>
-
-      <button onclick="document.getElementById('fileInput').click()">
-        <i class="fa fa-paperclip"></i>
-      </button>
-
-      <button onclick="startRecording()">
-        <i class="fa fa-microphone"></i>
-      </button>
-
+    <div class="menu-item" onclick="showSettings()">
+      <i class="fa-solid fa-gear"></i>
     </div>
 
   </div>
 
-</div>
+  <!-- CENTER -->
+  <div class="fb-center">
+
+    <!-- STORIES -->
+    <div class="nova-bar">
+
+      <div class="nova-card create-nova">
+        <div class="nova-plus">+</div>
+        <span>Create Nova</span>
+      </div>
+
+    </div>
+
+    <!-- HOME -->
+    <div id="homeView">
+
+      <div class="create-post">
+        <input id="postInput" placeholder="What's on your mind?" />
+        <button onclick="createPost()">Post</button>
+      </div>
+
+      <div id="posts"></div>
+
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="settingsView" style="display:none;">
+
+      <div class="settings-page">
+
+        <h2>Settings</h2>
+
+        <button onclick="logout()">
+          Logout
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- CHAT -->
+    <div id="chatView" style="display:none;">
+
+      <div id="friendsList"></div>
+
+      <div id="chatArea" style="display:none;">
+
+        <div class="chat-header">
+          <h3 id="chatTitle"></h3>
+        </div>
+
+        <div id="messagesContainer"></div>
+
+        <div id="typingIndicator"></div>
+
+        <div class="chat-input-area">
+
+          <input
+            id="chatInput"
+            placeholder="Type message..."
+            oninput="handleTyping()"
+          />
+
+          <button onclick="sendMessage()">
+            <i class="fa fa-paper-plane"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div id="notificationView" style="display:none;">
+      <h2>Notifications</h2>
+      <div id="notificationList"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="profileView" style="display:none;">
+      <h2>Profile</h2>
+    </div>
 
   </div>
 
-  <!-- NOTIFICATIONS -->
-  <div id="notificationView" style="display:none;">
-    <h2>Notifications</h2>
-    <div id="notificationList"></div>
+  <!-- RIGHT SIDEBAR -->
+  <div class="fb-right">
+
+    <h3>Search Friends</h3>
+
+    <input
+      type="text"
+      id="friendSearch"
+      placeholder="Search friends..."
+    >
+
+    <div id="onlineUsers"></div>
+
   </div>
-
-  <!-- PROFILE -->
-  <div id="profileView" style="display:none;">
-    <h2>Profile</h2>
-  </div>
-
-</div>
-
-<!-- RIGHT SIDEBAR -->
-<div class="fb-right">
-<h3>Search Friends</h3>
-  <input
-  type="text"
-  id="friendSearch"
-  placeholder="Search friends..."
->
-  <div id="onlineUsers"></div>
-</div>
 
 </div>
 
@@ -192,19 +171,22 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 <div id="profileModal" class="profile-modal">
 
   <div class="profile-content">
+
     <input type="file" id="profilePicInput" hidden>
 
-<button onclick="document.getElementById('profilePicInput').click()">
-  Change Photo
-</button>
+    <button onclick="document.getElementById('profilePicInput').click()">
+      Change Photo
+    </button>
 
     <span class="close-profile" onclick="closeProfile()">✖</span>
 
     <div class="profile-cover"></div>
 
-    <img id="profileModalPic"
-    class="profile-big-pic"
-    src="https://i.imgur.com/HeIi0wU.png" />
+    <img
+      id="profileModalPic"
+      class="profile-big-pic"
+      src="https://i.imgur.com/HeIi0wU.png"
+    />
 
     <h2 id="profileModalName"></h2>
 
@@ -218,13 +200,10 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
 </div>
 
-<!-- SETTINGS -->
-
-</div>
-</div>
 <!-- SOCKET -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="script.js"></script>
+
 
 </body>
 </html>
