@@ -80,10 +80,49 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     </div>
 
     <!-- CREATE POST -->
-    <div class="create-post">
-      <input id="postInput" placeholder="What's on your mind?" />
-      <button onclick="createPost()">Post</button>
+<div class="create-post">
+
+  <img
+    src="https://i.imgur.com/HeIi0wU.png"
+    class="create-avatar"
+  >
+
+  <div class="create-post-right">
+
+    <input
+      id="postInput"
+      placeholder="What's on your mind?"
+    />
+
+    <div class="post-actions">
+
+      <label class="post-btn">
+        📷 Photo
+        <input
+          type="file"
+          id="postImage"
+          hidden
+        >
+      </label>
+
+      <label class="post-btn">
+        🎥 Video
+        <input
+          type="file"
+          id="postVideo"
+          hidden
+        >
+      </label>
+
+      <button onclick="createPost()">
+        Post
+      </button>
+
     </div>
+
+  </div>
+
+</div>
 
     <!-- POSTS -->
     <div id="posts"></div>
@@ -202,19 +241,23 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   </div>
 
   <!-- RIGHT SIDEBAR -->
-  <div class="fb-right">
+<!-- RIGHT SIDEBAR -->
+<div class="fb-right">
 
-    <h3>Search Friends</h3>
-
-    <input
-      type="text"
-      id="friendSearch"
-      placeholder="Search friends..."
-    >
-
-    <div id="onlineUsers"></div>
-
+  <div class="right-header">
+    <h3>Friends</h3>
   </div>
+
+  <input
+    type="text"
+    id="friendSearch"
+    placeholder="Search friends..."
+    onkeyup="searchFriends()"
+  >
+
+  <div id="onlineUsers"></div>
+
+</div>
 
 </div>
 

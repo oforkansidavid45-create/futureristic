@@ -560,3 +560,114 @@ html, body {
 
   background:#0f172a;
 }
+.right-header{
+  margin-bottom:15px;
+}
+
+.right-header h3{
+  color:white;
+  font-size:24px;
+}
+
+#onlineUsers{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.online-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  background:#1e293b;
+
+  padding:12px;
+
+  border-radius:16px;
+
+  transition:0.3s;
+}
+
+.online-card:hover{
+  background:#334155;
+  transform:scale(1.02);
+}
+
+.online-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.online-avatar{
+  width:50px;
+  height:50px;
+
+  border-radius:50%;
+  object-fit:cover;
+
+  border:2px solid #22c55e;
+}
+
+.online-name{
+  color:white;
+  font-weight:bold;
+}
+
+.online-status{
+  color:#94a3b8;
+}
+
+.add-friend-btn{
+  border:none;
+
+  background:#1877f2;
+
+  color:white;
+
+  padding:10px 14px;
+
+  border-radius:12px;
+
+  cursor:pointer;
+}
+.create-avatar{
+  width:50px;
+  height:50px;
+
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.create-post-right{
+  flex:1;
+}
+
+.post-actions{
+  display:flex;
+  gap:10px;
+
+  margin-top:10px;
+}
+
+.post-btn{
+  background:#1e293b;
+
+  padding:10px 14px;
+
+  border-radius:12px;
+
+  cursor:pointer;
+
+  color:white;
+}
+
+.post video,
+.post img{
+  width:100%;
+
+  border-radius:16px;
+
+  margin-top:12px;
+}

@@ -591,46 +591,42 @@
   }
 
   // ================= CREATE POST =================
-  async function createPost() {
+async function createPost() {
 
-    const input =
-      document.getElementById("postInput");
+  const text =
+    document.getElementById("postInput").value;
 
-    if (!input) return;
+  const image =
+    document.getElementById("postImage").files[0];
 
-    const text =
-      input.value.trim();
+  const video =
+    document.getElementById("postVideo").files[0];
 
-    if (!text) return;
+  if (!text && !image && !video) return;
 
-    try {
+  const formData = new FormData();
 
-      await fetch(`${API}/api/posts`, {
+  formData.append("user", username);
+  formData.append("text", text);
 
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          user: username,
-          text
-        })
-
-      });
-
-      input.value = "";
-
-      loadPosts();
-
-    } catch (err) {
-
-      console.log("POST ERROR:", err);
-
-    }
-
+  if (image) {
+    formData.append("image", image);
   }
+
+  if (video) {
+    formData.append("video", video);
+  }
+
+  await fetch(`${API}/api/posts`, {
+    method:"POST",
+    body:formData
+  });
+
+  document.getElementById("postInput").value = "";
+
+  loadPosts();
+
+}
 
   // ================= LIKE POST =================
   async function likePost(id) {
@@ -973,6 +969,30 @@ async function openProfile(user) {
     if (chatInputArea) chatInputArea.style.display = "none";
   }
 
+  function searchFriends() {
+
+  const input =
+    document.getElementById("friendSearch");
+
+  const filter =
+    input.value.toLowerCase();
+
+  const cards =
+    document.querySelectorAll(".online-card");
+
+  cards.forEach(card => {
+
+    const name =
+      card.innerText.toLowerCase();
+
+    card.style.display =
+      name.includes(filter)
+      ? "flex"
+      : "none";
+
+  });
+
+}
 
   function showHome() {
     showView("homeView");
