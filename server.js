@@ -69,6 +69,11 @@ app.post("/api/auth/signup", async (req, res) => {
     console.log("BODY:", req.body);
 
     let { username, password } = req.body;
+    if (password.length < 4) {
+  return res.status(400).json({
+    error: "Password too short"
+  });
+}
 
     if (!username || !password) {
       return res.status(400).json({ error: "Fill all fields" });
@@ -99,11 +104,7 @@ app.post("/api/auth/signup", async (req, res) => {
   }
 });
 
-if (password.length < 4) {
-  return res.status(400).json({
-    error: "Password too short"
-  });
-}
+
 
 // ================= AUTH LOGIN =================
 app.post("/api/auth/login", async (req, res) => {
