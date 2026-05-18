@@ -22,11 +22,20 @@ function showToast(message) {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("UI READY");
 });
-document.getElementById("imageInput")
-.addEventListener("change", sendImage);
 
-document.getElementById("fileInput")
-.addEventListener("change", sendFile);
+const imageInput = document.getElementById("imageInput");
+
+if (imageInput) {
+  imageInput.addEventListener("change", handleImageUpload);
+}
+
+const fileInput = document.getElementById("fileInput");
+
+if (fileInput) {
+  fileInput.addEventListener("change", handleFileUpload);
+}
+
+
 
 console.log("🔥 script loaded");
 
@@ -394,6 +403,16 @@ socket.emit("privateMessage", {
 
 }
 
+function handleImageUpload() {
+  sendImage();
+}
+
+function handleFileUpload() {
+  sendFile();
+}
+
+
+
 // ================= SEND IMAGE =================
 function sendImage() {
 
@@ -419,6 +438,16 @@ function sendImage() {
   reader.readAsDataURL(file);
 
 }
+
+function handleImageUpload() {
+  sendImage();
+}
+
+function handleFileUpload() {
+  sendFile();
+}
+
+
 
 // ================= VOICE RECORD =================
 async function startRecording() {
@@ -986,17 +1015,6 @@ function openChat(user) {
 
 }
 
-  currentChatUser = cleanName(user);
-
-  document.getElementById("chatTitle").innerText =
-    "Chat with " + user;
-
-  document.getElementById("messagesContainer").innerHTML = "";
-document.getElementById("chatArea").style.display = "block"; // 🔥 FIXED
-
-  loadMessages(currentChatUser);
-
-  document.getElementById("chatInputArea").style.display = "flex";
 
 window.addEventListener("load", () => {
   setTimeout(() => {
