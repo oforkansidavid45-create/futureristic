@@ -1128,6 +1128,10 @@ async function uploadProfilePic(e){
 function showSettings() {
   showView("settingsView");
 }
+function closeProfile() {
+  const modal = document.getElementById("profileModal");
+  if (modal) modal.style.display = "none";
+}
 
 // ================= LOGOUT =================
 function logout() {
