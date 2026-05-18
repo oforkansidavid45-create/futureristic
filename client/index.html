@@ -63,11 +63,13 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     </div>
 
   </div>
+<!-- CENTER -->
+<div class="fb-center">
 
-  <!-- CENTER -->
-  <div class="fb-center">
+  <!-- HOME -->
+  <div id="homeView">
 
-    <!-- STORIES -->
+    <!-- NOVA / STORIES -->
     <div class="nova-bar">
 
       <div class="nova-card create-nova">
@@ -77,36 +79,80 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
     </div>
 
-    <!-- HOME -->
-    <div id="homeView">
-
-      <div class="create-post">
-        <input id="postInput" placeholder="What's on your mind?" />
-        <button onclick="createPost()">Post</button>
-      </div>
-
-      <div id="posts"></div>
-
+    <!-- CREATE POST -->
+    <div class="create-post">
+      <input id="postInput" placeholder="What's on your mind?" />
+      <button onclick="createPost()">Post</button>
     </div>
 
-    <!-- SETTINGS -->
-    <div id="settingsView" style="display:none;">
+    <!-- POSTS -->
+    <div id="posts"></div>
 
-      <div class="settings-page">
+  </div>
 
-        <h2>Settings</h2>
+  <!-- CHAT -->
+  <div id="chatView" style="display:none;">
 
-        <button onclick="logout()">
-          Logout
+    <div id="friendsList"></div>
+
+    <div id="chatArea" style="display:none;">
+
+      <div class="chat-header">
+        <h3 id="chatTitle"></h3>
+      </div>
+
+      <div id="messagesContainer"></div>
+
+      <div id="typingIndicator"></div>
+
+      <div class="chat-input-area" id="chatInputArea">
+
+        <input
+          id="chatInput"
+          placeholder="Type message..."
+          oninput="handleTyping()"
+        />
+
+        <button onclick="sendMessage()">
+          <i class="fa fa-paper-plane"></i>
         </button>
 
       </div>
 
     </div>
 
+  </div>
+
+  <!-- NOTIFICATION -->
+  <div id="notificationView" style="display:none;">
+    <h2>Notifications</h2>
+    <div id="notificationList"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="profileView" style="display:none;">
+    <h2>Profile</h2>
+    <div id="profileContent"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="settingsView" style="display:none;">
+
+    <div class="settings-page">
+
+      <h2>Settings</h2>
+
+      <button onclick="logout()">
+        Logout
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
     <!-- CHAT -->
-    <div id="chatView" 
-    >
+   
 
    <div id="friendsList"></div>
 
@@ -172,16 +218,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
 </div>
 
-<!-- PROFILE MODAL -->
-<div id="profileModal" class="profile-modal">
+<div id="profileModal" class="profile-modal" style="display:none;">
 
   <div class="profile-content">
-
-    <input type="file" id="profilePicInput" hidden>
-
-    <button onclick="document.getElementById('profilePicInput').click()">
-      Change Photo
-    </button>
 
     <span class="close-profile" onclick="closeProfile()">✖</span>
 
@@ -196,15 +235,27 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     <h2 id="profileModalName"></h2>
 
     <div class="profile-actions">
+
       <button id="addFriendBtn">
         Add Friend
       </button>
+
+      <button
+        class="change-photo-btn"
+        onclick="document.getElementById('profilePicInput').click()"
+      >
+        Change Photo
+      </button>
+
     </div>
-<div id="profilePosts"></div>
+
+    <input type="file" id="profilePicInput" hidden>
+
+    <div id="profilePosts"></div>
+
   </div>
 
 </div>
-
 <!-- SOCKET -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="script.js"></script>
