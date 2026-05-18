@@ -80,44 +80,35 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     </div>
 
     <!-- CREATE POST -->
-<div class="create-post">
+<div class="fb-post-box" onclick="openPostModal()">
 
-  <img
-    src="https://i.imgur.com/HeIi0wU.png"
-    class="create-avatar"
-  >
+  <div class="fb-post-top">
 
-  <div class="create-post-right">
+    <img
+      src="https://i.imgur.com/HeIi0wU.png"
+      class="fb-post-avatar"
+    >
 
     <input
-      id="postInput"
+      type="text"
       placeholder="What's on your mind?"
-    />
+      readonly
+    >
 
-    <div class="post-actions">
+  </div>
 
-      <label class="post-btn">
-        📷 Photo
-        <input
-          type="file"
-          id="postImage"
-          hidden
-        >
-      </label>
+  <div class="fb-post-bottom">
 
-      <label class="post-btn">
-        🎥 Video
-        <input
-          type="file"
-          id="postVideo"
-          hidden
-        >
-      </label>
+    <div class="fb-post-action live">
+      🎥 Live Video
+    </div>
 
-      <button onclick="createPost()">
-        Post
-      </button>
+    <div class="fb-post-action photo">
+      📷 Photo/video
+    </div>
 
+    <div class="fb-post-action feeling">
+      😊 Feeling/activity
     </div>
 
   </div>
@@ -295,6 +286,68 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     <input type="file" id="profilePicInput" hidden>
 
     <div id="profilePosts"></div>
+
+  </div>
+
+</div>
+
+<!-- FACEBOOK POST MODAL -->
+
+<div id="postModal" class="post-modal">
+
+  <div class="post-modal-content">
+
+    <div class="post-modal-header">
+
+      <h2>Create Post</h2>
+
+      <span onclick="closePostModal()">✖</span>
+
+    </div>
+
+    <div class="post-user-info">
+
+      <img
+        src="https://i.imgur.com/HeIi0wU.png"
+        class="fb-post-avatar"
+      >
+
+      <div>
+
+        <b id="postUsername"></b>
+
+        <div class="post-public">
+          🌍 Public
+        </div>
+
+      </div>
+
+    </div>
+
+    <textarea
+      id="postInput"
+      placeholder="What's on your mind?"
+    ></textarea>
+
+    <div id="previewArea"></div>
+
+    <div class="post-upload-box">
+
+      <label class="upload-option">
+        📷 Photo
+        <input type="file" id="postImage" hidden>
+      </label>
+
+      <label class="upload-option">
+        🎥 Video
+        <input type="file" id="postVideo" hidden>
+      </label>
+
+    </div>
+
+    <button class="submit-post-btn" onclick="createPost()">
+      Post
+    </button>
 
   </div>
 

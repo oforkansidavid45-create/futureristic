@@ -565,10 +565,19 @@
 
           </div>
 
-          <div class="post-text">
-            ${post.text}
-          </div>
+        <div class="post-text">
+  ${post.text || ""}
+</div>
 
+${post.image ? `
+  <img src="${post.image}" class="post-media">
+` : ""}
+
+${post.video ? `
+  <video controls class="post-media">
+    <source src="${post.video}">
+  </video>
+` : ""}
           <button
             class="like-btn"
             onclick="likePost('${post._id}')"
@@ -625,6 +634,26 @@ async function createPost() {
   document.getElementById("postInput").value = "";
 
   loadPosts();
+
+}
+
+function openPostModal(){
+
+  document.getElementById(
+    "postModal"
+  ).style.display = "flex";
+
+  document.getElementById(
+    "postUsername"
+  ).innerText = username;
+
+}
+
+function closePostModal(){
+
+  document.getElementById(
+    "postModal"
+  ).style.display = "none";
 
 }
 
@@ -1163,3 +1192,4 @@ async function openProfile(user) {
   openProfile(username);
 
 }
+

@@ -240,13 +240,18 @@ html, body {
   border-radius: 20px;
   margin-bottom: 20px;
 }
+.post-avatar{
+  width:45px;
+  height:45px;
 
-.post-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
+  border-radius:50%;
+
+  object-fit:cover;
+
+  margin-right:10px;
+
+  border:2px solid #1877f2;
 }
-
 /* ================= CHAT ================= */
 
 #messagesContainer {
@@ -483,10 +488,26 @@ html, body {
   margin-top:10px;
   margin-bottom:20px;
 }
+.auth-logo{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:25px;
+}
+
+.auth-logo img{
+  width:180px;
+  height:180px;
+  object-fit:contain;
+}
+
 .auth-logo h2{
-  color:black;
-  font-size:42px;
-  font-weight:bold;
+  color:white;
+  font-size:55px;
+  font-weight:900;
+  margin-top:10px;
+  letter-spacing:2px;
 }
 .post{
   background:#111827;
@@ -670,4 +691,227 @@ html, body {
   border-radius:16px;
 
   margin-top:12px;
+}
+/* ================= FACEBOOK POST BOX ================= */
+
+.fb-post-box{
+  width:100%;
+
+  background:#111827;
+
+  border-radius:20px;
+
+  padding:15px;
+
+  margin-bottom:20px;
+}
+
+.fb-post-top{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding-bottom:15px;
+
+  border-bottom:1px solid #1f2937;
+}
+
+.fb-post-avatar{
+  width:45px;
+  height:45px;
+
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.fb-post-top input{
+  flex:1;
+  width:100%;
+
+  background:#1e293b;
+
+  border:none;
+
+  height:52px;
+
+  border-radius:40px;
+
+  padding:0 25px;
+
+  color:white;
+
+  font-size:16px;
+
+  cursor:pointer;
+}
+
+.fb-post-bottom{
+  display:flex;
+  justify-content:space-around;
+
+  padding-top:12px;
+}
+
+.fb-post-action{
+  padding:10px;
+
+  border-radius:12px;
+
+  cursor:pointer;
+
+  font-weight:bold;
+
+  transition:0.2s;
+}
+
+.fb-post-action:hover{
+  background:#1e293b;
+}
+
+.live{
+  color:#f87171;
+}
+
+.photo{
+  color:#22c55e;
+}
+
+.feeling{
+  color:#facc15;
+}
+
+/* ================= POST MODAL ================= */
+
+.post-modal{
+  position:fixed;
+  inset:0;
+
+  background:rgba(0,0,0,0.7);
+
+  display:none;
+
+  justify-content:center;
+  align-items:center;
+
+  z-index:999999;
+}
+
+.post-modal-content{
+  width:500px;
+  max-width:95%;
+
+  background:#111827;
+
+  border-radius:20px;
+
+  padding:20px;
+}
+
+.post-modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding-bottom:15px;
+
+  border-bottom:1px solid #1f2937;
+}
+
+.post-user-info{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  margin-top:15px;
+}
+
+.post-public{
+  font-size:12px;
+
+  background:#1e293b;
+
+  padding:5px 10px;
+
+  border-radius:10px;
+
+  margin-top:5px;
+}
+
+#postInput{
+  width:100%;
+  min-height:150px;
+
+  background:transparent;
+
+  border:none;
+
+  resize:none;
+
+  color:white;
+
+  font-size:24px;
+
+  margin-top:20px;
+
+  outline:none;
+}
+
+.post-upload-box{
+  display:flex;
+  gap:15px;
+
+  margin-top:20px;
+}
+
+.upload-option{
+  flex:1;
+
+  background:#1e293b;
+
+  padding:15px;
+
+  border-radius:14px;
+
+  text-align:center;
+
+  cursor:pointer;
+}
+
+.submit-post-btn{
+  width:100%;
+
+  margin-top:20px;
+
+  height:45px;
+
+  border:none;
+
+  border-radius:12px;
+
+  background:#1877f2;
+
+  color:white;
+
+  font-size:16px;
+
+  cursor:pointer;
+}
+
+.post-top{
+  display:flex;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.post-user{
+  font-weight:bold;
+  font-size:16px;
+  cursor:pointer;
+}
+.post-media{
+  width:100%;
+  border-radius:18px;
+  margin-top:15px;
+  max-height:600px;
+  object-fit:cover;
 }
