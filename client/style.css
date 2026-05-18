@@ -118,28 +118,39 @@ html, body {
 
 /* ================= CENTER ================= */
 
-.fb-center {
-  margin-left: 80px;
-  margin-right: 320px;
-  min-height: 100vh;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-y: auto;
-}
+.fb-center{
+  flex:1;
 
+  margin-left:80px;
+  margin-right:320px;
+
+  display:flex;
+  justify-content:center;
+
+  overflow-y:auto;
+
+  padding:20px;
+}
 /* ================= RIGHT ================= */
 
-.fb-right {
-  width: 320px;
-  height: 100vh;
-  position: fixed;
-  right: 0;
-  top: 0;
-  background: #111827;
-  padding: 20px;
-  overflow-y: auto;
+.fb-right{
+  width:320px;
+
+  position:fixed;
+  right:0;
+  top:0;
+
+  height:100vh;
+
+  background:#111827;
+
+  padding:20px;
+
+  overflow-y:auto;
+
+  border-left:1px solid #222;
+
+  z-index:20;
 }
 
 /* ================= VIEWS ================= */
@@ -358,18 +369,6 @@ html, body {
 }
 /* ================= CENTER FIX ================= */
 
-.fb-center{
-  flex:1;
-  margin-left:80px;
-  margin-right:320px;
-
-  display:flex;
-  justify-content:center;
-
-  overflow-y:auto;
-
-  padding:20px;
-}
 
 #homeView{
   width:100%;
@@ -470,4 +469,94 @@ html, body {
 
   font-size:25px;
   cursor:pointer;
+}
+#friendSearch{
+  width:100%;
+  padding:12px;
+
+  border:none;
+  border-radius:12px;
+
+  background:#1e293b;
+  color:white;
+
+  margin-top:10px;
+  margin-bottom:20px;
+}
+.auth-logo h2{
+  color:black;
+  font-size:42px;
+  font-weight:bold;
+}
+.post{
+  background:#111827;
+
+  padding:20px;
+
+  border-radius:20px;
+
+  margin-bottom:20px;
+
+  border:1px solid transparent;
+
+  transition:0.3s;
+}
+
+.post:hover{
+  border:1px solid #0084ff;
+
+  box-shadow:0 0 20px rgba(0,132,255,0.5);
+
+  transform:translateY(-3px);
+}
+.create-post{
+  display:flex;
+  gap:10px;
+
+  background:#111827;
+
+  padding:15px;
+
+  border-radius:18px;
+
+  margin-bottom:20px;
+}
+
+.create-post input{
+  flex:1;
+
+  padding:14px;
+
+  border:none;
+
+  border-radius:12px;
+
+  background:#1e293b;
+
+  color:white;
+}
+
+.create-post button{
+  padding:14px 20px;
+
+  border:none;
+
+  border-radius:12px;
+
+  background:#1877f2;
+
+  color:white;
+
+  cursor:pointer;
+}
+#authScreen{
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  height:100vh;
+
+  background:#0f172a;
 }

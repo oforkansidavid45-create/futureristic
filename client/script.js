@@ -1136,3 +1136,10 @@ async function openProfile(user) {
     location.reload();
 
   }
+  function showProfile() {
+
+  if (!username) return;
+
+  openProfile(username);
+
+}
