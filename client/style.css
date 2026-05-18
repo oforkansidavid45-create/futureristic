@@ -75,13 +75,11 @@ html, body {
 }
 
 /* ================= APP ================= */
-
-.app {
-  display: none;
-  width: 100%;
-  height: 100vh;
-  background: #0f172a;
-  overflow: hidden;
+.app{
+  display:none;
+  height:100vh;
+  background:#0f172a;
+  overflow:hidden;
 }
 
 /* ================= LEFT ================= */
@@ -348,4 +346,11 @@ html, body {
     margin: 0;
     width: 100%;
   }
+}
+#app{
+  display:none;
+}
+#authScreen ~ .fb-right,
+#authScreen ~ .fb-left {
+  display: none;
 }
