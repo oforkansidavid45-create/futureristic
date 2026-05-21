@@ -107,7 +107,8 @@
     username = cleanName(data.user);
 
     document.getElementById("authScreen").style.display = "none";
-  document.getElementById("app").style.display = "flex";
+ document.getElementById("app").style.display = "flex";
+document.getElementById("app").style.flexDirection = "column";
 
     socket.emit("register", username);
 
