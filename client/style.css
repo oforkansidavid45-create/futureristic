@@ -119,17 +119,16 @@ html, body {
 /* ================= CENTER ================= */
 
 .fb-center{
-  flex:1;
+  width:100%;
+  max-width:700px;
 
-  margin-left:80px;
-  margin-right:320px;
+  margin:auto;
 
-  display:flex;
-  justify-content:center;
+  padding-top:90px;
+  padding-left:15px;
+  padding-right:15px;
 
   overflow-y:auto;
-
-  padding:20px;
 }
 /* ================= RIGHT ================= */
 
@@ -908,10 +907,141 @@ html, body {
   font-size:16px;
   cursor:pointer;
 }
-.post-media{
-  width:100%;
-  border-radius:18px;
-  margin-top:15px;
-  max-height:600px;
+.post-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  margin-bottom:10px;
+}
+
+.post-avatar{
+  width:42px;
+  height:42px;
+
+  border-radius:50%;
+
   object-fit:cover;
+
+  flex-shrink:0;
+}
+
+.post-user{
+  font-size:15px;
+  font-weight:bold;
+}
+
+.post{
+  padding:15px;
+}
+/* ================= TOP NAVBAR ================= */
+
+.top-navbar{
+  position:fixed;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:70px;
+
+  background:#111827;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:0 20px;
+
+  z-index:9999;
+
+  border-bottom:1px solid #1e293b;
+}
+
+.nav-left h2{
+  color:#1877f2;
+  font-size:28px;
+}
+
+.nav-center{
+  flex:1;
+  display:flex;
+  justify-content:center;
+}
+
+.nav-center input{
+  width:420px;
+  max-width:90%;
+
+  height:45px;
+
+  border:none;
+  outline:none;
+
+  border-radius:30px;
+
+  background:#1e293b;
+
+  color:white;
+
+  padding:0 20px;
+
+  font-size:15px;
+}
+
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+
+.nav-right div{
+  width:42px;
+  height:42px;
+
+  background:#1e293b;
+
+  border-radius:50%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  cursor:pointer;
+
+  transition:0.2s;
+}
+
+.nav-right div:hover{
+  background:#1877f2;
+}
+
+/* ================= SEARCH RESULTS ================= */
+
+#searchResults{
+  width:100%;
+  max-width:700px;
+
+  margin:auto;
+
+  padding-top:85px;
+}
+
+.search-user{
+  background:#111827;
+
+  padding:15px;
+
+  border-radius:15px;
+
+  margin-bottom:10px;
+
+  cursor:pointer;
+
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.search-user:hover{
+  background:#1e293b;
 }

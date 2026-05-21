@@ -1193,3 +1193,49 @@ async function openProfile(user) {
 
 }
 
+
+async function searchUsersMain(){
+
+  const value =
+    document.getElementById("mainSearch")
+    .value
+    .toLowerCase();
+
+  const box =
+    document.getElementById("searchResults");
+
+  if(!value){
+    box.innerHTML = "";
+    return;
+  }
+
+  const users =
+    [...new Set(friendsList)];
+
+  box.innerHTML = "";
+
+  users
+    .filter(u => u.toLowerCase().includes(value))
+    .forEach(user => {
+
+      box.innerHTML += `
+
+        <div
+          class="search-user"
+          onclick="openProfile('${user}')"
+        >
+
+          <img
+            src="https://i.imgur.com/HeIi0wU.png"
+            class="post-avatar"
+          >
+
+          <div>${user}</div>
+
+        </div>
+
+      `;
+
+    });
+
+}
