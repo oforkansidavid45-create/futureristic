@@ -39,30 +39,49 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 <!-- ================= APP ================= -->
 <div class="app" id="app" style="display:none;">
 
-  <!-- LEFT SIDEBAR -->
-  <div class="fb-left">
+ 
+<!-- FACEBOOK TOP BAR -->
 
-    <div class="menu-item" onclick="showHome()">
+<div class="top-navbar">
+
+  <div class="nav-left">
+    <h2>FutureBook</h2>
+  </div>
+
+  <div class="nav-center">
+
+    <input
+      type="text"
+      id="mainSearch"
+      placeholder="Search FutureBook"
+      onkeyup="searchUsersMain()"
+    >
+
+  </div>
+
+  <div class="nav-right">
+
+    <div onclick="showHome()">
       <i class="fa-solid fa-house"></i>
     </div>
 
-    <div class="menu-item" onclick="showMessages()">
+    <div onclick="showMessages()">
       <i class="fa-solid fa-message"></i>
     </div>
 
-    <div class="menu-item" onclick="showNotificationsPage()">
+    <div onclick="showNotificationsPage()">
       <i class="fa-solid fa-bell"></i>
     </div>
 
-    <div class="menu-item" onclick="showProfile()">
+    <div onclick="showProfile()">
       <i class="fa-solid fa-user"></i>
     </div>
 
-    <div class="menu-item" onclick="showSettings()">
-      <i class="fa-solid fa-gear"></i>
-    </div>
-
   </div>
+
+</div>
+
+<div id="searchResults"></div>
 <!-- CENTER -->
 <div class="fb-center">
 
@@ -123,132 +142,13 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   <!-- CHAT -->
   <div id="chatView" style="display:none;">
 
-    <div id="friendsList"></div>
-
-    <div id="chatArea" style="display:none;">
-
-      <div class="chat-header">
-        <h3 id="chatTitle"></h3>
-      </div>
-
-      <div id="messagesContainer"></div>
-
-      <div id="typingIndicator"></div>
-
-      <div class="chat-input-area" id="chatInputArea">
-
-        <input
-          id="chatInput"
-          placeholder="Type message..."
-          oninput="handleTyping()"
-        />
-
-        <button onclick="sendMessage()">
-          <i class="fa fa-paper-plane"></i>
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- NOTIFICATION -->
-  <div id="notificationView" style="display:none;">
-    <h2>Notifications</h2>
-    <div id="notificationList"></div>
-  </div>
-
-  <!-- PROFILE -->
-  <div id="profileView" style="display:none;">
-    <h2>Profile</h2>
-    <div id="profileContent"></div>
-  </div>
-
-  <!-- SETTINGS -->
-  <div id="settingsView" style="display:none;">
-
-    <div class="settings-page">
-
-      <h2>Settings</h2>
-
-      <button onclick="logout()">
-        Logout
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-    <!-- CHAT -->
-   
-
-   <div id="friendsList"></div>
-
-      <div id="chatArea" style="display:none;">
-
-        <div class="chat-header">
-          <h3 id="chatTitle"></h3>
-        </div>
-
-        <div id="messagesContainer"></div>
-
-        <div id="typingIndicator"></div>
-
-        <div class="chat-input-area">
-
-          <input
-            id="chatInput"
-            placeholder="Type message..."
-            oninput="handleTyping()"
-          />
-
-          <button onclick="sendMessage()">
-            <i class="fa fa-paper-plane"></i>
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-    <!-- NOTIFICATIONS -->
-    <div id="notificationView" style="display:none;">
-      <h2>Notifications</h2>
-      <div id="notificationList"></div>
-    </div>
-
-<!-- PROFILE -->
-<div id="profileView" style="display:none;">
-
-  <h2>Profile</h2>
-
-  <div id="profileContent"></div>
-
-</div>
 
   </div>
 
   <!-- RIGHT SIDEBAR -->
-<!-- RIGHT SIDEBAR -->
-<div class="fb-right">
 
-  <div class="right-header">
-    <h3>Friends</h3>
-  </div>
 
-  <input
-    type="text"
-    id="friendSearch"
-    placeholder="Search friends..."
-    onkeyup="searchFriends()"
-  >
 
-  <div id="onlineUsers"></div>
-
-</div>
 
 </div>
 
