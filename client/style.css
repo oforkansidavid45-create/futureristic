@@ -1056,3 +1056,114 @@ html, body {
 .search-user:hover{
   background:#1e293b;
 }
+/* ================= MAIN APP LAYOUT FIX ================= */
+
+.app{
+  width:100%;
+  min-height:100vh;
+
+  background:#0f172a;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+/* CENTER MAIN CONTENT */
+
+.fb-center{
+  width:100%;
+  max-width:720px;
+
+  margin:0 auto;
+
+  padding-top:90px;
+  padding-bottom:120px;
+  padding-left:15px;
+  padding-right:15px;
+}
+
+/* POSTS FULL WIDTH */
+
+#posts{
+  width:100%;
+}
+
+/* FACEBOOK STYLE POSTS */
+
+.post{
+  width:100%;
+
+  background:#111827;
+
+  border-radius:18px;
+
+  padding:18px;
+
+  margin-bottom:20px;
+
+  box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+/* POST MEDIA */
+
+.post img,
+.post video{
+  width:100%;
+  max-height:600px;
+
+  object-fit:cover;
+
+  border-radius:15px;
+
+  margin-top:12px;
+}
+
+/* POST BOX */
+
+.fb-post-box{
+  width:100%;
+
+  background:#111827;
+
+  border-radius:20px;
+
+  padding:18px;
+
+  margin-bottom:20px;
+}
+
+/* NAVBAR FIX */
+
+.top-navbar{
+  position:fixed;
+  top:0;
+  left:0;
+
+  width:100%;
+
+  z-index:9999;
+}
+
+/* REMOVE SIDE SPACING */
+
+body{
+  overflow-x:hidden;
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+  .fb-center{
+    width:100%;
+    max-width:100%;
+
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  .nav-center input{
+    width:100%;
+  }
+
+}
