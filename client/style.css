@@ -710,12 +710,17 @@ margin-bottom:22px;
   border-bottom:1px solid #1f2937;
 }
 
-.fb-post-avatar{
-  width:45px;
-  height:45px;
+.post-avatar{
+width:45px;
+height:45px;
 
-  border-radius:50%;
-  object-fit:cover;
+border-radius:50%;
+
+object-fit:cover;
+
+flex-shrink:0;
+
+display:block;
 }
 
 .fb-post-top input{
@@ -1075,33 +1080,35 @@ margin-bottom:22px;
 /* FACEBOOK STYLE POSTS */
 
 .post{
-  width:100%;
+width:100%;
 
-  background:#111827;
+background:#111827;
 
-  border-radius:18px;
+border-radius:18px;
 
-  padding:18px;
+padding:15px;
 
-  margin-bottom:20px;
+margin-bottom:20px;
 
-  box-shadow:0 0 10px rgba(0,0,0,0.2);
+overflow:hidden;
 }
 
 /* POST MEDIA */
 
 /* ================= POST MEDIA ================= */
 
-.post img,
-.post video,
 .post-media{
 width:100%;
 
-border-radius:15px;
+max-height:650px;
+
+object-fit:cover;
+
+border-radius:12px;
 
 margin-top:12px;
 
-object-fit:cover;
+display:block;
 }
 
 /*
@@ -1213,4 +1220,10 @@ align-items:center;
 
 #posts .post{
 max-width:680px;
+}  
+
+.post-body{
+width:100%;
+display:flex;
+flex-direction:column;
 }

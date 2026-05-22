@@ -566,19 +566,23 @@ document.getElementById("app").style.flexDirection = "column";
 
           </div>
 
-        <div class="post-text">
-  ${post.text || ""}
+<div class="post-body">
+
+  <div class="post-text">
+    ${post.text || ""}
+  </div>
+
+  ${post.image ? `
+    <img src="${post.image}" class="post-media">
+  ` : ""}
+
+  ${post.video ? `
+    <video controls class="post-media">
+      <source src="${post.video}">
+    </video>
+  ` : ""}
+
 </div>
-
-${post.image ? `
-  <img src="${post.image}" class="post-media">
-` : ""}
-
-${post.video ? `
-  <video controls class="post-media">
-    <source src="${post.video}">
-  </video>
-` : ""}
           <button
             class="like-btn"
             onclick="likePost('${post._id}')"
