@@ -1219,17 +1219,27 @@ async function openProfile(user) {
 
     list.innerHTML = "";
 
-    if (friendsList.length === 0) {
+if (friendsList.length === 0) {
 
-      list.innerHTML = `
-        <div class="no-friends">
-          No friends yet
-        </div>
-      `;
+list.innerHTML = `
 
-      return;
-    }
+<div class="empty-chat-box">
 
+<h2 onclick="showHome()">
+➕ Add Friends
+</h2>
+
+<p>
+Start chatting with people
+</p>
+
+</div>
+
+`;
+
+return;
+
+}
     friendsList.forEach(friend => {
 
       list.innerHTML += `

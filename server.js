@@ -33,7 +33,7 @@ const server = http.createServer(app);
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "client")));
-
+app.use("/uploads",express.static("uploads"));
 // ================= SOCKET =================
 const io = new Server(server, {
   cors: { origin: "*" }
@@ -205,89 +205,45 @@ const upload = multer({ storage });
 app.post(
 "/api/posts",
 upload.fields([
-{ name:"image", maxCount:1 },
-{ name:"video", maxCount:1 }
+{name:"image",maxCount:1},
+{name:"video",maxCount:1}
 ]),
-
-async (req,res)=>{
+async(req,res)=>{
 
 try{
 
-const user = req.body.user;
-const text = req.body.text;
+const {user,text} = req.body;
 
-let imageUrl = "";
-let videoUrl = "";
+let image = "";
+let video = "";
 
 if(req.files?.image){
 
-const file =
-req.files.image[0];
+image =
+req.files.image[0].path;
 
-const result =
-await cloudinary.uploader.upload(
-
-`data:${file.mimetype};base64,${
-file.buffer.toString("base64")
-}`,
-
-{
-folder:"futurebook_posts"
-}
-
-);
-
-imageUrl = result.secure_url;
 }
 
 if(req.files?.video){
 
-const file =
-req.files.video[0];
+video =
+req.files.video[0].path;
 
-const result =
-await cloudinary.uploader.upload(
-
-`data:${file.mimetype};base64,${
-file.buffer.toString("base64")
-}`,
-
-{
-resource_type:"video",
-folder:"futurebook_posts"
 }
 
-);
-
-videoUrl = result.secure_url;
-}
-
-const userData =
-await User.findOne({
-username:cleanName(user)
-});
-
-const post =
-await Post.create({
+const post = new Post({
 
 user,
-
 text,
-
-image:imageUrl,
-
-video:videoUrl,
-
-profilePic:
-userData?.profilePic || "",
-
+image,
+video,
 likes:0,
-
 likedBy:[],
-
 comments:[]
 
 });
+
+await post.save();
 
 res.json(post);
 
@@ -296,7 +252,7 @@ res.json(post);
 console.log("POST ERROR:",err);
 
 res.status(500).json({
-error:"Post failed"
+error:"Failed to create post"
 });
 
 }
@@ -400,6 +356,38 @@ app.get("/api/messages/:user1/:user2", async (req, res) => {
     console.log("❌ MESSAGE LOAD ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
+});
+
+app.get("/api/user/:username", async (req,res)=>{
+
+try{
+
+const user = await User.findOne({
+username:req.params.username
+});
+
+if(!user){
+
+return res.json({
+profilePic:"https://i.imgur.com/HeIi0wU.png"
+});
+
+}
+
+res.json({
+profilePic:user.profilePic
+});
+
+}catch(err){
+
+console.log(err);
+
+res.status(500).json({
+error:"Server error"
+});
+
+}
+
 });
 
 
