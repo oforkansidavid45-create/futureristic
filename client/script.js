@@ -548,7 +548,7 @@ document.getElementById("app").style.flexDirection = "column";
           <div class="post-top">
 
             <img
-              src="${post.profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
+             src="${post.profilePic || post.userProfilePic || 'https://i.imgur.com/HeIi0wU.png'}"
               class="post-avatar"
               onclick="openProfile('${post.user}')"
             >
@@ -1265,7 +1265,14 @@ async function openProfile(user) {
       }
     );
 
-    const data = await res.json();
+   io.emit("profileUpdated",{
+username,
+profilePic:user.profilePic
+});
+
+res.json({
+profilePic:user.profilePic
+});
 
     document.getElementById(
       "profileModalPic"
@@ -1274,9 +1281,38 @@ async function openProfile(user) {
     loadPosts();
 
   }
+socket.on("profileUpdated",()=>{
 
+loadPosts();
 
+});
 
+document.getElementById(
+"profilePicInput"
+)?.addEventListener(
+"change",
+previewProfilePic
+);
+
+function previewProfilePic(e){
+
+const file = e.target.files[0];
+
+if(!file) return;
+
+const reader = new FileReader();
+
+reader.onload = ev => {
+
+document.getElementById(
+"profileModalPic"
+).src = ev.target.result;
+
+};
+
+reader.readAsDataURL(file);
+
+}
 
   function showSettings() {
     showView("settingsView");

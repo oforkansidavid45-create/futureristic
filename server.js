@@ -485,14 +485,29 @@ app.post("/api/posts", async (req, res) => {
     if (!user || !text || !text.trim()) {
       return res.status(400).json({ error: "Missing data" });
     }
+const userData =
+await User.findOne({
+username:user
+});
 
-    const post = await Post.create({
-      user: user.trim(),
-      text: text.trim(),
-      likes: 0,
-      comments: []
-    });
+const post = await Post.create({
 
+user,
+text,
+
+image:imageUrl,
+video:videoUrl,
+
+profilePic:
+userData?.profilePic || "",
+
+likes:0,
+
+likedBy:[],
+
+comments:[]
+
+});
     res.json(post);
   } catch (err) {
     console.log("❌ POST ERROR:", err);
