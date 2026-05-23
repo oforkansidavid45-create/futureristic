@@ -201,7 +201,7 @@ app.get("/api/user/:username", async (req, res) => {
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-aapp.post(
+app.post(
 "/api/posts",
 upload.fields([
 { name:"image", maxCount:1 },
