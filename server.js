@@ -45,9 +45,7 @@ let friends = {};        // confirmed friends
 let requests = {};       // pending requests
 
 // ================= HELPERS =================
-function emitOnlineUsers() {
-emitOnlineUsers();
-}
+
 app.get("/api/friend-requests/:user", (req, res) => {
   const user = cleanName(req.params.user);
 
@@ -203,69 +201,72 @@ app.get("/api/user/:username", async (req, res) => {
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-app.post(
-  "/api/upload-profile",
-  upload.single("image"),
-  async (req, res) => {
+aapp.post(
+"/api/posts",
+upload.fields([
+{ name:"image", maxCount:1 },
+{ name:"video", maxCount:1 }
+]),
+async (req,res)=>{
 
-    try {
+try{
 
-      const username =
-        cleanName(req.body.username);
+const user = req.body.user;
+const text = req.body.text;
 
-      if (!req.file) {
-        return res.status(400).json({
-          error: "No image"
-        });
-      }
+let imageUrl = "";
+let videoUrl = "";
 
-      const stream =
-        cloudinary.uploader.upload_stream(
-          {
-            folder: "futurebook_profiles"
-          },
+if(req.files?.image){
 
-          async (error, uploaded) => {
+const result =
+await cloudinary.uploader.upload(
+`data:${req.files.image[0].mimetype};base64,${
+req.files.image[0].buffer.toString("base64")
+}`,
+{
+folder:"futurebook_posts"
+}
+);
 
-            if (error) {
+imageUrl = result.secure_url;
+}
 
-              console.log(error);
+if(req.files?.video){
 
-              return res.status(500).json({
-                error: "Upload failed"
-              });
+const result =
+await cloudinary.uploader.upload(
+`data:${req.files.video[0].mimetype};base64,${
+req.files.video[0].buffer.toString("base64")
+}`,
+{
+resource_type:"video",
+folder:"futurebook_posts"
+}
+);
 
-            }
+videoUrl = result.secure_url;
+}
 
-            const user =
-              await User.findOneAndUpdate(
-                { username },
-                {
-                  profilePic:
-                    uploaded.secure_url
-                },
-                { new: true }
-              );
+const post = await Post.create({
+user,
+text,
+image:imageUrl,
+video:videoUrl,
+likes:0
+});
 
-            res.json({
-              profilePic:
-                user.profilePic
-            });
+res.json(post);
 
-          }
-        );
+}catch(err){
 
-      stream.end(req.file.buffer);
+console.log(err);
 
-    } catch (err) {
+res.status(500).json({
+error:"post failed"
+});
 
-      console.log(err);
-
-      res.status(500).json({
-        error: "Server error"
-      });
-
-    }
+}
 
 });
 
