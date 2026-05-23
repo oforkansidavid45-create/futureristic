@@ -1225,18 +1225,15 @@ list.innerHTML = `
 
 <div class="empty-chat-box">
 
-<h2 onclick="showHome()">
-➕ Add Friends
-</h2>
+  <h2>Add Friends</h2>
 
-<p>
-Start chatting with people
-</p>
+  <p>
+    Search for users and start chatting
+  </p>
 
 </div>
 
 `;
-
 return;
 
 }
@@ -1397,47 +1394,61 @@ async function searchUsersMain(){
   const value =
     document.getElementById("mainSearch")
     .value
-    .toLowerCase();
+    .trim();
 
   const box =
     document.getElementById("searchResults");
 
   if(!value){
+
     box.innerHTML = "";
+
     return;
+
   }
 
-  const users =
-    [...new Set(friendsList)];
+  const res = await fetch(
+    `${API}/api/search-users/${value}`
+  );
+
+  const users = await res.json();
 
   box.innerHTML = "";
 
-  users
-    .filter(u => u.toLowerCase().includes(value))
-    .forEach(user => {
+  users.forEach(user => {
 
-      box.innerHTML += `
+    box.innerHTML += `
 
-        <div
-          class="search-user"
-          onclick="openProfile('${user}')"
+      <div class="search-user">
+
+        <img
+          src="${
+            user.profilePic ||
+            'https://i.imgur.com/HeIi0wU.png'
+          }"
+          class="post-avatar"
         >
 
-          <img
-            src="https://i.imgur.com/HeIi0wU.png"
-            class="post-avatar"
-          >
-
-          <div>${user}</div>
-
+        <div
+          onclick="openProfile('${user.username}')"
+        >
+          ${user.username}
         </div>
 
-      `;
+        <button
+          onclick="sendRequest('${user.username}')"
+          class="add-friend-btn"
+        >
+          Add
+        </button>
 
-    });
+      </div>
+
+    `;
+
+  });
 
 }
-
 document.getElementById("postImage")
 ?.addEventListener("change", previewPostMedia);
 

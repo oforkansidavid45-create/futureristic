@@ -163,38 +163,7 @@ app.post("/api/auth/login", async (req, res) => {
 
 // ================= GET PROFILE =================
 
-app.get("/api/user/:username", async (req, res) => {
 
-  try {
-
-    const username =
-      cleanName(req.params.username);
-
-    const user =
-      await User.findOne({ username });
-
-    if (!user) {
-      return res.status(404).json({
-        error: "User not found"
-      });
-    }
-
-    res.json({
-      username: user.username,
-      profilePic: user.profilePic || ""
-    });
-
-  } catch (err) {
-
-    console.log(err);
-
-    res.status(500).json({
-      error: "Server error"
-    });
-
-  }
-
-});
 
 // ================= PROFILE PIC =================
 
@@ -358,35 +327,65 @@ app.get("/api/messages/:user1/:user2", async (req, res) => {
   }
 });
 
-app.get("/api/user/:username", async (req,res)=>{
 
-try{
 
-const user = await User.findOne({
-username:req.params.username
+
+// ================= GET USER =================
+app.get("/api/user/:username", async (req, res) => {
+
+  try {
+
+    const user = await User.findOne({
+      username: req.params.username
+    });
+
+    if (!user) {
+
+      return res.status(404).json({
+        error: "User not found"
+      });
+
+    }
+
+    res.json({
+      username: user.username,
+      profilePic: user.profilePic || ""
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: "Server error"
+    });
+
+  }
+
 });
+// ================= SEARCH USERS =================
+app.get("/api/search-users/:query", async (req, res) => {
 
-if(!user){
+  try {
 
-return res.json({
-profilePic:"https://i.imgur.com/HeIi0wU.png"
-});
+    const users = await User.find({
+      username: {
+        $regex: req.params.query,
+        $options: "i"
+      }
+    }).limit(20);
 
-}
+    res.json(users);
 
-res.json({
-profilePic:user.profilePic
-});
+  } catch (err) {
 
-}catch(err){
+    console.log(err);
 
-console.log(err);
+    res.status(500).json({
+      error: "Search failed"
+    });
 
-res.status(500).json({
-error:"Server error"
-});
-
-}
+  }
 
 });
 
@@ -585,6 +584,7 @@ app.post("/api/posts", async (req, res) => {
     if (!user || !text || !text.trim()) {
       return res.status(400).json({ error: "Missing data" });
     }
+
 const userData =
 await User.findOne({
 username:user
@@ -608,20 +608,15 @@ likedBy:[],
 comments:[]
 
 });
-    res.json(post);
-  } catch (err) {
-    console.log("❌ POST ERROR:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
 
-app.get("/api/posts", async (req, res) => {
-  try {
-    const posts = await Post.find().sort({ createdAt: -1 });
-    res.json(posts);
+    res.json(post);
+
   } catch (err) {
-    console.log("❌ GET ERROR:", err);
+
+    console.log("❌ POST ERROR:", err);
+
     res.status(500).json({ error: "Server error" });
+
   }
 });
 
