@@ -1331,6 +1331,59 @@ async function uploadProfilePic(e){
   }
 
 }
+async function showReels(){
+
+showView("reelsView");
+
+const res =
+await fetch(`${API}/api/posts`);
+
+const posts =
+await res.json();
+
+const videos =
+posts.filter(p => p.video);
+
+const container =
+document.getElementById("reelsContainer");
+
+container.innerHTML = videos.map(v => `
+
+<div class="reel-card">
+
+<video
+src="${v.video}"
+controls
+autoplay
+loop
+class="reel-video"
+></video>
+
+<div class="reel-info">
+
+<img
+src="${
+v.profilePic ||
+'https://i.imgur.com/HeIi0wU.png'
+}"
+class="reel-avatar"
+>
+
+<div>
+
+<h3>${v.user}</h3>
+
+<p>${v.text || ""}</p>
+
+</div>
+
+</div>
+
+</div>
+
+`).join("");
+
+}
 socket.on("profileUpdated",()=>{
 
 loadPosts();
