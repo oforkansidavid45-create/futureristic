@@ -303,6 +303,85 @@ error:"Post failed"
 
 });
 
+app.post(
+"/api/upload-profile",
+upload.single("image"),
+
+async (req,res)=>{
+
+try{
+
+const username =
+cleanName(req.body.username);
+
+if(!req.file){
+
+return res.status(400).json({
+error:"No image"
+});
+
+}
+
+const base64 =
+`data:${req.file.mimetype};base64,${
+req.file.buffer.toString("base64")
+}`;
+
+const uploaded =
+await cloudinary.uploader.upload(
+base64,
+{
+folder:"futurebook_profiles"
+}
+);
+
+const updatedUser =
+await User.findOneAndUpdate(
+
+{ username },
+
+{
+profilePic:
+uploaded.secure_url
+},
+
+{ new:true }
+
+);
+
+if(!updatedUser){
+
+return res.status(404).json({
+error:"User not found"
+});
+
+}
+
+io.emit("profileUpdated",{
+username,
+profilePic:
+updatedUser.profilePic
+});
+
+res.json({
+profilePic:
+updatedUser.profilePic
+});
+
+}catch(err){
+
+console.log(
+"PROFILE UPLOAD ERROR:",
+err
+);
+
+res.status(500).json({
+error:"Upload failed"
+});
+
+}
+
+});
 
 // ================= LOAD MESSAGES =================
 app.get("/api/messages/:user1/:user2", async (req, res) => {

@@ -1,6 +1,7 @@
   let user = null;
 
   let currentProfileUser = null;
+  const userProfiles = {};
 
   function showToast(message) {
     let toast = document.getElementById("toast");
@@ -368,6 +369,7 @@ document.getElementById("app").style.flexDirection = "column";
     }, 1000);
 
   }
+  
 
   // ================= SEND FILE =================
   function sendFile() {
@@ -518,146 +520,175 @@ document.getElementById("app").style.flexDirection = "column";
 
   }
 
+
   // ================= LOAD POSTS =================
-  async function loadPosts() {
+ async function loadPosts() {
 
-    try {
+  try {
 
-      const res =
-        await fetch(`${API}/api/posts`);
+    const res =
+      await fetch(`${API}/api/posts`);
 
-      const posts =
-        await res.json();
+    const posts =
+      await res.json();
 
-      const container =
-        document.getElementById("posts");
+    const container =
+      document.getElementById("posts");
 
-      if (!container) return;
+    if (!container) return;
 
-      container.innerHTML = "";
+    container.innerHTML = "";
 
-      posts.forEach(post => {
+    // IMPORTANT
+    for (const post of posts) {
 
-        const div =
-          document.createElement("div");
+      // LOAD USER PROFILE PIC
+      const profilePic =
+        await getProfilePic(post.user);
 
-        div.className = "post";
+      const div =
+        document.createElement("div");
 
-        div.innerHTML = `
+      div.className = "post";
 
-          <div class="post-top">
+      div.innerHTML = `
 
-            <img
-             src="${post.profilePic || post.userProfilePic || 'https://i.imgur.com/HeIi0wU.png'}"
-              class="post-avatar"
+        <div class="post-top">
+
+          <img
+            src="${profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
+            class="post-avatar"
+            onclick="openProfile('${post.user}')"
+          >
+
+          <div>
+
+            <div
+              class="post-user"
               onclick="openProfile('${post.user}')"
             >
-
-            <div>
-
-              <div
-                class="post-user"
-                onclick="openProfile('${post.user}')"
-              >
-                ${post.user}
-              </div>
-
+              ${post.user}
             </div>
 
           </div>
 
-<div class="post-body">
+        </div>
 
-  <div class="post-text">
-    ${post.text || ""}
-  </div>
+        <div class="post-body">
 
-  ${post.image ? `
-    <img src="${post.image}" class="post-media">
-  ` : ""}
+          <div class="post-text">
+            ${post.text || ""}
+          </div>
 
-  ${post.video ? `
-    <video controls class="post-media">
-      <source src="${post.video}">
-    </video>
-  ` : ""}
+          ${post.image ? `
+            <img
+              src="${post.image}"
+              class="post-media"
+            >
+          ` : ""}
 
-</div>
-         <div class="post-actions-bar">
+          ${post.video ? `
+            <video controls class="post-media">
+              <source src="${post.video}">
+            </video>
+          ` : ""}
 
-<button
-class="future-btn like-btn ${post.likedBy?.includes(username) ? 'liked' : ''}"
-onclick="toggleLike('${post._id}')"
->
+        </div>
 
-${post.likedBy?.includes(username)
-? '🩵'
-: '🤍'}
+        <div class="post-actions-bar">
 
-<span>${post.likes}</span>
+          <button
+            class="future-btn like-btn ${post.likedBy?.includes(username) ? 'liked' : ''}"
+            onclick="toggleLike('${post._id}')"
+          >
 
-</button>
+            ${post.likedBy?.includes(username)
+              ? '🩵'
+              : '🤍'}
 
-<button
-class="future-btn comment-btn"
-onclick="toggleComments('${post._id}')"
->
-💬
-</button>
+            <span>${post.likes}</span>
 
-</div>
+          </button>
 
-<div
-class="comments-section"
-id="comments-${post._id}"
-style="display:none;"
->
+          <button
+            class="future-btn comment-btn"
+            onclick="toggleComments('${post._id}')"
+          >
+            💬
+          </button>
 
-<div class="comment-input-box">
+        </div>
 
-<input
-type="text"
-id="commentInput-${post._id}"
-placeholder="Write a comment..."
->
+        <div
+          class="comments-section"
+          id="comments-${post._id}"
+          style="display:none;"
+        >
 
-<button onclick="addComment('${post._id}')">
-Post
-</button>
+          <div class="comment-input-box">
 
-</div>
+            <input
+              type="text"
+              id="commentInput-${post._id}"
+              placeholder="Write a comment..."
+            >
 
-<div class="comments-list">
+            <button onclick="addComment('${post._id}')">
+              Post
+            </button>
 
-${(post.comments || []).map(c => `
+          </div>
 
-<div class="comment-item">
+          <div class="comments-list">
 
-<b>${c.user}</b>
+            ${(post.comments || []).map(c => `
 
-<p>${c.text}</p>
+              <div class="comment-item">
 
-</div>
+                <b>${c.user}</b>
 
-`).join("")}
+                <p>${c.text}</p>
 
-</div>
+              </div>
 
-</div>
-        `;
+            `).join("")}
 
-        container.appendChild(div);
+          </div>
 
-      });
+        </div>
+      `;
 
-    } catch (err) {
-
-      console.log("LOAD POSTS ERROR:", err);
+      container.appendChild(div);
 
     }
 
+  } catch (err) {
+
+    console.log("LOAD POSTS ERROR:", err);
+
   }
 
+}
+async function getProfilePic(user) {
+
+  try {
+
+    const res =
+      await fetch(`${API}/api/user/${user}`);
+
+    const data =
+      await res.json();
+
+    return data.profilePic ||
+      "https://i.imgur.com/HeIi0wU.png";
+
+  } catch (err) {
+
+    return "https://i.imgur.com/HeIi0wU.png";
+
+  }
+
+}
   // ================= CREATE POST =================
 async function createPost() {
 
@@ -1394,53 +1425,97 @@ document.getElementById("postVideo")
 function previewPostMedia(){
 
 const preview =
-document.getElementById("previewArea");
+document.getElementById(
+"previewArea"
+);
 
 preview.innerHTML = "";
 
 const image =
-document.getElementById("postImage").files[0];
+document.getElementById(
+"postImage"
+).files[0];
 
 const video =
-document.getElementById("postVideo").files[0];
+document.getElementById(
+"postVideo"
+).files[0];
 
 if(image){
 
-const reader = new FileReader();
-
-reader.onload = e => {
+const url =
+URL.createObjectURL(image);
 
 preview.innerHTML = `
+
+<div class="future-preview-box">
+
 <img
-src="${e.target.result}"
-class="post-preview-media"
+src="${url}"
+class="future-preview-media"
 >
+
+<div class="future-preview-tools">
+
+<button>
+✂ Crop
+</button>
+
+<button>
+✨ HD
+</button>
+
+<button>
+🎨 Filter
+</button>
+
+<button>
+🌟 Enhance
+</button>
+
+</div>
+
+</div>
+
 `;
-
-};
-
-reader.readAsDataURL(image);
 
 }
 
 if(video){
 
-const reader = new FileReader();
-
-reader.onload = e => {
+const url =
+URL.createObjectURL(video);
 
 preview.innerHTML = `
+
+<div class="future-preview-box">
+
 <video
 controls
-class="post-preview-media"
+class="future-preview-media"
 >
-<source src="${e.target.result}">
+<source src="${url}">
 </video>
+
+<div class="future-preview-tools">
+
+<button>
+🎬 HD
+</button>
+
+<button>
+⚡ Ultra
+</button>
+
+<button>
+📱 Mobile
+</button>
+
+</div>
+
+</div>
+
 `;
-
-};
-
-reader.readAsDataURL(video);
 
 }
 
