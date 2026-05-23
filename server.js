@@ -620,65 +620,7 @@ comments:[]
   }
 });
 
-app.put("/api/posts/like/:id", async (req,res)=>{
 
-try{
-
-const { username } = req.body;
-
-const post =
-await Post.findById(req.params.id);
-
-if(!post){
-
-return res.status(404).json({
-error:"Post not found"
-});
-
-}
-
-if(!post.likedBy){
-post.likedBy = [];
-}
-
-const cleanUser =
-cleanName(username);
-
-const alreadyLiked =
-post.likedBy.includes(cleanUser);
-
-if(alreadyLiked){
-
-post.likedBy =
-post.likedBy.filter(
-u => u !== cleanUser
-);
-
-post.likes -= 1;
-
-}else{
-
-post.likedBy.push(cleanUser);
-
-post.likes += 1;
-
-}
-
-await post.save();
-
-res.json(post);
-
-}catch(err){
-
-console.log(err);
-
-res.status(500).json({
-error:"server error"
-});
-
-}
-
-});
 app.post("/api/posts/comment/:id", async (req, res) => {
   try {
     const { user, text } = req.body;
