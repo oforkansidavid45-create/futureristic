@@ -199,6 +199,7 @@ app.get("/api/user/:username", async (req, res) => {
 // ================= PROFILE PIC =================
 
 const storage = multer.memoryStorage();
+
 const upload = multer({ storage });
 
 app.post(
@@ -207,6 +208,7 @@ upload.fields([
 { name:"image", maxCount:1 },
 { name:"video", maxCount:1 }
 ]),
+
 async (req,res)=>{
 
 try{
@@ -219,14 +221,20 @@ let videoUrl = "";
 
 if(req.files?.image){
 
+const file =
+req.files.image[0];
+
 const result =
 await cloudinary.uploader.upload(
-`data:${req.files.image[0].mimetype};base64,${
-req.files.image[0].buffer.toString("base64")
+
+`data:${file.mimetype};base64,${
+file.buffer.toString("base64")
 }`,
+
 {
 folder:"futurebook_posts"
 }
+
 );
 
 imageUrl = result.secure_url;
@@ -234,36 +242,61 @@ imageUrl = result.secure_url;
 
 if(req.files?.video){
 
+const file =
+req.files.video[0];
+
 const result =
 await cloudinary.uploader.upload(
-`data:${req.files.video[0].mimetype};base64,${
-req.files.video[0].buffer.toString("base64")
+
+`data:${file.mimetype};base64,${
+file.buffer.toString("base64")
 }`,
+
 {
 resource_type:"video",
 folder:"futurebook_posts"
 }
+
 );
 
 videoUrl = result.secure_url;
 }
 
-const post = await Post.create({
+const userData =
+await User.findOne({
+username:cleanName(user)
+});
+
+const post =
+await Post.create({
+
 user,
+
 text,
+
 image:imageUrl,
+
 video:videoUrl,
-likes:0
+
+profilePic:
+userData?.profilePic || "",
+
+likes:0,
+
+likedBy:[],
+
+comments:[]
+
 });
 
 res.json(post);
 
 }catch(err){
 
-console.log(err);
+console.log("POST ERROR:",err);
 
 res.status(500).json({
-error:"post failed"
+error:"Post failed"
 });
 
 }

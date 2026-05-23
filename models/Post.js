@@ -1,64 +1,37 @@
 const mongoose = require("mongoose");
 
-// ================= COMMENT =================
-const CommentSchema = new mongoose.Schema(
-  {
-    user: {
-      type: String,
-      required: true,
-      trim: true
-    },
+const postSchema = new mongoose.Schema({
 
-    text: {
-      type: String,
-      required: true,
-      trim: true
-    },
+user:String,
 
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
-  },
-  { _id: false }
-);
+text:String,
 
-// ================= POST =================
-const PostSchema = new mongoose.Schema(
-  {
-    user: {
-      type: String,
-      required: true,
-      trim: true
-    },
+image:String,
 
-    text: {
-      type: String,
-      required: true,
-      trim: true
-    },
+video:String,
 
-    // total likes count
-    likes: {
-      type: Number,
-      default: 0
-    },
+profilePic:String,
 
-    // who liked (important for future)
-    likedBy: {
-      type: [String],
-      default: []
-    },
+likes:{
+type:Number,
+default:0
+},
 
-    comments: {
-      type: [CommentSchema],
-      default: []
-    }
-  },
-  {
-    timestamps: true
-  }
-);
+likedBy:{
+type:[String],
+default:[]
+},
 
-// ================= EXPORT =================
-module.exports = mongoose.model("Post", PostSchema);
+comments:[
+{
+user:String,
+text:String
+}
+]
+
+},{
+timestamps:true
+});
+
+module.exports =
+mongoose.model("Post", postSchema);
