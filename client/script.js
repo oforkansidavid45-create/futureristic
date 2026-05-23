@@ -406,9 +406,7 @@ document.getElementById("app").style.flexDirection = "column";
 
   }
 
-  function handleImageUpload() {
-    sendImage();
-  }
+ 
 
   function handleFileUpload() {
     sendFile();
@@ -716,10 +714,14 @@ async function createPost() {
     formData.append("video", video);
   }
 
-  await fetch(`${API}/api/posts`, {
-    method:"POST",
-    body:formData
-  });
+const res = await fetch(`${API}/api/posts`, {
+method:"POST",
+body:formData
+});
+
+const data = await res.json();
+
+console.log(data);;
 
   document.getElementById("postInput").value = "";
 
@@ -1277,16 +1279,18 @@ async function openProfile(user) {
 
   });
 
-  async function uploadProfilePic(e){
+async function uploadProfilePic(e){
 
-    const file = e.target.files[0];
+  const file = e.target.files[0];
 
-    if(!file) return;
+  if(!file) return;
 
-    const formData = new FormData();
+  const formData = new FormData();
 
-    formData.append("image", file);
-    formData.append("username", username);
+  formData.append("image", file);
+  formData.append("username", username);
+
+  try {
 
     const res = await fetch(
       `${API}/api/upload-profile`,
@@ -1296,22 +1300,30 @@ async function openProfile(user) {
       }
     );
 
-   io.emit("profileUpdated",{
-username,
-profilePic:user.profilePic
-});
+    const data = await res.json();
 
-res.json({
-profilePic:user.profilePic
-});
+    if(data.profilePic){
 
-    document.getElementById(
-      "profileModalPic"
-    ).src = data.profilePic;
+      const profilePic =
+        document.getElementById("profileModalPic");
 
-    loadPosts();
+      if(profilePic){
+        profilePic.src = data.profilePic;
+      }
+
+      loadPosts();
+
+      showToast("Profile updated ✅");
+
+    }
+
+  } catch(err){
+
+    console.log("UPLOAD ERROR:", err);
 
   }
+
+}
 socket.on("profileUpdated",()=>{
 
 loadPosts();
