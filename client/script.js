@@ -583,13 +583,67 @@ document.getElementById("app").style.flexDirection = "column";
   ` : ""}
 
 </div>
-          <button
-            class="like-btn"
-            onclick="likePost('${post._id}')"
-          >
-            ❤️ ${post.likes}
-          </button>
+         <div class="post-actions-bar">
 
+<button
+class="future-btn like-btn ${post.likedBy?.includes(username) ? 'liked' : ''}"
+onclick="toggleLike('${post._id}')"
+>
+
+${post.likedBy?.includes(username)
+? '🩵'
+: '🤍'}
+
+<span>${post.likes}</span>
+
+</button>
+
+<button
+class="future-btn comment-btn"
+onclick="toggleComments('${post._id}')"
+>
+💬
+</button>
+
+</div>
+
+<div
+class="comments-section"
+id="comments-${post._id}"
+style="display:none;"
+>
+
+<div class="comment-input-box">
+
+<input
+type="text"
+id="commentInput-${post._id}"
+placeholder="Write a comment..."
+>
+
+<button onclick="addComment('${post._id}')">
+Post
+</button>
+
+</div>
+
+<div class="comments-list">
+
+${(post.comments || []).map(c => `
+
+<div class="comment-item">
+
+<b>${c.user}</b>
+
+<p>${c.text}</p>
+
+</div>
+
+`).join("")}
+
+</div>
+
+</div>
         `;
 
         container.appendChild(div);
@@ -662,27 +716,77 @@ function closePostModal(){
 
 }
 
+function toggleComments(id){
+
+const box =
+document.getElementById(`comments-${id}`);
+
+if(
+box.style.display === "none"
+){
+
+box.style.display = "block";
+
+}else{
+
+box.style.display = "none";
+
+}
+
+}
+
+async function addComment(id){
+
+const input =
+document.getElementById(
+`commentInput-${id}`
+);
+
+const text = input.value.trim();
+
+if(!text) return;
+
+await fetch(
+`${API}/api/posts/comment/${id}`,
+{
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+user:username,
+text
+})
+}
+);
+
+loadPosts();
+
+}
+
   // ================= LIKE POST =================
-  async function likePost(id) {
+async function toggleLike(id){
 
-    try {
+await fetch(
+`${API}/api/posts/like/${id}`,
+{
+method:"PUT",
 
-      await fetch(
-        `${API}/api/posts/like/${id}`,
-        {
-          method: "PUT"
-        }
-      );
+headers:{
+"Content-Type":"application/json"
+},
 
-      loadPosts();
+body:JSON.stringify({
+username
+})
+}
+);
 
-    } catch (err) {
+loadPosts();
 
-      console.log("LIKE ERROR:", err);
-
-    }
-
-  }
+}
 
   // ================= PROFILE =================
 
@@ -1242,5 +1346,66 @@ async function searchUsersMain(){
       `;
 
     });
+
+}
+
+document.getElementById("postImage")
+?.addEventListener("change", previewPostMedia);
+
+document.getElementById("postVideo")
+?.addEventListener("change", previewPostMedia);
+
+function previewPostMedia(){
+
+const preview =
+document.getElementById("previewArea");
+
+preview.innerHTML = "";
+
+const image =
+document.getElementById("postImage").files[0];
+
+const video =
+document.getElementById("postVideo").files[0];
+
+if(image){
+
+const reader = new FileReader();
+
+reader.onload = e => {
+
+preview.innerHTML = `
+<img
+src="${e.target.result}"
+class="post-preview-media"
+>
+`;
+
+};
+
+reader.readAsDataURL(image);
+
+}
+
+if(video){
+
+const reader = new FileReader();
+
+reader.onload = e => {
+
+preview.innerHTML = `
+<video
+controls
+class="post-preview-media"
+>
+<source src="${e.target.result}">
+</video>
+`;
+
+};
+
+reader.readAsDataURL(video);
+
+}
 
 }
