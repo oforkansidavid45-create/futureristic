@@ -217,18 +217,7 @@ justify-content:flex-start;
   border-radius: 20px;
   margin-bottom: 20px;
 }
-.post-avatar{
-  width:45px;
-  height:45px;
 
-  border-radius:50%;
-
-  object-fit:cover;
-
-  margin-right:10px;
-
-  border:2px solid #1877f2;
-}
 /* ================= CHAT ================= */
 
 #messagesContainer {
@@ -710,18 +699,7 @@ margin-bottom:22px;
   border-bottom:1px solid #1f2937;
 }
 
-.post-avatar{
-width:45px;
-height:45px;
 
-border-radius:50%;
-
-object-fit:cover;
-
-flex-shrink:0;
-
-display:block;
-}
 
 .fb-post-top input{
   flex:1;
@@ -932,21 +910,9 @@ flex-direction:column;
   margin-bottom:10px;
 }
 
-.post-avatar{
-  width:42px;
-  height:42px;
 
-  border-radius:50%;
 
-  object-fit:cover;
 
-  flex-shrink:0;
-}
-
-.post-user{
-  font-size:15px;
-  font-weight:bold;
-}
 
 .post{
   padding:15px;
@@ -1128,7 +1094,6 @@ margin-top:12px;
 display:block;
 }
 
-/*
 
 /* POST BOX */
 
@@ -1242,11 +1207,6 @@ align-items:center;
 max-width:680px;
 }  
 
-.post-body{
-width:100%;
-display:flex;
-flex-direction:column;
-}
 
 .post-text{
 margin-bottom:12px;
@@ -1255,17 +1215,7 @@ line-height:1.5;
 word-wrap:break-word;
 }
 
-.post-media{
-width:100%;
 
-max-height:650px;
-
-object-fit:cover;
-
-border-radius:18px;
-
-display:block;
-}
 /* ================= APPLE LIQUID GLASS ================= */
 
 .top-navbar{
@@ -1365,8 +1315,54 @@ padding-right:8px;
 border-radius:20px;
 }
 
-.post-media{
-border-radius:14px;
+
 }
 
+/* ================= FACEBOOK AVATAR FIX ================= */
+
+.post-top{
+display:flex;
+align-items:flex-start;
+gap:12px;
+}
+
+.post-avatar{
+width:48px !important;
+height:48px !important;
+
+min-width:48px !important;
+min-height:48px !important;
+
+max-width:48px !important;
+max-height:48px !important;
+
+border-radius:50% !important;
+
+object-fit:cover !important;
+
+display:block;
+
+flex-shrink:0;
+
+overflow:hidden;
+
+margin-top:0;
+}
+
+.post-user{
+font-size:15px;
+font-weight:600;
+margin-top:2px;
+}
+
+.post-body{
+width:100%;
+margin-top:10px;
+}
+
+.post-media{
+width:100%;
+border-radius:14px;
+display:block;
+margin-top:10px;
 }
