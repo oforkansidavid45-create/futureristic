@@ -188,15 +188,40 @@ let video = "";
 
 if(req.files?.image){
 
-image =
-req.files.image[0].path;
+const base64 =
+`data:${req.files.image[0].mimetype};base64,${
+req.files.image[0].buffer.toString("base64")
+}`;
+
+const uploaded =
+await cloudinary.uploader.upload(
+base64,
+{
+folder:"futurebook_posts"
+}
+);
+
+image = uploaded.secure_url;
 
 }
 
 if(req.files?.video){
 
-video =
-req.files.video[0].path;
+const base64 =
+`data:${req.files.video[0].mimetype};base64,${
+req.files.video[0].buffer.toString("base64")
+}`;
+
+const uploaded =
+await cloudinary.uploader.upload(
+base64,
+{
+resource_type:"video",
+folder:"futurebook_videos"
+}
+);
+
+video = uploaded.secure_url;
 
 }
 
@@ -302,6 +327,32 @@ err
 
 res.status(500).json({
 error:"Upload failed"
+});
+
+}
+
+});
+
+app.get("/api/posts", async (req, res) => {
+
+try {
+
+const posts =
+await Post.find().sort({
+createdAt:-1
+});
+
+res.json(posts);
+
+} catch(err){
+
+console.log(
+"GET POSTS ERROR:",
+err
+);
+
+res.status(500).json({
+error:"Server error"
 });
 
 }
