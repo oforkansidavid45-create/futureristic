@@ -177,14 +177,18 @@ upload.fields([
 {name:"image",maxCount:1},
 {name:"video",maxCount:1}
 ]),
+
 async(req,res)=>{
 
 try{
 
-const {user,text} = req.body;
+const { user, text } = req.body;
 
 let image = "";
 let video = "";
+
+
+// ================= IMAGE =================
 
 if(req.files?.image){
 
@@ -204,6 +208,9 @@ folder:"futurebook_posts"
 image = uploaded.secure_url;
 
 }
+
+
+// ================= VIDEO =================
 
 if(req.files?.video){
 
@@ -225,14 +232,31 @@ video = uploaded.secure_url;
 
 }
 
+
+// ================= USER DATA =================
+
+const userData =
+await User.findOne({
+username:cleanName(user)
+});
+
+
+// ================= CREATE POST =================
+
 const post = new Post({
 
 user,
 text,
 image,
 video,
+
+profilePic:
+userData?.profilePic || "",
+
 likes:0,
+
 likedBy:[],
+
 comments:[]
 
 });
@@ -251,113 +275,88 @@ error:"Failed to create post"
 
 }
 
-});
+});;
 
-app.post(
-"/api/upload-profile",
-upload.single("image"),
+  app.post(
+  "/api/upload-profile",
+  upload.single("image"),
 
-async (req,res)=>{
+  async (req,res)=>{
 
-try{
+  try{
 
-const username =
-cleanName(req.body.username);
+  const username =
+  cleanName(req.body.username);
 
-if(!req.file){
+  if(!req.file){
 
-return res.status(400).json({
-error:"No image"
-});
+  return res.status(400).json({
+  error:"No image"
+  });
 
-}
+  }
 
-const base64 =
-`data:${req.file.mimetype};base64,${
-req.file.buffer.toString("base64")
-}`;
+  const base64 =
+  `data:${req.file.mimetype};base64,${
+  req.file.buffer.toString("base64")
+  }`;
 
-const uploaded =
-await cloudinary.uploader.upload(
-base64,
-{
-folder:"futurebook_profiles"
-}
-);
+  const uploaded =
+  await cloudinary.uploader.upload(
+  base64,
+  {
+  folder:"futurebook_profiles"
+  }
+  );
 
-const updatedUser =
-await User.findOneAndUpdate(
+  const updatedUser =
+  await User.findOneAndUpdate(
 
-{ username },
+  { username },
 
-{
-profilePic:
-uploaded.secure_url
-},
+  {
+  profilePic:
+  uploaded.secure_url
+  },
 
-{ new:true }
+  { new:true }
 
-);
+  );
 
-if(!updatedUser){
+  if(!updatedUser){
 
-return res.status(404).json({
-error:"User not found"
-});
+  return res.status(404).json({
+  error:"User not found"
+  });
 
-}
+  }
 
-io.emit("profileUpdated",{
-username,
-profilePic:
-updatedUser.profilePic
-});
+  io.emit("profileUpdated",{
+  username,
+  profilePic:
+  updatedUser.profilePic
+  });
 
-res.json({
-profilePic:
-updatedUser.profilePic
-});
+  res.json({
+  profilePic:
+  updatedUser.profilePic
+  });
 
-}catch(err){
+  }catch(err){
 
-console.log(
-"PROFILE UPLOAD ERROR:",
-err
-);
+  console.log(
+  "PROFILE UPLOAD ERROR:",
+  err
+  );
 
-res.status(500).json({
-error:"Upload failed"
-});
+  res.status(500).json({
+  error:"Upload failed"
+  });
 
-}
+  }
 
-});
+  });
 
-app.get("/api/posts", async (req, res) => {
-
-try {
-
-const posts =
-await Post.find().sort({
-createdAt:-1
-});
-
-res.json(posts);
-
-} catch(err){
-
-console.log(
-"GET POSTS ERROR:",
-err
-);
-
-res.status(500).json({
-error:"Server error"
-});
-
-}
-
-});
 
 // ================= LOAD MESSAGES =================
 app.get("/api/messages/:user1/:user2", async (req, res) => {
