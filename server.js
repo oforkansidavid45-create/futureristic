@@ -275,88 +275,33 @@ error:"Failed to create post"
 
 }
 
-});;
+});
 
-  app.post(
-  "/api/upload-profile",
-  upload.single("image"),
+app.get("/api/posts", async (req, res) => {
 
-  async (req,res)=>{
+try {
 
-  try{
+const posts =
+await Post.find().sort({
+createdAt:-1
+});
 
-  const username =
-  cleanName(req.body.username);
+res.json(posts);
 
-  if(!req.file){
+} catch(err){
 
-  return res.status(400).json({
-  error:"No image"
-  });
+console.log(
+"GET POSTS ERROR:",
+err
+);
 
-  }
+res.status(500).json({
+error:"Server error"
+});
 
-  const base64 =
-  `data:${req.file.mimetype};base64,${
-  req.file.buffer.toString("base64")
-  }`;
+}
 
-  const uploaded =
-  await cloudinary.uploader.upload(
-  base64,
-  {
-  folder:"futurebook_profiles"
-  }
-  );
-
-  const updatedUser =
-  await User.findOneAndUpdate(
-
-  { username },
-
-  {
-  profilePic:
-  uploaded.secure_url
-  },
-
-  { new:true }
-
-  );
-
-  if(!updatedUser){
-
-  return res.status(404).json({
-  error:"User not found"
-  });
-
-  }
-
-  io.emit("profileUpdated",{
-  username,
-  profilePic:
-  updatedUser.profilePic
-  });
-
-  res.json({
-  profilePic:
-  updatedUser.profilePic
-  });
-
-  }catch(err){
-
-  console.log(
-  "PROFILE UPLOAD ERROR:",
-  err
-  );
-
-  res.status(500).json({
-  error:"Upload failed"
-  });
-
-  }
-
-  });
-
+});
 
 // ================= LOAD MESSAGES =================
 app.get("/api/messages/:user1/:user2", async (req, res) => {
