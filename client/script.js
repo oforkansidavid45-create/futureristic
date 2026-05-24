@@ -672,7 +672,7 @@ async function getProfilePic(user) {
   try {
 
     const res =
-      await fetch(`${API}/api/user/${user}`);
+      await fetch(`/api/user/${encodeURIComponent(username)}`)
 
     const data =
       await res.json();

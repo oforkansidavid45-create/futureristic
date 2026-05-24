@@ -328,36 +328,51 @@ app.get("/api/messages/:user1/:user2", async (req, res) => {
 // ================= GET USER =================
 app.get("/api/user/:username", async (req, res) => {
 
-  try {
+try {
 
-    const user = await User.findOne({
-      username: req.params.username
-    });
+const username =
+cleanName(req.params.username);
 
-    if (!user) {
+const user =
+await User.findOne({
+username
+});
 
-      return res.status(404).json({
-        error: "User not found"
-      });
+if (!user) {
 
-    }
+return res.json({
 
-    res.json({
-      username: user.username,
-      profilePic: user.profilePic || ""
-    });
+username,
 
-  } catch (err) {
-
-    console.log(err);
-
-    res.status(500).json({
-      error: "Server error"
-    });
-
-  }
+profilePic:""
 
 });
+
+}
+
+res.json({
+
+username:user.username,
+
+profilePic:
+user.profilePic || ""
+
+});
+
+} catch (err) {
+
+console.log(
+"USER ERROR:",
+err
+);
+
+res.status(500).json({
+error:"Server error"
+});
+
+}
+
+});;
 // ================= SEARCH USERS =================
 app.get("/api/search-users/:query", async (req, res) => {
 
