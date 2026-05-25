@@ -1206,25 +1206,37 @@ async function openProfile(user) {
     showView("notificationView");
     loadNotifications();
   }
-function openChat(user) {
+ 
+  function openChat(user) {
 
   currentChatUser = cleanName(user);
+
+  showView("chatView");
+
+  const friendsList =
+    document.getElementById("friendsList");
+
+  if(friendsList){
+    friendsList.style.display = "none";
+  }
+
+  const chatArea =
+    document.getElementById("chatArea");
+
+  const chatInputArea =
+    document.getElementById("chatInputArea");
+
+  if(chatArea){
+    chatArea.style.display = "flex";
+  }
+
+  if(chatInputArea){
+    chatInputArea.style.display = "flex";
+  }
 
   document.getElementById(
     "chatTitle"
   ).innerText = user;
-
-  document.getElementById(
-    "emptyChat"
-  ).style.display = "none";
-
-  document.getElementById(
-    "activeChatBox"
-  ).style.display = "flex";
-
-  document.getElementById(
-    "activeChatBox"
-  ).style.flexDirection = "column";
 
   document.getElementById(
     "messagesContainer"
@@ -1243,81 +1255,89 @@ function openChat(user) {
       document.getElementById("authScreen").style.display = "flex";
     }, 2000);
   });
-  function showMessages() {
+function showMessages() {
 
-    showView("chatView");
+  showView("chatView");
 
-    const list =
-      document.getElementById("friendsList");
+  const list =
+    document.getElementById("friendsList");
 
-    list.innerHTML = "";
+  const chatArea =
+    document.getElementById("chatArea");
 
-if (friendsList.length === 0) {
+  const chatInputArea =
+    document.getElementById("chatInputArea");
 
-list.innerHTML = `
+  if(chatArea){
+    chatArea.style.display = "none";
+  }
 
-<div class="empty-chat-box">
+  if(chatInputArea){
+    chatInputArea.style.display = "none";
+  }
 
-  <h2>Add Friends</h2>
+  if(list){
+    list.style.display = "flex";
+    list.style.flexDirection = "column";
+  }
 
-  <p>
-    Search for users and start chatting
-  </p>
+  list.innerHTML = "";
 
-</div>
+  if (friendsList.length === 0) {
 
-`;
-return;
+    list.innerHTML = `
 
-}
-    friendsList.forEach(friend => {
+      <div class="empty-chat-box">
 
-      list.innerHTML += `
+        <h2>
+          No Chats Yet
+        </h2>
 
-        <div
-          class="friend-item"
-          onclick="openChat('${friend}')"
+        <p>
+          Add friends to start chatting
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  friendsList.forEach(friend => {
+
+    list.innerHTML += `
+
+      <div
+        class="friend-item"
+        onclick="openChat('${friend}')"
+      >
+
+        <img
+          src="https://i.imgur.com/HeIi0wU.png"
+          class="friend-avatar"
         >
 
-          <img
-            src="https://i.imgur.com/HeIi0wU.png"
-            class="friend-avatar"
-          >
+        <div class="friend-info">
 
-          <div class="friend-info">
+          <div class="friend-name">
+            ${friend}
+          </div>
 
-            <div class="friend-name">
-              ${friend}
-            </div>
-
-            <div class="friend-status">
-              Tap to chat
-            </div>
-
+          <div class="friend-status">
+            Active now
           </div>
 
         </div>
 
-      `;
+      </div>
 
-    });
-
-  }
-  // ================= PROFILE UPLOAD =================
-
-  document.addEventListener("DOMContentLoaded", () => {
-
-    const picInput =
-      document.getElementById("profilePicInput");
-
-    if (picInput) {
-      picInput.addEventListener(
-        "change",
-        uploadProfilePic
-      );
-    }
+    `;
 
   });
+
+}
 
 async function uploadProfilePic(e){
 
