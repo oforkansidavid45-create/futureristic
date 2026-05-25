@@ -197,31 +197,76 @@ document.getElementById("app").style.flexDirection = "column";
     `;
   }
   // ================= MESSAGE =================
-  function addMessage(user, msg, status = "") {
-    const box = document.getElementById("messagesContainer");
-    if (!box) return;
+function addMessage(user, msg, status = "sent") {
 
-    const isMe = cleanName(user) === cleanName(username);
+  const box =
+    document.getElementById("messagesContainer");
 
-    const div = document.createElement("div");
-    div.className = `msg ${isMe ? "me" : "other"}`;
+  if (!box) return;
+
+  const isMe =
+    cleanName(user) === cleanName(username);
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    `msg ${isMe ? "me" : "other"}`;
+
+if(isMe){
+
+  if(status === "sent"){
+    ticks = `<span class="msg-ticks">✓</span>`;
+  }
+
+  if(status === "delivered"){
+    ticks = `<span class="msg-ticks">✓✓</span>`;
+  }
+
+  if(status === "seen"){
+    ticks = `<span class="msg-ticks seen">✓✓</span>`;
+  }
+
+}
 
   div.innerHTML = `
+
     <div class="bubble">
-      <div>${msg}</div>
-      <div class="meta">
-        <span>${new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit"
-        })}</span>
-        ${isMe ? `<span class="msg-status">${status}</span>` : ""}
+
+      <div class="msg-text">
+        ${msg}
       </div>
+
+      <div class="msg-meta">
+
+        <span class="msg-time">
+
+          ${new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+          })}
+
+        </span>
+
+        ${
+          isMe
+          ?
+          `<span class="msg-ticks">${ticks}</span>`
+          :
+          ""
+        }
+
+      </div>
+
     </div>
+
   `;
 
-    box.appendChild(div);
-    box.scrollTop = box.scrollHeight;
-  }
+  box.appendChild(div);
+
+  box.scrollTop = box.scrollHeight;
+
+}
 
   // ================= SEND MESSAGE =================
   function sendMessage() {
@@ -1328,7 +1373,7 @@ function showMessages() {
 
           <div class="friend-status">
             Active now
-          </div>
+          </div>s
 
         </div>
 

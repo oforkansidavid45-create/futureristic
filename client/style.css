@@ -2359,3 +2359,21 @@ background:#1877f2;
 transform:scale(1.05);
 
 }
+.msg-meta{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  margin-top:5px;
+  font-size:11px;
+  opacity:.85;
+}
+
+.msg-ticks i{
+  font-size:12px;
+  color:#9ca3af; /* default grey */
+}
+
+.msg-ticks .seen{
+  color:#38bdf8; /* blue seen */
+}
