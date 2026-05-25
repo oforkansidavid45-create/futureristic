@@ -537,9 +537,10 @@ document.getElementById("app").style.flexDirection = "column";
 
     container.innerHTML = "";
 
+
     // IMPORTANT
     for (const post of posts) {
-
+console.log(post.image)
       // LOAD USER PROFILE PIC
       const profilePic =
         await getProfilePic(post.user);
@@ -672,7 +673,9 @@ async function getProfilePic(user) {
   try {
 
     const res =
-      await fetch(`/api/user/${encodeURIComponent(username)}`)
+      await fetch(
+        `${API}/api/user/${encodeURIComponent(user)}`
+      );
 
     const data =
       await res.json();

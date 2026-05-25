@@ -1718,4 +1718,20 @@ height:50px;
 border-radius:50%;
 object-fit:cover;
 border:2px solid white;
+}.post-image{
+
+width:100%;
+max-height:500px;
+object-fit:cover;
+border-radius:10px;
+margin-top:10px;
+
+}
+
+.post-video{
+
+width:100%;
+border-radius:10px;
+margin-top:10px;
+
 }
