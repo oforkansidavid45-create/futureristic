@@ -33,7 +33,7 @@ const server = http.createServer(app);
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "client")));
-app.use("/uploads",express.static("uploads"));
+
 // ================= SOCKET =================
 const io = new Server(server, {
   cors: { origin: "*" }
@@ -67,7 +67,7 @@ app.post("/api/auth/signup", async (req, res) => {
     console.log("BODY:", req.body);
 
     let { username, password } = req.body;
-    if (password.length < 4) {
+    if (!password || password.length < 4){
   return res.status(400).json({
     error: "Password too short"
   });
@@ -473,7 +473,7 @@ if (!isFriend) {
       });
     }
 
-    // SEND TO SENDER
+    // SEND TO SENDERA
     if (users[from]?.length) {
       users[from].forEach(id => {
         io.to(id).emit("privateMessage", payload);
