@@ -1207,41 +1207,48 @@ async function openProfile(user) {
     loadNotifications();
   }
  
-  function openChat(user) {
+function openChat(user) {
 
   currentChatUser = cleanName(user);
 
   showView("chatView");
 
-  const friendsList =
-    document.getElementById("friendsList");
+  // HIDE EMPTY SCREEN
+  const emptyChat =
+    document.getElementById("emptyChat");
 
-  if(friendsList){
-    friendsList.style.display = "none";
+  if(emptyChat){
+    emptyChat.style.display = "none";
   }
 
-  const chatArea =
-    document.getElementById("chatArea");
+  // SHOW ACTIVE CHAT
+  const activeChat =
+    document.getElementById("activeChatBox");
 
+  if(activeChat){
+    activeChat.style.display = "flex";
+    activeChat.style.flexDirection = "column";
+  }
+
+  // SHOW INPUT
   const chatInputArea =
     document.getElementById("chatInputArea");
-
-  if(chatArea){
-    chatArea.style.display = "flex";
-  }
 
   if(chatInputArea){
     chatInputArea.style.display = "flex";
   }
 
+  // TITLE
   document.getElementById(
     "chatTitle"
   ).innerText = user;
 
+  // CLEAR OLD
   document.getElementById(
     "messagesContainer"
   ).innerHTML = "";
 
+  // LOAD MESSAGES
   loadMessages(user);
 
 }
@@ -1259,27 +1266,25 @@ function showMessages() {
 
   showView("chatView");
 
+  // SHOW EMPTY SCREEN
+  const emptyChat =
+    document.getElementById("emptyChat");
+
+  if(emptyChat){
+    emptyChat.style.display = "flex";
+  }
+
+  // HIDE ACTIVE CHAT
+  const activeChat =
+    document.getElementById("activeChatBox");
+
+  if(activeChat){
+    activeChat.style.display = "none";
+  }
+
+  // FRIEND LIST
   const list =
     document.getElementById("friendsList");
-
-  const chatArea =
-    document.getElementById("chatArea");
-
-  const chatInputArea =
-    document.getElementById("chatInputArea");
-
-  if(chatArea){
-    chatArea.style.display = "none";
-  }
-
-  if(chatInputArea){
-    chatInputArea.style.display = "none";
-  }
-
-  if(list){
-    list.style.display = "flex";
-    list.style.flexDirection = "column";
-  }
 
   list.innerHTML = "";
 
@@ -1289,13 +1294,9 @@ function showMessages() {
 
       <div class="empty-chat-box">
 
-        <h2>
-          No Chats Yet
-        </h2>
+        <h2>No Chats Yet</h2>
 
-        <p>
-          Add friends to start chatting
-        </p>
+        <p>Add friends to start chatting</p>
 
       </div>
 
