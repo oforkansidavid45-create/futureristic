@@ -684,6 +684,122 @@ app.get("/api/friends/:user", (req, res) => {
   res.json(friends[user] || []);
 });
 
+
+
+
+// ================= LIKE POST =================
+app.put("/api/posts/like/:id", async (req, res) => {
+
+  try {
+
+    const { username } = req.body;
+
+    const cleanUser = cleanName(username);
+
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        error: "Post not found"
+      });
+    }
+
+    if (!post.likedBy.includes(cleanUser)) {
+
+      post.likedBy.push(cleanUser);
+
+      post.likes += 1;
+
+    } else {
+
+      post.likedBy =
+        post.likedBy.filter(
+          u => u !== cleanUser
+        );
+
+      post.likes -= 1;
+
+    }
+
+    await post.save();
+
+    res.json(post);
+
+  } catch (err) {
+
+    console.log("LIKE ERROR:", err);
+
+    res.status(500).json({
+      error: "Server error"
+    });
+
+  }
+
+});
+
+// ================= PROFILE UPLOAD =================
+app.post(
+"/api/upload-profile",
+upload.single("image"),
+async (req, res) => {
+
+  try {
+
+    const username =
+      cleanName(req.body.username);
+
+    if (!req.file) {
+
+      return res.status(400).json({
+        error: "No image uploaded"
+      });
+
+    }
+
+    const base64 =
+`data:${req.file.mimetype};base64,${
+req.file.buffer.toString("base64")
+}`;
+
+    const uploaded =
+      await cloudinary.uploader.upload(
+        base64,
+        {
+          folder: "futurebook_profiles"
+        }
+      );
+
+    const user =
+      await User.findOneAndUpdate(
+        { username },
+        {
+          profilePic:
+            uploaded.secure_url
+        },
+        { new: true }
+      );
+
+    io.emit("profileUpdated");
+
+    res.json({
+      profilePic:
+        uploaded.secure_url
+    });
+
+  } catch (err) {
+
+    console.log(
+      "PROFILE UPLOAD ERROR:",
+      err
+    );
+
+    res.status(500).json({
+      error: "Upload failed"
+    });
+
+  }
+
+});
 // ================= DB =================
 
 // ================= START SERVER =================
