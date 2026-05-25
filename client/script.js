@@ -540,7 +540,10 @@ document.getElementById("app").style.flexDirection = "column";
 
     // IMPORTANT
     for (const post of posts) {
-console.log(post.image)
+
+console.log("POST:", post);
+console.log("IMAGE:", post.image);
+console.log("VIDEO:", post.video);
       // LOAD USER PROFILE PIC
       const profilePic =
         await getProfilePic(post.user);
@@ -1203,31 +1206,33 @@ async function openProfile(user) {
     showView("notificationView");
     loadNotifications();
   }
-  function openChat(user) {
+function openChat(user) {
 
-    currentChatUser = cleanName(user);
+  currentChatUser = cleanName(user);
 
-    document.getElementById(
-      "chatTitle"
-    ).innerText = "Chat with " + user;
+  document.getElementById(
+    "chatTitle"
+  ).innerText = user;
 
-    document.getElementById(
-      "messagesContainer"
-    ).innerHTML = "";
+  document.getElementById(
+    "emptyChat"
+  ).style.display = "none";
 
-    showView("chatView");
+  document.getElementById(
+    "activeChatBox"
+  ).style.display = "flex";
 
-    document.getElementById(
-      "chatArea"
-    ).style.display = "flex";
+  document.getElementById(
+    "activeChatBox"
+  ).style.flexDirection = "column";
 
-    document.getElementById(
-      "chatInputArea"
-    ).style.display = "flex";
+  document.getElementById(
+    "messagesContainer"
+  ).innerHTML = "";
 
-    loadMessages(user);
+  loadMessages(user);
 
-  }
+}
 
 
   window.addEventListener("load", () => {
@@ -1470,7 +1475,7 @@ reader.readAsDataURL(file);
 }
 
 
-async function searchUsersMain(){
+async function searchUsersMain() {
 
   const value =
     document.getElementById("mainSearch")
@@ -1480,56 +1485,121 @@ async function searchUsersMain(){
   const box =
     document.getElementById("searchResults");
 
-  if(!value){
+  if (!value) {
 
     box.innerHTML = "";
+
+    box.style.display = "none";
 
     return;
 
   }
 
-  const res = await fetch(
-    `${API}/api/search-users/${value}`
-  );
+  box.style.display = "block";
 
-  const users = await res.json();
+  try {
 
-  box.innerHTML = "";
+    const res = await fetch(
+      `${API}/api/search-users/${value}`
+    );
 
-  users.forEach(user => {
+    const users = await res.json();
 
-    box.innerHTML += `
+    box.innerHTML = "";
 
-      <div class="search-user">
+    if(users.length === 0){
 
-        <img
-          src="${
-            user.profilePic ||
-            'https://i.imgur.com/HeIi0wU.png'
-          }"
-          class="post-avatar"
-        >
+      box.innerHTML = `
+      
+        <div class="search-empty">
+          No users found
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+    users.forEach(user => {
+
+      box.innerHTML += `
+
+      <div class="search-user-card">
 
         <div
+          class="search-user-left"
           onclick="openProfile('${user.username}')"
         >
-          ${user.username}
+
+          <img
+            src="${
+              user.profilePic ||
+              'https://i.imgur.com/HeIi0wU.png'
+            }"
+            class="search-avatar"
+          >
+
+          <div>
+
+            <div class="search-name">
+              ${user.username}
+            </div>
+
+            <small class="search-small-text">
+              FutureBook User
+            </small>
+
+          </div>
+
         </div>
 
         <button
+          class="search-add-btn"
           onclick="sendRequest('${user.username}')"
-          class="add-friend-btn"
         >
-          Add
+          Add Friend
         </button>
 
       </div>
 
-    `;
+      `;
 
-  });
+    });
+
+  } catch(err){
+
+    console.log(
+      "SEARCH ERROR:",
+      err
+    );
+
+  }
 
 }
+
+
+document.addEventListener("click", (e) => {
+
+  const box =
+    document.getElementById("searchResults");
+
+  const input =
+    document.getElementById("mainSearch");
+
+  if(
+    box &&
+    input &&
+    !box.contains(e.target) &&
+    !input.contains(e.target)
+  ){
+
+    box.style.display = "none";
+
+  }
+
+});
+
 document.getElementById("postImage")
 ?.addEventListener("change", previewPostMedia);
 

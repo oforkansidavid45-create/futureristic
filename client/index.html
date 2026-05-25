@@ -80,7 +80,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     <div onclick="showProfile()">
       <i class="fa-solid fa-user"></i>
     </div>
-
+<div onclick="showSettings()">
+  <i class="fa-solid fa-gear"></i>
+</div>
   </div>
 
 </div>
@@ -155,11 +157,129 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   </div>
 
   <!-- CHAT -->
-  <div id="chatView" style="display:none;">
-<div id="friendsList" class="friends-list"></div>
+
+
+<!-- CHAT VIEW -->
+<div id="chatView" style="display:none;">
+
+  <!-- FRIENDS SIDEBAR -->
+  <div class="messenger-layout">
+
+    <div class="messenger-sidebar">
+
+      <div class="messenger-header">
+        <h2>Chats</h2>
+      </div>
+
+      <div id="friendsList" class="friends-list"></div>
+
+    </div>
+
+    <!-- CHAT AREA -->
+    <div class="messenger-chat-area">
+
+      <!-- EMPTY CHAT -->
+      <div id="emptyChat" class="empty-chat-box">
+
+        <i class="fa-solid fa-comments"></i>
+
+        <h2>Your Messages</h2>
+
+        <p>Select a chat to start messaging</p>
+
+      </div>
+
+      <!-- ACTIVE CHAT -->
+      <div id="activeChatBox" style="display:none;">
+
+        <!-- TOP -->
+        <div class="chat-topbar">
+
+          <div class="chat-user-info">
+
+            <img
+              src="https://i.imgur.com/HeIi0wU.png"
+              id="chatUserPic"
+            >
+
+            <div>
+
+              <h3 id="chatTitle"></h3>
+
+              <span>Active now</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- MESSAGES -->
+        <div id="messagesContainer"></div>
+
+        <!-- INPUT -->
+        <div id="chatInputArea">
+
+          <button class="chat-icon-btn">
+            <i class="fa-solid fa-image"></i>
+          </button>
+
+          <input
+            type="text"
+            id="chatInput"
+            placeholder="Aa"
+            oninput="handleTyping()"
+          >
+
+          <button
+            class="chat-icon-btn"
+            onclick="startRecording()"
+          >
+            <i class="fa-solid fa-microphone"></i>
+          </button>
+
+          <button
+            class="send-btn"
+            onclick="sendMessage()"
+          >
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+
+          <input type="file" id="imageInput" hidden>
+          <input type="file" id="fileInput" hidden>
+
+        </div>
+
+      </div>
+
+    </div>
 
   </div>
 
+</div>
+
+  <!-- SETTINGS -->
+<div id="settingsView" style="display:none;">
+
+  <div class="settings-box">
+
+    <h2>Settings</h2>
+
+    <button onclick="logout()" class="settings-btn">
+      Logout
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- NOTIFICATIONS -->
+<div id="notificationView" style="display:none;">
+
+  <div id="notificationList"></div>
+
+</div>
   <!-- RIGHT SIDEBAR -->
 
 
