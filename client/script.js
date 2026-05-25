@@ -579,18 +579,17 @@ console.log(post.image)
             ${post.text || ""}
           </div>
 
-          ${post.image ? `
-            <img
-              src="${post.image}"
-              class="post-media"
-            >
-          ` : ""}
-
+      ${post.image ? `
+  <img
+    src="${post.image}"
+    class="post-media post-image"
+  />
+` : ""}
           ${post.video ? `
-            <video controls class="post-media">
-              <source src="${post.video}">
-            </video>
-          ` : ""}
+  <video controls class="post-media post-video">
+    <source src="${post.video}" type="video/mp4">
+  </video>
+` : ""}
 
         </div>
 
@@ -702,7 +701,9 @@ async function createPost() {
   const video =
     document.getElementById("postVideo").files[0];
 
-  if (!text && !image && !video) return;
+  if (!text && !image && !video) {
+    return alert("Add something");
+  }
 
   const formData = new FormData();
 
@@ -717,18 +718,42 @@ async function createPost() {
     formData.append("video", video);
   }
 
-const res = await fetch(`${API}/api/posts`, {
-method:"POST",
-body:formData
-});
+  try {
 
-const data = await res.json();
+    const res = await fetch(
+      `${API}/api/posts`,
+      {
+        method: "POST",
+        body: formData
+      }
+    );
 
-console.log(data);;
+    const data = await res.json();
 
-  document.getElementById("postInput").value = "";
+    console.log("POST RESPONSE:", data);
 
-  loadPosts();
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    document.getElementById("postInput").value = "";
+
+    document.getElementById("postImage").value = "";
+
+    document.getElementById("postVideo").value = "";
+
+    document.getElementById("previewArea").innerHTML = "";
+
+    closePostModal();
+
+    loadPosts();
+
+  } catch (err) {
+
+    console.log("CREATE POST ERROR:", err);
+
+  }
 
 }
 

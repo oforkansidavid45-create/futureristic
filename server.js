@@ -587,48 +587,6 @@ if (!isFriend) {
 
 
 // ================= POSTS =================
-app.post("/api/posts", async (req, res) => {
-  try {
-    const { user, text } = req.body;
-
-    if (!user || !text || !text.trim()) {
-      return res.status(400).json({ error: "Missing data" });
-    }
-
-const userData =
-await User.findOne({
-username:user
-});
-
-const post = await Post.create({
-
-user,
-text,
-
-image:imageUrl,
-video:videoUrl,
-
-profilePic:
-userData?.profilePic || "",
-
-likes:0,
-
-likedBy:[],
-
-comments:[]
-
-});
-
-    res.json(post);
-
-  } catch (err) {
-
-    console.log("❌ POST ERROR:", err);
-
-    res.status(500).json({ error: "Server error" });
-
-  }
-});
 
 
 app.post("/api/posts/comment/:id", async (req, res) => {
