@@ -33,6 +33,7 @@ const server = http.createServer(app);
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "client")));
+app.use(express.urlencoded({ extended: true }));
 
 // ================= SOCKET =================
 const io = new Server(server, {
@@ -268,6 +269,8 @@ res.json(post);
 }catch(err){
 
 console.log("POST ERROR:",err);
+console.log("BODY:", req.body);
+console.log("FILES:", req.files);
 
 res.status(500).json({
 error:"Failed to create post"
@@ -591,7 +594,8 @@ if (!isFriend) {
 
 app.post("/api/posts/comment/:id", async (req, res) => {
   try {
-    const { user, text } = req.body;
+   const user = req.body.user || "";
+const text = req.body.text || "";
 
     if (!user || !text || !text.trim()) {
       return res.status(400).json({ error: "Missing comment" });
