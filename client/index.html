@@ -111,9 +111,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 <div id="reelsContainer"></div>
 
 </div>
-  <div id="reelsView" style="display:none;">
-  <div id="reelsContainer"></div>
-</div>
+>
 
     <!-- CREATE POST -->
 <div class="fb-post-box" onclick="openPostModal()">
@@ -170,16 +168,40 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       <div class="messenger-header">
         <h2>Chats</h2>
       </div>
-      <div class="story-bar">
+      <div class="nova-bar">
 
-  <div class="story-item">
+  <div class="nova-item active">
 
-    <div class="story-avatar">
+    <div class="nova-avatar">
       <img src="https://i.imgur.com/HeIi0wU.png">
     </div>
 
-    <div class="story-name">
-      You
+    <div class="nova-name">
+      Nova
+    </div>
+
+  </div>
+
+  <div class="nova-item">
+
+    <div class="nova-avatar">
+      <img src="https://i.imgur.com/HeIi0wU.png">
+    </div>
+
+    <div class="nova-name">
+      Future
+    </div>
+
+  </div>
+
+  <div class="nova-item">
+
+    <div class="nova-avatar">
+      <img src="https://i.imgur.com/HeIi0wU.png">
+    </div>
+
+    <div class="nova-name">
+      Explore
     </div>
 
   </div>
@@ -240,6 +262,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         
         <!-- MESSAGES -->
         <div id="messagesContainer"></div>
+        <div id="typingIndicator"></div>
 
         <!-- INPUT -->
         <div
@@ -424,6 +447,14 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     </button>
 
   </div>
+
+</div>
+
+<div id="imageViewer" class="image-viewer" style="display:none;">
+
+  <span onclick="closeImageViewer()">✖</span>
+
+  <img id="viewerImage">
 
 </div>
 <!-- SOCKET -->

@@ -293,7 +293,7 @@ if(isMe){
 
     if (!message || !currentChatUser) return;
 
-    addMessage(username, message, "✔");
+    addMessage(username, message, "sent");
 
     socket.emit("privateMessage", {
       from: username,
@@ -657,9 +657,7 @@ console.log("VIDEO:", post.video);
   </div>
 
 </div>
-          </div>
-
-        </div>
+         
 
         <div class="post-body">
 
@@ -1279,14 +1277,14 @@ if(!sender) return;
 
 
   function showView(view) {
-  const views = [
-    "homeView",
-    "chatView",
-    "notificationView",
-    "profileView",
-    "settingsView"
-
-  ];
+const views = [
+  "homeView",
+  "chatView",
+  "notificationView",
+  "profileView",
+  "settingsView",
+  "reelsView"
+];
 
     views.forEach(v => {
       const el = document.getElementById(v);
@@ -1465,7 +1463,7 @@ function showMessages() {
 
           <div class="friend-status">
             Active now
-          </div>s
+          </div>
 
         </div>
 
@@ -1585,7 +1583,10 @@ document.getElementById(
 "profilePicInput"
 )?.addEventListener(
 "change",
-previewProfilePic
+(e)=>{
+  previewProfilePic(e);
+  uploadProfilePic(e);
+}
 );
 
 function previewProfilePic(e){
