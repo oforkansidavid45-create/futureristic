@@ -213,18 +213,32 @@ function addMessage(user, msg, status = "sent") {
   div.className =
     `msg ${isMe ? "me" : "other"}`;
 
+let ticks = "";
+
 if(isMe){
 
   if(status === "sent"){
-    ticks = `<span class="msg-ticks">✓</span>`;
+    ticks = `
+      <span class="msg-status">
+        <i class="fa-solid fa-check"></i>
+      </span>
+    `;
   }
 
   if(status === "delivered"){
-    ticks = `<span class="msg-ticks">✓✓</span>`;
+    ticks = `
+      <span class="msg-status">
+        <i class="fa-solid fa-check-double"></i>
+      </span>
+    `;
   }
 
   if(status === "seen"){
-    ticks = `<span class="msg-ticks seen">✓✓</span>`;
+    ticks = `
+      <span class="msg-status seen">
+        <i class="fa-solid fa-check-double"></i>
+      </span>
+    `;
   }
 
 }
@@ -251,7 +265,7 @@ if(isMe){
         ${
           isMe
           ?
-          `<span class="msg-ticks">${ticks}</span>`
+          `${ticks}`
           :
           ""
         }
@@ -1201,6 +1215,7 @@ async function openProfile(user) {
     "notificationView",
     "profileView",
     "settingsView"
+
   ];
 
     views.forEach(v => {
