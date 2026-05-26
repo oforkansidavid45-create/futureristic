@@ -503,9 +503,7 @@ if(isMe){
     sendImage();
   }
 
-  function handleFileUpload() {
-    sendFile();
-  }
+
 
 
 
@@ -1013,10 +1011,10 @@ async function openProfile(user) {
             "Content-Type": "application/json"
           },
 
-          body: JSON.stringify({
-            from: username,
-            to: user
-          })
+         body: JSON.stringify({
+  from: cleanName(username),
+  to: cleanName(user)
+})
 
         }
       );
@@ -1078,22 +1076,17 @@ JSON.stringify(savedFriends)
 
 /* SAVE YOU TO THEIR FRIENDS */
 
-let theirFriends =
-JSON.parse(
-localStorage.getItem(
-`friends_${user}`
-)
+let theirFriends = JSON.parse(
+  localStorage.getItem(`friends_${fromUser}`)
 ) || [];
 
 if(!theirFriends.includes(username)){
+  theirFriends.push(username);
 
-theirFriends.push(username);
-
-localStorage.setItem(
-`friends_${user}`,
-JSON.stringify(theirFriends)
-);
-
+  localStorage.setItem(
+    `friends_${fromUser}`,
+    JSON.stringify(theirFriends)
+  );
 }
 
   }

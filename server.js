@@ -620,6 +620,12 @@ const text = req.body.text || "";
 app.post("/api/friend-request", (req, res) => {
   const { from, to } = req.body;
 
+if (f === t) {
+  return res.status(400).json({
+    error: "Cannot add yourself"
+  });
+}
+
   const f = cleanName(from);
   const t = cleanName(to);
 
@@ -633,16 +639,12 @@ app.post("/api/friend-request", (req, res) => {
   if (users[t]) {
     users[t].forEach(id => {
       io.to(id).emit("friendRequest", {
-        from: f
-      });
+  from: cleanName(f)
+});
     });
   }
 
-if (f === t) {
-  return res.status(400).json({
-    error: "Cannot add yourself"
-  });
-}
+
 
 if (
   friends[f]?.includes(t)
