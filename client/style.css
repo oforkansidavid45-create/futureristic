@@ -2573,7 +2573,9 @@ flex-direction:column;
 
 background:#0f172a;
 
-height:100vh;
+overflow:hidden;
+
+min-width:0;
 
 }
 
@@ -2584,7 +2586,11 @@ height:100vh;
 display:flex;
 flex-direction:column;
 
-height:100vh;
+flex:1;
+
+min-width:0;
+
+overflow:hidden;
 
 }
 
@@ -2596,10 +2602,15 @@ flex:1;
 
 overflow-y:auto;
 
+overflow-x:hidden;
+
 padding:20px;
 
-}
+width:100%;
 
+box-sizing:border-box;
+
+}
 /* ================= INPUT ================= */
 
 .chat-input-area{
@@ -2633,6 +2644,16 @@ color:white;
 
 }
 
+.messenger-layout{
+
+display:flex;
+
+width:100%;
+height:100vh;
+
+overflow:hidden;
+
+}
 /* ================= FRIEND ITEM ================= */
 
 .friend-item{
