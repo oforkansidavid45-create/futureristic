@@ -2728,223 +2728,186 @@ font-weight:600;
 color:white;
 
 }
-/* ================= FULL FACEBOOK MESSENGER LAYOUT ================= */
+
+/* ================= FULL FACEBOOK MESSENGER ================= */
 
 #chatView{
-
-width:100%;
-height:calc(100vh - 70px);
-
-margin-top:70px;
-
-display:none;
-
-background:#0f172a;
-
-overflow:hidden;
-
+  position:fixed;
+  top:70px; /* below navbar */
+  left:0;
+  width:100%;
+  height:calc(100vh - 70px);
+  display:none;
+  background:#0f172a;
+  overflow:hidden;
 }
 
-/* MAIN LAYOUT */
-
+/* MAIN WRAPPER */
 .messenger-layout{
-
-display:flex;
-
-width:100%;
-height:100%;
-
-overflow:hidden;
-
+  display:flex;
+  width:100%;
+  height:100%;
+  overflow:hidden;
 }
 
-/* ================= LEFT SIDEBAR ================= */
+/* ================= LEFT CHAT LIST ================= */
 
 .messenger-sidebar{
+  width:360px;
+  min-width:360px;
 
-width:370px;
-min-width:370px;
+  height:100%;
+  background:#111827;
 
-background:#111827;
+  display:flex;
+  flex-direction:column;
 
-border-right:1px solid rgba(255,255,255,0.06);
+  border-right:1px solid rgba(255,255,255,0.06);
+}
 
-display:flex;
-flex-direction:column;
+/* HEADER STAYS AT TOP */
+.messenger-header{
+  height:70px;
+  min-height:70px;
 
-overflow:hidden;
+  display:flex;
+  align-items:center;
 
+  padding-left:20px;
+
+  font-size:22px;
+  font-weight:700;
+
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+/* NOVA BAR */
+.nova-bar{
+  display:flex;
+  gap:12px;
+  padding:12px;
+
+  overflow-x:auto;
+
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+/* CHAT LIST */
+.friends-list{
+  flex:1;
+  overflow-y:auto;
+  padding:10px;
 }
 
 /* ================= RIGHT CHAT AREA ================= */
 
 .messenger-chat-area{
+  flex:1;
+  display:flex;
+  flex-direction:column;
 
-flex:1;
+  height:100%;
+  background:#0f172a;
 
-width:100%;
+  overflow:hidden;
+}
 
-display:flex;
-flex-direction:column;
+/* EMPTY STATE */
+.empty-chat-box{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
 
-background:#0f172a;
-
-overflow:hidden;
-
-min-width:0;
-
+  color:white;
+  opacity:0.7;
 }
 
 /* ACTIVE CHAT */
-
 #activeChatBox{
-
-flex:1;
-
-display:flex;
-flex-direction:column;
-
-width:100%;
-
-overflow:hidden;
-
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
 
-/* ================= TOPBAR ================= */
+/* ================= TOP CHAT BAR ================= */
 
 .chat-topbar{
+  height:70px;
 
-height:75px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 
-min-height:75px;
+  padding:0 18px;
 
-display:flex;
-justify-content:space-between;
-align-items:center;
+  background:#111827;
 
-padding:0 20px;
-
-background:#111827;
-
-border-bottom:1px solid rgba(255,255,255,0.06);
-
+  border-bottom:1px solid rgba(255,255,255,0.06);
 }
 
-/* ================= MESSAGE AREA ================= */
+/* ================= MESSAGES ================= */
 
 #messagesContainer{
+  flex:1;
+  overflow-y:auto;
 
-flex:1;
+  padding:20px;
 
-width:100%;
-
-overflow-y:auto;
-
-overflow-x:hidden;
-
-padding:20px;
-
-display:flex;
-flex-direction:column;
-
-gap:12px;
-
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 
-/* ================= INPUT AREA ================= */
+/* ================= INPUT ================= */
 
 .chat-input-area{
+  height:70px;
 
-height:80px;
+  display:flex;
+  align-items:center;
+  gap:10px;
 
-min-height:80px;
+  padding:0 12px;
 
-display:flex;
-align-items:center;
+  background:#111827;
 
-gap:10px;
-
-padding:0 15px;
-
-background:#111827;
-
-border-top:1px solid rgba(255,255,255,0.06);
-
+  border-top:1px solid rgba(255,255,255,0.06);
 }
-
-/* INPUT */
 
 #chatInput{
+  flex:1;
+  height:45px;
 
-flex:1;
+  border:none;
+  outline:none;
 
-height:48px;
+  border-radius:25px;
 
-border:none;
-outline:none;
+  padding:0 16px;
 
-border-radius:30px;
-
-padding:0 18px;
-
-background:#1e293b;
-
-color:white;
-
-font-size:15px;
-
+  background:#1e293b;
+  color:white;
 }
 
-/* ================= FRIENDS LIST ================= */
+/* ICON BUTTONS */
+.chat-action-btn{
+  width:42px;
+  height:42px;
 
-.friends-list{
+  border:none;
+  border-radius:50%;
 
-flex:1;
+  background:#1e293b;
+  color:white;
 
-overflow-y:auto;
-
-padding:10px;
-
+  cursor:pointer;
 }
 
-/* FRIEND */
-
-.friend-item{
-
-display:flex;
-align-items:center;
-
-gap:12px;
-
-padding:12px;
-
-border-radius:16px;
-
-cursor:pointer;
-
-transition:.2s;
-
-}
-
-.friend-item:hover{
-
-background:rgba(255,255,255,0.05);
-
-}
-
-/* ================= EMPTY CHAT ================= */
-
-.empty-chat-box{
-
-flex:1;
-
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-
-color:white;
-
+.chat-action-btn:hover{
+  background:#2563eb;
 }
 
 /* ================= MOBILE ================= */
@@ -2952,27 +2915,16 @@ color:white;
 @media(max-width:768px){
 
 .messenger-sidebar{
-
-width:100%;
-
-min-width:100%;
-
+  width:100%;
+  min-width:100%;
 }
 
 .messenger-chat-area{
-
-position:fixed;
-
-top:70px;
-left:0;
-
-width:100%;
-height:calc(100vh - 70px);
-
-z-index:999;
-
-background:#0f172a;
-
+  position:fixed;
+  top:70px;
+  left:0;
+  width:100%;
+  height:calc(100vh - 70px);
 }
 
 }
