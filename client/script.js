@@ -614,23 +614,51 @@ console.log("VIDEO:", post.video);
 
       div.innerHTML = `
 
-        <div class="post-top">
+       <div class="post-top">
 
-          <img
-            src="${profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
-            class="post-avatar"
-            onclick="openProfile('${post.user}')"
-          >
+  <div class="post-user-row">
 
-          <div>
+    <div class="post-user-left">
 
-            <div
-              class="post-user"
-              onclick="openProfile('${post.user}')"
-            >
-              ${post.user}
-            </div>
+      <img
+        src="${profilePic || 'https://i.imgur.com/HeIi0wU.png'}"
+        class="post-avatar"
+        onclick="openProfile('${post.user}')"
+      >
 
+      <div>
+
+        <div
+          class="post-user"
+          onclick="openProfile('${post.user}')"
+        >
+          ${post.user}
+        </div>
+
+      </div>
+
+    </div>
+
+    ${
+      cleanName(post.user)
+      ===
+      cleanName(username)
+      ?
+      `
+      <button
+        class="delete-post-btn"
+        onclick="deletePost('${post._id}')"
+      >
+        <i class="fa-solid fa-trash"></i>
+      </button>
+      `
+      :
+      ``
+    }
+
+  </div>
+
+</div>
           </div>
 
         </div>
@@ -965,6 +993,13 @@ async function openProfile(user) {
 
   // ================= FRIEND REQUEST =================
   async function sendRequest(user) {
+    if(
+  cleanName(user)
+  ===
+  cleanName(username)
+){
+  return;
+}
 
     try {
 
@@ -1023,6 +1058,43 @@ async function openProfile(user) {
   loadNotifications();
 
   showToast("Friend added");
+  let savedFriends =
+JSON.parse(
+localStorage.getItem(
+`friends_${username}`
+)
+) || [];
+
+if(!savedFriends.includes(user)){
+
+savedFriends.push(user);
+
+localStorage.setItem(
+`friends_${username}`,
+JSON.stringify(savedFriends)
+);
+
+}
+
+/* SAVE YOU TO THEIR FRIENDS */
+
+let theirFriends =
+JSON.parse(
+localStorage.getItem(
+`friends_${user}`
+)
+) || [];
+
+if(!theirFriends.includes(username)){
+
+theirFriends.push(username);
+
+localStorage.setItem(
+`friends_${user}`,
+JSON.stringify(theirFriends)
+);
+
+}
 
   }
 
@@ -1324,6 +1396,13 @@ function openChat(user) {
   });
 function showMessages() {
 
+  friendsList =
+    JSON.parse(
+      localStorage.getItem(
+        `friends_${username}`
+      )
+    ) || [];
+
   showView("chatView");
 
   // SHOW EMPTY SCREEN
@@ -1569,11 +1648,9 @@ async function searchUsersMain() {
   if (!value) {
 
     box.innerHTML = "";
-
     box.style.display = "none";
 
     return;
-
   }
 
   box.style.display = "block";
@@ -1591,18 +1668,20 @@ async function searchUsersMain() {
     if(users.length === 0){
 
       box.innerHTML = `
-      
         <div class="search-empty">
           No users found
         </div>
-
       `;
 
       return;
-
     }
 
     users.forEach(user => {
+
+      const isMe =
+        cleanName(user.username)
+        ===
+        cleanName(username);
 
       box.innerHTML += `
 
@@ -1610,7 +1689,13 @@ async function searchUsersMain() {
 
         <div
           class="search-user-left"
-          onclick="openProfile('${user.username}')"
+          onclick="${
+            isMe
+            ?
+            `showProfile()`
+            :
+            `openProfile('${user.username}')`
+          }"
         >
 
           <img
@@ -1624,23 +1709,43 @@ async function searchUsersMain() {
           <div>
 
             <div class="search-name">
-              ${user.username}
+              ${
+                isMe
+                ?
+                `${user.username} (You)`
+                :
+                user.username
+              }
             </div>
 
             <small class="search-small-text">
-              FutureBook User
+              ${
+                isMe
+                ?
+                "View your profile"
+                :
+                "FutureBook User"
+              }
             </small>
 
           </div>
 
         </div>
 
-        <button
-          class="search-add-btn"
-          onclick="sendRequest('${user.username}')"
-        >
-          Add Friend
-        </button>
+        ${
+          isMe
+          ?
+          ``
+          :
+          `
+          <button
+            onclick="sendRequest('${user.username}')"
+            class="search-add-btn"
+          >
+            Add Friend
+          </button>
+          `
+        }
 
       </div>
 
@@ -1648,11 +1753,31 @@ async function searchUsersMain() {
 
     });
 
-  } catch(err){
+  }
 
-    console.log(
-      "SEARCH ERROR:",
-      err
+  catch(err){
+
+    console.log(err);
+
+  }
+
+}
+function saveFriend(user){
+
+  let savedFriends =
+    JSON.parse(
+      localStorage.getItem(
+        `friends_${username}`
+      )
+    ) || [];
+
+  if(!savedFriends.includes(user)){
+
+    savedFriends.push(user);
+
+    localStorage.setItem(
+      `friends_${username}`,
+      JSON.stringify(savedFriends)
     );
 
   }
@@ -1783,5 +1908,34 @@ class="future-preview-media"
 `;
 
 }
+
+}
+
+async function deletePost(id){
+
+  const sure = confirm(
+    "Delete this post?"
+  );
+
+  if(!sure) return;
+
+  try{
+
+    await fetch(
+      `${API}/api/posts/${id}`,
+      {
+        method:"DELETE"
+      }
+    );
+
+    loadPosts();
+
+    showToast("Post deleted");
+
+  }catch(err){
+
+    console.log(err);
+
+  }
 
 }
