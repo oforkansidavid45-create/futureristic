@@ -1146,7 +1146,12 @@ JSON.stringify(theirFriends)
 
       box.innerHTML = "";
 
-      data.forEach(user => {
+      data.forEach(req => {
+
+const sender =
+req.from || req.username || req.user;
+
+if(!sender) return;
 
         box.innerHTML += `
 
@@ -1158,7 +1163,7 @@ JSON.stringify(theirFriends)
           >
 
           <div class="notif-info">
-            <b>${user}</b>
+           <b>${sender}</b>
             <p>sent you a friend request</p>
           </div>
 
@@ -1166,14 +1171,14 @@ JSON.stringify(theirFriends)
 
             <button
               class="accept-btn"
-              onclick="acceptRequest('${user}')"
+              onclick="acceptRequest('${sender}')"
             >
               Accept
             </button>
 
             <button
               class="reject-btn"
-              onclick="rejectRequest('${user}')"
+            onclick="rejectRequest('${sender}')"
             >
               Reject
             </button>
