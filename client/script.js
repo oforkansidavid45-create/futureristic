@@ -988,106 +988,67 @@ async function openProfile(user) {
 
 
   // ================= FRIEND REQUEST =================
-  async function sendRequest(user) {
-    if(
-  cleanName(user)
-  ===
-  cleanName(username)
-){
-  return;
-}
-
-    try {
-
-      const res = await fetch(
-        `${API}/api/friend-request`,
-        {
-
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json"
-          },
-
-         body: JSON.stringify({
-  from: cleanName(username),
-  to: cleanName(user)
-})
-
-        }
-      );
-
-      const data =
-        await res.json();
-
-      showToast(
-        data.message || "Request sent"
-      );
-
-    } catch (err) {
-
-      console.log(err);
-
-    }
-
-  }
-
-  // ================= ACCEPT =================
-  async function acceptRequest(fromUser) {
+async function acceptRequest(fromUser) {
 
   await fetch(
-  `${API}/api/friend-accept`,
-  {
-  method:"POST",
-  headers:{
-  "Content-Type":"application/json"
-  },
-  body:JSON.stringify({
-  from:fromUser,
-  to:username
-  })
-  }
+    `${API}/api/friend-accept`,
+    {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        from:fromUser,
+        to:username
+      })
+    }
   );
+
+  // SAVE MY FRIENDS
+  let savedFriends =
+    JSON.parse(
+      localStorage.getItem(
+        `friends_${username}`
+      )
+    ) || [];
+
+  if(!savedFriends.includes(fromUser)){
+
+    savedFriends.push(fromUser);
+
+    localStorage.setItem(
+      `friends_${username}`,
+      JSON.stringify(savedFriends)
+    );
+
+  }
+
+  // SAVE ME TO THEIR FRIENDS
+  let theirFriends =
+    JSON.parse(
+      localStorage.getItem(
+        `friends_${fromUser}`
+      )
+    ) || [];
+
+  if(!theirFriends.includes(username)){
+
+    theirFriends.push(username);
+
+    localStorage.setItem(
+      `friends_${fromUser}`,
+      JSON.stringify(theirFriends)
+    );
+
+  }
 
   await loadFriends();
 
   loadNotifications();
 
   showToast("Friend added");
-  let savedFriends =
-JSON.parse(
-localStorage.getItem(
-`friends_${username}`
-)
-) || [];
-
-if(!savedFriends.includes(user)){
-
-savedFriends.push(user);
-
-localStorage.setItem(
-`friends_${username}`,
-JSON.stringify(savedFriends)
-);
 
 }
-
-/* SAVE YOU TO THEIR FRIENDS */
-
-let theirFriends = JSON.parse(
-  localStorage.getItem(`friends_${fromUser}`)
-) || [];
-
-if(!theirFriends.includes(username)){
-  theirFriends.push(username);
-
-  localStorage.setItem(
-    `friends_${fromUser}`,
-    JSON.stringify(theirFriends)
-  );
-}
-
-  }
 
 
 
@@ -1336,7 +1297,7 @@ const views = [
   }
  
 function openChat(user) {
-
+if(!user) return;
   currentChatUser = cleanName(user);
 
   showView("chatView");
