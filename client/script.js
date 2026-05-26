@@ -987,6 +987,8 @@ async function openProfile(user) {
 
 
 
+
+
   // ================= FRIEND REQUEST =================
 async function acceptRequest(fromUser) {
 
@@ -1098,10 +1100,12 @@ async function acceptRequest(fromUser) {
 
       box.innerHTML = "";
 
-      data.forEach(req => {
+data.forEach(req => {
 
 const sender =
-req.from || req.username || req.user;
+typeof req === "string"
+? req
+: req.from || req.username || req.user;
 
 if(!sender) return;
 
@@ -1151,6 +1155,44 @@ if(!sender) return;
 
   }
 
+  // ================= SEND FRIEND REQUEST =================
+async function sendRequest(toUser) {
+
+  if (!toUser) return;
+
+  try {
+
+    const res = await fetch(
+      `${API}/api/friend-request`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          from: username,
+          to: toUser
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.error) {
+      return alert(data.error);
+    }
+
+    showToast(`Friend request sent to ${toUser}`);
+
+  } catch (err) {
+
+    console.log("REQUEST ERROR:", err);
+
+  }
+
+}
 
 
 

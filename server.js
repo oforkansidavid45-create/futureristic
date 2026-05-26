@@ -618,72 +618,46 @@ const text = req.body.text || "";
   }
 });
 app.post("/api/friend-request", (req, res) => {
-  const { from, to } = req.body;
 
-if (f === t) {
-  return res.status(400).json({
-    error: "Cannot add yourself"
-  });
-}
+  const from = cleanName(req.body.from);
+  const to = cleanName(req.body.to);
 
-  const f = cleanName(from);
-  const t = cleanName(to);
-
-  if (!requests[t]) requests[t] = [];
-
-  if (!requests[t].includes(f)) {
-    requests[t].push(f);
-  }
-
-  // 🔥 REAL TIME NOTIFICATION
-  if (users[t]) {
-    users[t].forEach(id => {
-      io.to(id).emit("friendRequest", {
-  from: cleanName(f)
-});
+  if (!from || !to) {
+    return res.status(400).json({
+      error: "Missing users"
     });
   }
 
+  if (from === to) {
+    return res.status(400).json({
+      error: "Cannot add yourself"
+    });
+  }
 
+  ensureUser(requests, to);
 
-if (
-  friends[f]?.includes(t)
-) {
-  return res.json({
-    message: "Already friends"
+  if (!requests[to].includes(from)) {
+    requests[to].push(from);
+  }
+
+  // REALTIME
+  if (users[to]) {
+
+    users[to].forEach(id => {
+
+      io.to(id).emit("friendRequest", {
+        from
+      });
+
+    });
+
+  }
+
+  res.json({
+    message: "Request sent"
   });
-}
 
-
-
-  res.json({ message: "Request sent" });
-});
-app.post("/api/friend-accept", (req, res) => {
-  const { from, to } = req.body;
-
-  ensureUser(friends, from);
-  ensureUser(friends, to);
-
-  if (!friends[from].includes(to)) {
-    friends[from].push(to);
-  }
-
-  if (!friends[to].includes(from)) {
-    friends[to].push(from);
-  }
-
-  requests[to] = (requests[to] || []).filter(u => u !== from);
-
-  res.json({ message: "friend added" });
-});
-app.post("/api/friend-reject", (req, res) => {
-  const { from, to } = req.body;
-
-  requests[to] =
-    (requests[to] || []).filter(u => u !== from);
-
-  res.json({ message: "rejected" });
-});
+});;
 app.get("/api/friends/:user", (req, res) => {
   const user = cleanName(req.params.user);
 
