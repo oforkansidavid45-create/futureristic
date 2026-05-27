@@ -1,4 +1,4 @@
-  let user = null;
+
 
   let currentProfileUser = null;
   const userProfiles = {};
