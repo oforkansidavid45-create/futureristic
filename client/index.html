@@ -163,37 +163,46 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   <!-- FRIENDS SIDEBAR -->
   <div class="messenger-layout">
 
+    <!-- LEFT SIDEBAR -->
     <div class="messenger-sidebar">
 
+      <!-- HEADER -->
       <div class="messenger-header">
         <h2>Chats</h2>
       </div>
+
+      <!-- STORIES -->
       <div class="nova-bar">
 
-  <div class="nova-item active">
+        <!-- STORY 1 -->
+        <div class="nova-item active">
 
-    <div class="nova-avatar">
-      <img src="https://i.imgur.com/HeIi0wU.png">
-    </div>
+          <div class="nova-avatar">
+            <img src="https://i.imgur.com/HeIi0wU.png">
+          </div>
 
-    <div class="nova-name">
-      Nova
-    </div>
+          <div class="nova-name">
+            Nova
+          </div>
 
-  </div>
+        </div>
 
-  <div class="nova-item">
+        <!-- STORY 2 -->
+        <div class="nova-item">
 
-    <div class="nova-avatar">
-      <img src="https://i.imgur.com/HeIi0wU.png">
-    </div>
+          <div class="nova-avatar">
+            <img src="https://i.imgur.com/HeIi0wU.png">
+          </div>
 
-  
+          <div class="nova-name">
+            Future
+          </div>
 
+        </div>
 
+      </div>
 
-</div>
-
+      <!-- FRIEND LIST -->
       <div id="friendsList" class="friends-list"></div>
 
     </div>
@@ -215,88 +224,97 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       <!-- ACTIVE CHAT -->
       <div id="activeChatBox" style="display:none;">
 
+        <!-- TOPBAR -->
         <div class="chat-topbar">
 
-  <div class="chat-user-info">
+          <div class="chat-user-info">
 
-    <img
-      src="https://i.imgur.com/HeIi0wU.png"
-      id="chatUserPic"
-    >
+            <img
+              src="https://i.imgur.com/HeIi0wU.png"
+              id="chatUserPic"
+            >
 
-    <div>
-      <h3 id="chatTitle"></h3>
-      <span>Active now</span>
-    </div>
+            <div>
+              <h3 id="chatTitle"></h3>
+              <span>Active now</span>
+            </div>
 
-  </div>
+          </div>
 
-  <!-- RIGHT SIDE ACTIONS -->
-  <div class="chat-top-actions">
+          <!-- RIGHT ACTIONS -->
+          <div class="chat-top-actions">
 
-    <button class="top-call-btn">
-      <i class="fa-solid fa-phone"></i>
-    </button>
+            <button class="top-call-btn">
+              <i class="fa-solid fa-phone"></i>
+            </button>
 
-    <button class="top-call-btn">
-      <i class="fa-solid fa-video"></i>
-    </button>
+            <button class="top-call-btn">
+              <i class="fa-solid fa-video"></i>
+            </button>
 
-  </div>
+          </div>
 
-</div>
-        
+        </div>
+
         <!-- MESSAGES -->
         <div id="messagesContainer"></div>
+
+        <!-- TYPING -->
         <div id="typingIndicator"></div>
 
         <!-- INPUT -->
         <div
-  id="chatInputArea"
-  class="chat-input-area"
-  style="display:none;"
->
+          id="chatInputArea"
+          class="chat-input-area"
+          style="display:none;"
+        >
 
-  <button
-    class="chat-action-btn"
-    onclick="document.getElementById('imageInput').click()"
-  >
-    <i class="fa-solid fa-image"></i>
-  </button>
+          <!-- IMAGE -->
+          <button
+            class="chat-action-btn"
+            onclick="document.getElementById('imageInput').click()"
+          >
+            <i class="fa-solid fa-image"></i>
+          </button>
 
-  <button
-    class="chat-action-btn"
-    onclick="document.getElementById('fileInput').click()"
-  >
-    <i class="fa-solid fa-paperclip"></i>
-  </button>
+          <!-- FILE -->
+          <button
+            class="chat-action-btn"
+            onclick="document.getElementById('fileInput').click()"
+          >
+            <i class="fa-solid fa-paperclip"></i>
+          </button>
 
-  <input
-    type="text"
-    id="chatInput"
-    placeholder="Message..."
-    oninput="handleTyping()"
-  >
+          <!-- INPUT -->
+          <input
+            type="text"
+            id="chatInput"
+            placeholder="Message..."
+            oninput="handleTyping()"
+          >
 
-  <button
-    class="chat-action-btn"
-    onclick="startRecording()"
-  >
-    <i class="fa-solid fa-microphone"></i>
-  </button>
+          <!-- MIC -->
+          <button
+            class="chat-action-btn"
+            onclick="startRecording()"
+          >
+            <i class="fa-solid fa-microphone"></i>
+          </button>
 
-  <button
-    class="chat-action-btn"
-    onclick="sendMessage()"
-  >
-    <i class="fa-solid fa-paper-plane"></i>
-  </button>
+          <!-- SEND -->
+          <button
+            class="chat-action-btn"
+            onclick="sendMessage()"
+          >
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
 
-  <input type="file" id="imageInput" hidden>
+          <!-- HIDDEN INPUTS -->
+          <input type="file" id="imageInput" hidden>
 
-  <input type="file" id="fileInput" hidden>
+          <input type="file" id="fileInput" hidden>
 
-</div>
+        </div>
 
       </div>
 
