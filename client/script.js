@@ -227,10 +227,10 @@ if(isMe){
 
   if(status === "delivered"){
     ticks = `
-      <span class="msg-status">
-        <i class="fa-solid fa-check-double"></i>
-      </span>
-    `;
+  <span class="msg-status insta-status">
+    Seen
+  </span>
+`;
   }
 
   if(status === "seen"){
@@ -1102,51 +1102,61 @@ async function acceptRequest(fromUser) {
 
 data.forEach(req => {
 
-const sender =
-typeof req === "string"
-? req
-: req.from || req.username || req.user;
+  const sender =
+    typeof req === "string"
+    ? cleanName(req)
+    : cleanName(
+        req.from ||
+        req.username ||
+        req.user
+      );
 
-if(!sender) return;
+  if (
+    !sender ||
+    sender === "null" ||
+    sender === "undefined"
+  ) return;
 
-        box.innerHTML += `
+  box.innerHTML += `
 
-        <div class="notif-card">
+    <div class="notif-card">
 
-          <img
-            src="https://i.imgur.com/HeIi0wU.png"
-            class="notif-avatar"
-          >
+      <img
+        src="https://i.imgur.com/HeIi0wU.png"
+        class="notif-avatar"
+      >
 
-          <div class="notif-info">
-           <b>${sender}</b>
-            <p>sent you a friend request</p>
-          </div>
+      <div class="notif-info">
 
-          <div class="notif-actions">
+        <b>${sender}</b>
 
-            <button
-              class="accept-btn"
-              onclick="acceptRequest('${sender}')"
-            >
-              Accept
-            </button>
+        <p>sent you a friend request</p>
 
-            <button
-              class="reject-btn"
-            onclick="rejectRequest('${sender}')"
-            >
-              Reject
-            </button>
+      </div>
 
-          </div>
+      <div class="notif-actions">
 
-        </div>
+        <button
+          class="accept-btn"
+          onclick="acceptRequest('${sender}')"
+        >
+          Accept
+        </button>
 
-        `;
+        <button
+          class="reject-btn"
+          onclick="rejectRequest('${sender}')"
+        >
+          Reject
+        </button>
 
-      });
+      </div>
 
+    </div>
+
+  `;
+
+});
     } catch (err) {
 
       console.log(err);
@@ -1156,6 +1166,7 @@ if(!sender) return;
   }
 
   // ================= SEND FRIEND REQUEST =================
+// ================= SEND FRIEND REQUEST =================
 async function sendRequest(toUser) {
 
   if (!toUser) return;
@@ -1175,20 +1186,24 @@ async function sendRequest(toUser) {
           from: username,
           to: toUser
         })
+
       }
     );
 
     const data = await res.json();
 
+    console.log("REQUEST RESPONSE:", data);
+
     if (data.error) {
-      return alert(data.error);
+      alert(data.error);
+      return;
     }
 
     showToast(`Friend request sent to ${toUser}`);
 
   } catch (err) {
 
-    console.log("REQUEST ERROR:", err);
+    console.log("SEND REQUEST ERROR:", err);
 
   }
 

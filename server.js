@@ -450,13 +450,10 @@ if (!friends[to]) friends[to] = [];
 
 // check both sides (IMPORTANT)
 const isFriend =
-  friends[from].includes(to) ||
-  friends[to].includes(from);
+  friends[from]?.includes(to) ||
+  friends[to]?.includes(from);
 
-if (!isFriend) {
-  console.log("❌ BLOCKED: not friends");
-  return;
-}
+console.log("FRIEND CHECK:", isFriend);
 
     const payload = {
       from,
