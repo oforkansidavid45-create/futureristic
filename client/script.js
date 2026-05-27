@@ -306,13 +306,13 @@ if(isMe){
 
   // ================= SOCKET RECEIVE =================
   socket.on("privateMessage", (data) => {
+    
     if (!data) return;
 
     const from = cleanName(data.from || "");
     const me = cleanName(username || "");
 
-    if (from === me && data.message) return;
-
+   if (from === me) return;
     const isMine = from === me;
 
     if (data.message) {
@@ -484,6 +484,7 @@ if(isMe){
     const reader = new FileReader();
 
     reader.onload = () => {
+      addImageMessage("You", reader.result);
 
       socket.emit("privateMessage", {
 
@@ -1408,18 +1409,12 @@ if(!user) return;
       document.getElementById("authScreen").style.display = "flex";
     }, 2000);
   });
-function showMessages() {
+async function showMessages() {
 
-  friendsList =
-    JSON.parse(
-      localStorage.getItem(
-        `friends_${username}`
-      )
-    ) || [];
+  await loadFriends();
 
   showView("chatView");
 
-  // SHOW EMPTY SCREEN
   const emptyChat =
     document.getElementById("emptyChat");
 
@@ -1427,7 +1422,6 @@ function showMessages() {
     emptyChat.style.display = "flex";
   }
 
-  // HIDE ACTIVE CHAT
   const activeChat =
     document.getElementById("activeChatBox");
 
@@ -1435,7 +1429,6 @@ function showMessages() {
     activeChat.style.display = "none";
   }
 
-  // FRIEND LIST
   const list =
     document.getElementById("friendsList");
 
@@ -1492,7 +1485,6 @@ function showMessages() {
   });
 
 }
-
 async function uploadProfilePic(e){
 
   const file = e.target.files[0];

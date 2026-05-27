@@ -453,6 +453,9 @@ const isFriend =
   friends[from]?.includes(to) ||
   friends[to]?.includes(from);
 
+  if (!isFriend) {
+  return;
+}
 console.log("FRIEND CHECK:", isFriend);
 
     const payload = {
@@ -659,6 +662,87 @@ app.get("/api/friends/:user", (req, res) => {
   const user = cleanName(req.params.user);
 
   res.json(friends[user] || []);
+});
+
+// ================= ACCEPT FRIEND =================
+
+app.post("/api/friend-accept", (req, res) => {
+
+  const from = cleanName(req.body.from);
+  const to = cleanName(req.body.to);
+
+  if (!from || !to) {
+    return res.status(400).json({
+      error: "Missing users"
+    });
+  }
+
+  ensureUser(friends, from);
+  ensureUser(friends, to);
+
+  // ADD BOTH USERS
+  if (!friends[from].includes(to)) {
+    friends[from].push(to);
+  }
+
+  if (!friends[to].includes(from)) {
+    friends[to].push(from);
+  }
+
+  // REMOVE REQUEST
+  if (requests[to]) {
+    requests[to] =
+      requests[to].filter(
+        u => u !== from
+      );
+  }
+
+  // REALTIME UPDATE
+  if (users[from]) {
+    users[from].forEach(id => {
+      io.to(id).emit("friendAccepted", {
+        user: to
+      });
+    });
+  }
+
+  if (users[to]) {
+    users[to].forEach(id => {
+      io.to(id).emit("friendAccepted", {
+        user: from
+      });
+    });
+  }
+
+  res.json({
+    success: true
+  });
+
+});
+
+// ================= REJECT FRIEND =================
+app.post("/api/friend-reject", (req, res) => {
+
+  const from = cleanName(req.body.from);
+  const to = cleanName(req.body.to);
+
+  if (!from || !to) {
+    return res.status(400).json({
+      error: "Missing users"
+    });
+  }
+
+  ensureUser(requests, to);
+
+  requests[to] =
+    requests[to].filter(
+      u => cleanName(u) !== cleanName(from)
+    );
+
+  res.json({
+    success: true
+  });
+
 });
 
 
