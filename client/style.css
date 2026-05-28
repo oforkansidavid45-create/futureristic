@@ -3691,3 +3691,10 @@ outline:none;
   width:220px;
   height:36px;
 }
+#normalChatUI,
+#recordingUI {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

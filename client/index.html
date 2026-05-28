@@ -267,44 +267,37 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         <div id="typingIndicator"></div>
 
         <!-- INPUT -->
-        <div
-          id="chatInputArea"
-          class="chat-input-area"
-          style="display:none;"
-        >
+<div id="chatInputArea" class="chat-input-area">
 
-        
-          <div id="voiceRecorder">
-
-  <!-- NORMAL MODE -->
+  <!-- NORMAL CHAT -->
   <div id="normalChatUI">
 
     <input type="text" id="chatInput" placeholder="Message..." />
 
-    <button id="micBtn" class="chat-action-btn">
+    <button onclick="sendMessage()" class="chat-action-btn">
+      <i class="fa-solid fa-paper-plane"></i>
+    </button>
+
+    <!-- PAPERCLIP FIX -->
+    <button onclick="document.getElementById('imageInput').click()">
+      <i class="fa-solid fa-image"></i>
+    </button>
+
+    <button onclick="document.getElementById('fileInput').click()">
+      <i class="fa-solid fa-paperclip"></i>
+    </button>
+
+    <!-- MIC -->
+    <button id="micBtn">
       <i class="fas fa-microphone"></i>
     </button>
 
   </div>
 
-  <!-- RECORDING MODE -->
-  <div id="recordingUI">
-
-    <div class="recording-left">
-      <div class="recording-dot"></div>
-      <span id="recordingTime">0:00</span>
-    </div>
-
-    <canvas id="waveCanvas" width="140" height="35"></canvas>
-
-    <button id="pauseRecordBtn" class="chat-action-btn">
-      <i class="fas fa-pause"></i>
-    </button>
-
-    <button id="sendVoiceBtn" class="chat-action-btn">
-      <i class="fas fa-paper-plane"></i>
-    </button>
-
+  <!-- RECORDING UI -->
+  <div id="recordingUI" style="display:none;">
+    <div>🎙 Recording...</div>
+    <span id="recordingTime">0:00</span>
   </div>
 
 </div>

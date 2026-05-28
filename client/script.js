@@ -221,6 +221,9 @@ async function startRecording() {
 
     console.log("MIC ERROR:", err);
 
+
+    document.getElementById("normalChatUI").style.display = "none";
+recordingUI.style.display = "flex";
   }
 
 }
@@ -228,7 +231,7 @@ async function startRecording() {
 // STOP RECORDING
 function stopRecording() {
 
-  if (!recording) return;
+  if (!mediaRecorder) return;
 
   mediaRecorder.stop();
 
@@ -236,23 +239,8 @@ function stopRecording() {
 
   recordingUI.style.display = "none";
 
-  recording = false;
-
+  document.getElementById("normalChatUI").style.display = "flex";
 }
-
-// BUTTON EVENTS
-if (micBtn) {
-
-  // DESKTOP
-  micBtn.addEventListener("mousedown", startRecording);
-  micBtn.addEventListener("mouseup", stopRecording);
-
-  // MOBILE
-  micBtn.addEventListener("touchstart", startRecording);
-  micBtn.addEventListener("touchend", stopRecording);
-
-}
-
 
 
 function sendVoiceMessage(audioURL){
@@ -278,6 +266,16 @@ messagesContainer.appendChild(msg);
 messagesContainer.scrollTop =
 messagesContainer.scrollHeight;
 
+}
+
+function startRecordingUI() {
+  document.getElementById("normalChatUI").style.display = "none";
+  document.getElementById("recordingUI").style.display = "flex";
+}
+
+function stopRecordingUI() {
+  document.getElementById("normalChatUI").style.display = "flex";
+  document.getElementById("recordingUI").style.display = "none";
 }
 
   // ================= SOCKET =================
@@ -1367,29 +1365,37 @@ async function sendRequest(toUser) {
 
 
 
+function showView(view) {
 
-  function showView(view) {
-const views = [
-  "homeView",
-  "chatView",
-  "notificationView",
-  "profileView",
-  "settingsView",
-  "reelsView"
-];
+  const views = [
+    "homeView",
+    "chatView",
+    "notificationView",
+    "profileView",
+    "settingsView",
+    "reelsView"
+  ];
 
-    views.forEach(v => {
-      const el = document.getElementById(v);
-      if (el) el.style.display = "none";
-    });
+  views.forEach(v => {
+    const el = document.getElementById(v);
+    if (el) el.style.display = "none";
+  });
 
-    const active = document.getElementById(view);
-    if (active) active.style.display = "block";
+  const active = document.getElementById(view);
+  if (active) active.style.display = "block";
 
-    // RESET UI STATE
-    const chatInputArea = document.getElementById("chatInputArea");
-    if (chatInputArea) chatInputArea.style.display = "none";
+  // 🔥 ADD THIS (IMPORTANT)
+  const sidebar = document.querySelector(".messenger-sidebar");
+  const layout = document.querySelector(".messenger-layout");
+
+  if (view === "chatView") {
+    if (sidebar) sidebar.style.display = "block";
+    if (layout) layout.style.display = "flex";
+  } else {
+    if (sidebar) sidebar.style.display = "none";
   }
+
+}
 
   function searchFriends() {
 
