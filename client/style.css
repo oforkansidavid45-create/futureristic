@@ -3538,16 +3538,16 @@ outline:none;
 
 }
 
-/* ================= VOICE RECORDER WRAPPER ================= */
+/* ================= VOICE RECORDER (MODERN META STYLE) ================= */
 
 #voiceRecorder{
   width:100%;
   display:flex;
   align-items:center;
+  gap:10px;
 }
 
-/* ================= NORMAL CHAT UI ================= */
-
+/* NORMAL CHAT UI */
 #normalChatUI{
   width:100%;
   display:flex;
@@ -3556,37 +3556,33 @@ outline:none;
 }
 
 /* INPUT */
-
 #chatInput{
   flex:1;
-  height:46px;
-
-  border:none;
-  outline:none;
-
-  border-radius:25px;
-
-  padding:0 16px;
-
-  background:#1e293b;
-  color:white;
-
-  font-size:15px;
-}
-
-/* MIC BUTTON */
-
-#micBtn{
-  width:44px;
   height:44px;
 
   border:none;
   outline:none;
 
+  border-radius:22px;
+
+  padding:0 15px;
+
+  background:#1e293b;
+  color:white;
+
+  font-size:14px;
+}
+
+/* MIC BUTTON (mature style) */
+#micBtn{
+  width:42px;
+  height:42px;
+
+  border:none;
   border-radius:50%;
 
   background:#1f2937;
-  color:white;
+  color:#e5e7eb;
 
   display:flex;
   align-items:center;
@@ -3594,11 +3590,12 @@ outline:none;
 
   cursor:pointer;
 
-  transition:.2s;
+  transition:0.2s ease;
 }
 
 #micBtn:hover{
   background:#2563eb;
+  color:white;
 }
 
 /* ================= RECORDING UI ================= */
@@ -3607,72 +3604,54 @@ outline:none;
   display:none;
 
   width:100%;
-  height:52px;
+  height:48px;
 
   align-items:center;
   gap:12px;
 
   padding:0 12px;
 
-  border-radius:30px;
+  border-radius:24px;
 
-  background:#1f2937;
+  background:#111827;
 
   border:1px solid rgba(255,255,255,0.06);
 }
 
 /* RED DOT + TIMER */
-
 .recording-left{
   display:flex;
   align-items:center;
   gap:8px;
 
-  min-width:70px;
-  color:white;
-  font-size:14px;
+  color:#f87171;
+  font-size:13px;
+  min-width:65px;
 }
 
-/* LIVE DOT */
-
 .recording-dot{
-  width:10px;
-  height:10px;
-
+  width:8px;
+  height:8px;
   border-radius:50%;
-
   background:#ef4444;
-
   animation:pulse 1s infinite;
 }
 
-@keyframes pulse{
-  0%{transform:scale(1);opacity:1;}
-  50%{transform:scale(1.3);opacity:.5;}
-  100%{transform:scale(1);opacity:1;}
-}
-
-/* WAVE CANVAS */
-
+/* wave canvas */
 #waveCanvas{
   flex:1;
-  height:32px;
-
-  background:transparent;
+  height:30px;
 }
 
-/* ACTION BUTTONS */
-
+/* BUTTONS */
 .chat-action-btn{
-  width:42px;
-  height:42px;
+  width:40px;
+  height:40px;
 
   border:none;
-  outline:none;
-
   border-radius:50%;
 
-  background:#111827;
+  background:#1e293b;
   color:white;
 
   display:flex;
@@ -3681,7 +3660,7 @@ outline:none;
 
   cursor:pointer;
 
-  transition:.2s;
+  transition:0.2s ease;
 }
 
 .chat-action-btn:hover{
@@ -3689,13 +3668,8 @@ outline:none;
 }
 
 /* SEND BUTTON */
-
 #sendVoiceBtn{
   background:#1877f2;
-}
-
-#sendVoiceBtn:hover{
-  background:#2563eb;
 }
 
 /* PAUSE BUTTON */
