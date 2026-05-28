@@ -146,9 +146,6 @@ document.getElementById("app").style.flexDirection = "column";
 
 // ================= VOICE RECORDING =================
 
-let mediaRecorder;
-let audioChunks = [];
-let recording = false;
 
 const micBtn = document.getElementById("micBtn");
 const recordingUI = document.getElementById("recordingUI");
@@ -273,6 +270,8 @@ msg.innerHTML = `
 
 </div>
 `;
+const messagesContainer =
+document.getElementById("messagesContainer");
 
 messagesContainer.appendChild(msg);
 
