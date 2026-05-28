@@ -144,10 +144,10 @@ document.getElementById("app").style.flexDirection = "column";
 
   }
 
+// ================= VOICE RECORDING =================
 
-  let mediaRecorder;
+let mediaRecorder;
 let audioChunks = [];
-
 let recording = false;
 
 const micBtn = document.getElementById("micBtn");
@@ -157,84 +157,104 @@ const recordingTime = document.getElementById("recordingTime");
 let timer;
 let seconds = 0;
 
-/* START RECORDING */
+// START RECORDING
+async function startRecording() {
 
-async function startRecording(){
+  try {
 
-const stream = await navigator.mediaDevices.getUserMedia({
-audio:true
-});
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true
+    });
 
-mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder = new MediaRecorder(stream);
 
-audioChunks = [];
+    audioChunks = [];
 
-mediaRecorder.ondataavailable = e=>{
-audioChunks.push(e.data);
-};
+    mediaRecorder.ondataavailable = e => {
+      audioChunks.push(e.data);
+    };
 
-mediaRecorder.onstop = ()=>{
+    mediaRecorder.onstop = () => {
 
-const audioBlob = new Blob(audioChunks,{
-type:"audio/webm"
-});
+      const audioBlob = new Blob(audioChunks, {
+        type: "audio/webm"
+      });
 
-const audioURL = URL.createObjectURL(audioBlob);
+      const reader = new FileReader();
 
-sendVoiceMessage(audioURL);
+      reader.onloadend = () => {
 
-};
+        addVoiceMessage(username, reader.result);
 
-mediaRecorder.start();
+        socket.emit("privateMessage", {
+          from: username,
+          to: currentChatUser,
+          audio: reader.result
+        });
 
-recording = true;
+      };
 
-recordingUI.style.display = "flex";
+      reader.readAsDataURL(audioBlob);
 
-seconds = 0;
+    };
 
-timer = setInterval(()=>{
+    mediaRecorder.start();
 
-seconds++;
+    recording = true;
 
-const mins = Math.floor(seconds / 60);
-const secs = seconds % 60;
+    recordingUI.style.display = "flex";
 
-recordingTime.innerText =
-`${mins}:${secs.toString().padStart(2,"0")}`;
+    seconds = 0;
 
-},1000);
+    timer = setInterval(() => {
+
+      seconds++;
+
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+
+      recordingTime.innerText =
+        `${mins}:${secs.toString().padStart(2, "0")}`;
+
+    }, 1000);
+
+  }
+
+  catch(err) {
+
+    console.log("MIC ERROR:", err);
+
+  }
 
 }
 
-/* STOP */
+// STOP RECORDING
+function stopRecording() {
 
-function stopRecording(){
+  if (!recording) return;
 
-if(!recording) return;
+  mediaRecorder.stop();
 
-mediaRecorder.stop();
+  clearInterval(timer);
 
-clearInterval(timer);
+  recordingUI.style.display = "none";
 
-recordingUI.style.display = "none";
-
-recording = false;
+  recording = false;
 
 }
 
-/* HOLD TO RECORD */
+// BUTTON EVENTS
+if (micBtn) {
 
-micBtn.addEventListener("mousedown",startRecording);
+  // DESKTOP
+  micBtn.addEventListener("mousedown", startRecording);
+  micBtn.addEventListener("mouseup", stopRecording);
 
-micBtn.addEventListener("mouseup",stopRecording);
+  // MOBILE
+  micBtn.addEventListener("touchstart", startRecording);
+  micBtn.addEventListener("touchend", stopRecording);
 
-/* MOBILE */
-
-micBtn.addEventListener("touchstart",startRecording);
-
-micBtn.addEventListener("touchend",stopRecording);
-
+}
 
 
 
@@ -421,98 +441,7 @@ if(isMe){
 
     input.value = "";
   }
-
-   let mediaRecorder;
-let audioChunks = [];
-
-let recording = false;
-
-const micBtn = document.getElementById("micBtn");
-const recordingUI = document.getElementById("recordingUI");
-const recordingTime = document.getElementById("recordingTime");
-
-let timer;
-let seconds = 0;
-
-/* START RECORDING */
-
-async function startRecording(){
-
-const stream = await navigator.mediaDevices.getUserMedia({
-audio:true
-});
-
-mediaRecorder = new MediaRecorder(stream);
-
-audioChunks = [];
-
-mediaRecorder.ondataavailable = e=>{
-audioChunks.push(e.data);
-};
-
-mediaRecorder.onstop = ()=>{
-
-const audioBlob = new Blob(audioChunks,{
-type:"audio/webm"
-});
-
-const audioURL = URL.createObjectURL(audioBlob);
-
-sendVoiceMessage(audioURL);
-
-};
-
-mediaRecorder.start();
-
-recording = true;
-
-recordingUI.style.display = "flex";
-
-seconds = 0;
-
-timer = setInterval(()=>{
-
-seconds++;
-
-const mins = Math.floor(seconds / 60);
-const secs = seconds % 60;
-
-recordingTime.innerText =
-`${mins}:${secs.toString().padStart(2,"0")}`;
-
-},1000);
-
-}
-
-/* STOP */
-
-function stopRecording(){
-
-if(!recording) return;
-
-mediaRecorder.stop();
-
-clearInterval(timer);
-
-recordingUI.style.display = "none";
-
-recording = false;
-
-}
-
-/* HOLD TO RECORD */
-
-micBtn.addEventListener("mousedown",startRecording);
-
-micBtn.addEventListener("mouseup",stopRecording);
-
-/* MOBILE */
-
-micBtn.addEventListener("touchstart",startRecording);
-
-micBtn.addEventListener("touchend",stopRecording);
-
-
+  
 
   // ================= SOCKET RECEIVE =================
   socket.on("privateMessage", (data) => {
@@ -719,72 +648,7 @@ micBtn.addEventListener("touchend",stopRecording);
 
 
   // ================= VOICE RECORD =================
-  async function startRecording() {
 
-    try {
-
-      if (!isRecording) {
-
-        const stream =
-          await navigator.mediaDevices.getUserMedia({
-            audio: true
-          });
-
-        mediaRecorder =
-          new MediaRecorder(stream);
-
-        audioChunks = [];
-
-        mediaRecorder.start();
-
-        isRecording = true;
-
-        mediaRecorder.ondataavailable = (e) => {
-          audioChunks.push(e.data);
-        };
-
-        mediaRecorder.onstop = () => {
-
-          const blob =
-            new Blob(audioChunks, {
-              type: "audio/webm"
-            });
-
-          const reader =
-            new FileReader();
-
-          reader.readAsDataURL(blob);
-
-          reader.onloadend = () => {
-            addVoiceMessage("You", reader.result);
-
-            socket.emit("privateMessage", {
-
-              from: username,
-              to: currentChatUser,
-              audio: reader.result
-
-            });
-
-          };
-
-        };
-
-      } else {
-
-        mediaRecorder.stop();
-
-        isRecording = false;
-
-      }
-
-    } catch (err) {
-
-      console.log("MIC ERROR:", err);
-
-    }
-
-  }
 
 
   // ================= LOAD POSTS =================
