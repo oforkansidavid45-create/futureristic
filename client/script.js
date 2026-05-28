@@ -3,6 +3,7 @@
   let currentProfileUser = null;
   const userProfiles = {};
 
+  
   function showToast(message) {
     let toast = document.getElementById("toast");
 
@@ -142,6 +143,123 @@ document.getElementById("app").style.flexDirection = "column";
     }
 
   }
+
+
+  let mediaRecorder;
+let audioChunks = [];
+
+let recording = false;
+
+const micBtn = document.getElementById("micBtn");
+const recordingUI = document.getElementById("recordingUI");
+const recordingTime = document.getElementById("recordingTime");
+
+let timer;
+let seconds = 0;
+
+/* START RECORDING */
+
+async function startRecording(){
+
+const stream = await navigator.mediaDevices.getUserMedia({
+audio:true
+});
+
+mediaRecorder = new MediaRecorder(stream);
+
+audioChunks = [];
+
+mediaRecorder.ondataavailable = e=>{
+audioChunks.push(e.data);
+};
+
+mediaRecorder.onstop = ()=>{
+
+const audioBlob = new Blob(audioChunks,{
+type:"audio/webm"
+});
+
+const audioURL = URL.createObjectURL(audioBlob);
+
+sendVoiceMessage(audioURL);
+
+};
+
+mediaRecorder.start();
+
+recording = true;
+
+recordingUI.style.display = "flex";
+
+seconds = 0;
+
+timer = setInterval(()=>{
+
+seconds++;
+
+const mins = Math.floor(seconds / 60);
+const secs = seconds % 60;
+
+recordingTime.innerText =
+`${mins}:${secs.toString().padStart(2,"0")}`;
+
+},1000);
+
+}
+
+/* STOP */
+
+function stopRecording(){
+
+if(!recording) return;
+
+mediaRecorder.stop();
+
+clearInterval(timer);
+
+recordingUI.style.display = "none";
+
+recording = false;
+
+}
+
+/* HOLD TO RECORD */
+
+micBtn.addEventListener("mousedown",startRecording);
+
+micBtn.addEventListener("mouseup",stopRecording);
+
+/* MOBILE */
+
+micBtn.addEventListener("touchstart",startRecording);
+
+micBtn.addEventListener("touchend",stopRecording);
+
+
+
+
+function sendVoiceMessage(audioURL){
+
+const msg = document.createElement("div");
+
+msg.className = "msg me";
+
+msg.innerHTML = `
+<div class="bubble">
+
+<audio controls>
+<source src="${audioURL}" type="audio/webm">
+</audio>
+
+</div>
+`;
+
+messagesContainer.appendChild(msg);
+
+messagesContainer.scrollTop =
+messagesContainer.scrollHeight;
+
+}
 
   // ================= SOCKET =================
   socket.on("connect", () => {
