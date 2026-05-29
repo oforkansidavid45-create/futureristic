@@ -270,48 +270,82 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         <div id="typingIndicator"></div>
 
         <!-- INPUT -->
-<div id="chatInputArea" class="iphone-chat-bar">
 
-  <button onclick="document.getElementById('imageInput').click()" class="wa-plus-btn">
-    <i class="fa-solid fa-plus"></i>
+<!-- CHAT INPUT -->
+<div id="chatInputArea" class="chat-input-area">
+
+  <!-- CAMERA -->
+  <button
+    onclick="openCamera()"
+    class="media-btn"
+  >
+    <i class="fa-solid fa-camera"></i>
   </button>
 
-  <div class="iphone-input-wrap">
+  <!-- NORMAL INPUT -->
+  <div id="normalChatUI" class="normal-chat-ui">
 
     <input
       type="text"
       id="chatInput"
       placeholder="Message"
-      oninput="handleTyping()"
+      oninput="toggleSendMic(); handleTyping()"
     >
-
-    <button class="inside-input-btn">
-      <i class="fa-regular fa-face-smile"></i>
-    </button>
-
-    <button class="inside-input-btn">
-      <i class="fa-solid fa-camera"></i>
-    </button>
 
   </div>
 
-  <button id="micBtn" onclick="startRecording()" class="voice-circle-btn">
-    <i class="fa-solid fa-microphone"></i>
+  <!-- SEND / MIC -->
+  <button
+    id="sendMicBtn"
+    class="send-btn"
+    onclick="
+    document.getElementById('sendMicIcon')
+    .classList.contains('fa-paper-plane')
+    ? handleSendMic()
+    : stopRecording()
+    "
+  >
+
+    <i
+      id="sendMicIcon"
+      class="fa-solid fa-microphone"
+    ></i>
+
   </button>
 
-  <button onclick="sendMessage()" class="send-circle-btn">
-    <i class="fa-solid fa-paper-plane"></i>
-  </button>
+  <!-- HIDDEN CAMERA INPUT -->
+  <input
+    type="file"
+    id="cameraInput"
+    accept="image/*"
+    capture="environment"
+    hidden
+  >
 
-<div id="recordingUI" style="display:none;">
+  <!-- RECORDING UI -->
+  <div id="recordingUI">
 
-  <span id="recordingTime">0:00</span>
+    <div class="recording-left">
 
-  <button onclick="stopRecording()">
-    Send VN
-  </button>
+      <div class="record-dot"></div>
+
+      <span id="recordingTime">
+        0:00
+      </span>
+
+    </div>
+
+    <div class="recording-center">
+
+      Recording voice message...
+
+    </div>
+
+  </div>
 
 </div>
+
+
         
 
           <!-- HIDDEN INPUTS -->
