@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="icon" href="https://i.imgur.com/HeIi0wU.png">
 <meta charset="UTF-8" />
@@ -62,8 +64,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   </div>
 
   <div class="nav-right">
-      <button onclick="showReels()">
-🎬 Reels
+<button class="nav-modern-btn" onclick="showReels()">
+  <i class="fa-solid fa-play"></i>
+  Watch
 </button>
 
 
@@ -267,24 +270,36 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         <div id="typingIndicator"></div>
 
         <!-- INPUT -->
-<div id="chatInputArea" class="chat-input-area">
+<div id="chatInputArea" class="iphone-chat-bar">
 
-  <button onclick="document.getElementById('imageInput').click()" class="media-btn">
-    <i class="fa-solid fa-image"></i>
+  <button onclick="document.getElementById('imageInput').click()" class="wa-plus-btn">
+    <i class="fa-solid fa-plus"></i>
   </button>
 
-  <input
-    type="text"
-    id="chatInput"
-    placeholder="Message..."
-    oninput="handleTyping()"
-  >
+  <div class="iphone-input-wrap">
 
-  <button id="micBtn" onclick="startRecording()" class="media-btn">
+    <input
+      type="text"
+      id="chatInput"
+      placeholder="Message"
+      oninput="handleTyping()"
+    >
+
+    <button class="inside-input-btn">
+      <i class="fa-regular fa-face-smile"></i>
+    </button>
+
+    <button class="inside-input-btn">
+      <i class="fa-solid fa-camera"></i>
+    </button>
+
+  </div>
+
+  <button id="micBtn" onclick="startRecording()" class="voice-circle-btn">
     <i class="fa-solid fa-microphone"></i>
   </button>
 
-  <button onclick="sendMessage()" class="send-btn">
+  <button onclick="sendMessage()" class="send-circle-btn">
     <i class="fa-solid fa-paper-plane"></i>
   </button>
 
