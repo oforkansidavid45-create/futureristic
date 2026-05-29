@@ -222,8 +222,6 @@ async function startRecording() {
     console.log("MIC ERROR:", err);
 
 
-    document.getElementById("normalChatUI").style.display = "none";
-recordingUI.style.display = "flex";
   }
 
 }
@@ -268,15 +266,7 @@ messagesContainer.scrollHeight;
 
 }
 
-function startRecordingUI() {
-  document.getElementById("normalChatUI").style.display = "none";
-  document.getElementById("recordingUI").style.display = "flex";
-}
 
-function stopRecordingUI() {
-  document.getElementById("normalChatUI").style.display = "flex";
-  document.getElementById("recordingUI").style.display = "none";
-}
 
   // ================= SOCKET =================
   socket.on("connect", () => {
@@ -498,48 +488,10 @@ document
 
 // ================= SEND / MIC SWITCH =================
 
-function toggleSendMic() {
 
-  const input =
-    document.getElementById("chatInput");
-
-  const icon =
-    document.getElementById("sendMicIcon");
-
-  if(input.value.trim()){
-
-    icon.className =
-      "fa-solid fa-paper-plane";
-
-  } else {
-
-    icon.className =
-      "fa-solid fa-microphone";
-
-  }
-
-}
 
 // ================= HANDLE BUTTON =================
 
-function handleSendMic() {
-
-  const input =
-    document.getElementById("chatInput");
-
-  if(input.value.trim()){
-
-    sendMessage();
-
-    toggleSendMic();
-
-  } else {
-
-    startRecording();
-
-  }
-
-}
 
 // ================= START RECORDING =================
 
@@ -651,6 +603,217 @@ function stopRecording() {
   .classList.remove("show-recording");
 
 }
+// ================= CAMERA =================
+
+function openCamera(){
+
+  document.getElementById(
+    "cameraInput"
+  ).click();
+
+}
+
+document.getElementById(
+  "cameraInput"
+).addEventListener("change", sendCameraPhoto);
+
+// ================= SEND CAMERA PHOTO =================
+
+function sendCameraPhoto(e){
+
+  const file = e.target.files[0];
+
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+
+    addImageMessage(
+      username,
+      reader.result
+    );
+
+    socket.emit("privateMessage", {
+
+      from: username,
+      to: currentChatUser,
+      image: reader.result
+
+    });
+
+  };
+
+  reader.readAsDataURL(file);
+
+}
+
+// ================= TOGGLE MIC/SEND =================
+
+function toggleSendButton(){
+
+  const input =
+    document.getElementById("chatInput");
+
+  const icon =
+    document.getElementById("mainActionIcon");
+
+  if(input.value.trim()){
+
+    icon.className =
+      "fa-solid fa-paper-plane";
+
+  } else {
+
+    icon.className =
+      "fa-solid fa-microphone";
+
+  }
+
+}
+
+// ================= MAIN BUTTON =================
+
+function handleMainAction(){
+
+  const icon =
+    document.getElementById("mainActionIcon");
+
+  if(
+    icon.classList.contains(
+      "fa-paper-plane"
+    )
+  ){
+
+    sendMessage();
+
+  } else {
+
+    startRecording();
+
+  }
+
+}
+
+// ================= START RECORDING =================
+
+async function startRecording(){
+
+  try{
+
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
+        audio:true
+      });
+
+    mediaRecorder =
+      new MediaRecorder(stream);
+
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => {
+      audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+
+      const audioBlob =
+        new Blob(audioChunks,{
+          type:"audio/webm"
+        });
+
+      const reader =
+        new FileReader();
+
+      reader.onloadend = () => {
+
+        addVoiceMessage(
+          username,
+          reader.result
+        );
+
+        socket.emit("privateMessage",{
+
+          from:username,
+          to:currentChatUser,
+          audio:reader.result
+
+        });
+
+      };
+
+      reader.readAsDataURL(audioBlob);
+
+    };
+
+    mediaRecorder.start();
+
+    document.getElementById(
+      "normalChatUI"
+    ).style.display = "none";
+
+    document.getElementById(
+      "recordingUI"
+    ).style.display = "flex";
+
+    document.getElementById(
+      "mainActionIcon"
+    ).className =
+      "fa-solid fa-paper-plane";
+
+    seconds = 0;
+
+    timer = setInterval(() => {
+
+      seconds++;
+
+      const mins =
+        Math.floor(seconds / 60);
+
+      const secs =
+        seconds % 60;
+
+      document.getElementById(
+        "recordingTime"
+      ).innerText =
+        `${mins}:${secs.toString().padStart(2,"0")}`;
+
+    },1000);
+
+  }
+
+  catch(err){
+
+    console.log(err);
+
+  }
+
+}
+
+// ================= STOP RECORDING =================
+
+function stopRecording(){
+
+  mediaRecorder.stop();
+
+  clearInterval(timer);
+
+  document.getElementById(
+    "normalChatUI"
+  ).style.display = "flex";
+
+  document.getElementById(
+    "recordingUI"
+  ).style.display = "none";
+
+  document.getElementById(
+    "mainActionIcon"
+  ).className =
+    "fa-solid fa-microphone";
+
+}
+
+
 
   // ================= SOCKET RECEIVE =================
   socket.on("privateMessage", (data) => {
