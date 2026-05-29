@@ -440,6 +440,25 @@ if(isMe){
   }
   
 
+
+  const chatInput = document.getElementById("chatInput");
+
+if(chatInput){
+
+  chatInput.addEventListener("keypress", function(e){
+
+    if(e.key === "Enter"){
+
+      e.preventDefault();
+
+      sendMessage();
+
+    }
+
+  });
+
+}
+
   // ================= SOCKET RECEIVE =================
   socket.on("privateMessage", (data) => {
     

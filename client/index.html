@@ -269,36 +269,32 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         <!-- INPUT -->
 <div id="chatInputArea" class="chat-input-area">
 
-  <!-- NORMAL CHAT -->
-  <div id="normalChatUI">
+  <button onclick="document.getElementById('imageInput').click()" class="media-btn">
+    <i class="fa-solid fa-image"></i>
+  </button>
 
-    <input type="text" id="chatInput" placeholder="Message..." />
+  <input
+    type="text"
+    id="chatInput"
+    placeholder="Message..."
+    oninput="handleTyping()"
+  >
 
-    <button onclick="sendMessage()" class="chat-action-btn">
-      <i class="fa-solid fa-paper-plane"></i>
-    </button>
+  <button id="micBtn" onclick="startRecording()" class="media-btn">
+    <i class="fa-solid fa-microphone"></i>
+  </button>
 
-    <!-- PAPERCLIP FIX -->
-    <button onclick="document.getElementById('imageInput').click()">
-      <i class="fa-solid fa-image"></i>
-    </button>
+  <button onclick="sendMessage()" class="send-btn">
+    <i class="fa-solid fa-paper-plane"></i>
+  </button>
 
-    <button onclick="document.getElementById('fileInput').click()">
-      <i class="fa-solid fa-paperclip"></i>
-    </button>
+<div id="recordingUI" style="display:none;">
 
-    <!-- MIC -->
-    <button id="micBtn">
-      <i class="fas fa-microphone"></i>
-    </button>
+  <span id="recordingTime">0:00</span>
 
-  </div>
-
-  <!-- RECORDING UI -->
-  <div id="recordingUI" style="display:none;">
-    <div>🎙 Recording...</div>
-    <span id="recordingTime">0:00</span>
-  </div>
+  <button onclick="stopRecording()">
+    Send VN
+  </button>
 
 </div>
         

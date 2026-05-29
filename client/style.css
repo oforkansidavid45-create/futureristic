@@ -3698,3 +3698,20 @@ outline:none;
   align-items: center;
   gap: 10px;
 }
+.media-btn:hover{
+
+  background: #2b2b2b;
+
+  transform: scale(1.05);
+
+  transition: 0.2s;
+
+}
+
+.send-btn:hover{
+
+  transform: scale(1.08);
+
+  transition: 0.2s;
+
+}
