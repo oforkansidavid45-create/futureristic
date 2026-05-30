@@ -155,76 +155,7 @@ let timer;
 let seconds = 0;
 
 // START RECORDING
-async function startRecording() {
 
-  try {
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true
-    });
-
-    mediaRecorder = new MediaRecorder(stream);
-
-    audioChunks = [];
-
-    mediaRecorder.ondataavailable = e => {
-      audioChunks.push(e.data);
-    };
-
-    mediaRecorder.onstop = () => {
-
-      const audioBlob = new Blob(audioChunks, {
-        type: "audio/webm"
-      });
-
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-
-        addVoiceMessage(username, reader.result);
-
-        socket.emit("privateMessage", {
-          from: username,
-          to: currentChatUser,
-          audio: reader.result
-        });
-
-      };
-
-      reader.readAsDataURL(audioBlob);
-
-    };
-
-    mediaRecorder.start();
-
-    recording = true;
-
-    recordingUI.style.display = "flex";
-
-    seconds = 0;
-
-    timer = setInterval(() => {
-
-      seconds++;
-
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-
-      recordingTime.innerText =
-        `${mins}:${secs.toString().padStart(2, "0")}`;
-
-    }, 1000);
-
-  }
-
-  catch(err) {
-
-    console.log("MIC ERROR:", err);
-
-
-  }
-
-}
 
 // STOP RECORDING
 function stopRecording() {
@@ -486,103 +417,6 @@ document
 
 });
 
-// ================= SEND / MIC SWITCH =================
-
-
-
-// ================= HANDLE BUTTON =================
-
-
-// ================= START RECORDING =================
-
-async function startRecording() {
-
-  try {
-
-    const stream =
-      await navigator.mediaDevices.getUserMedia({
-        audio:true
-      });
-
-    mediaRecorder =
-      new MediaRecorder(stream);
-
-    audioChunks = [];
-
-    mediaRecorder.ondataavailable = e => {
-      audioChunks.push(e.data);
-    };
-
-    mediaRecorder.onstop = () => {
-
-      const audioBlob =
-        new Blob(audioChunks,{
-          type:"audio/webm"
-        });
-
-      const reader =
-        new FileReader();
-
-      reader.onloadend = () => {
-
-        addVoiceMessage(
-          username,
-          reader.result
-        );
-
-        socket.emit("privateMessage",{
-
-          from:username,
-          to:currentChatUser,
-          audio:reader.result
-
-        });
-
-      };
-
-      reader.readAsDataURL(audioBlob);
-
-    };
-
-    mediaRecorder.start();
-
-    // TRANSITION
-    document
-    .getElementById("normalChatUI")
-    .classList.add("hide-input");
-
-    document
-    .getElementById("recordingUI")
-    .classList.add("show-recording");
-
-    seconds = 0;
-
-    timer = setInterval(()=>{
-
-      seconds++;
-
-      const mins =
-        Math.floor(seconds / 60);
-
-      const secs =
-        seconds % 60;
-
-      document.getElementById(
-        "recordingTime"
-      ).innerText =
-      `${mins}:${secs.toString().padStart(2,"0")}`;
-
-    },1000);
-
-  }
-
-  catch(err){
-
-    console.log(err);
-
-  }
-
-}
 
 // ================= STOP RECORDING =================
 
@@ -605,17 +439,6 @@ function stopRecording() {
 }
 // ================= CAMERA =================
 
-function openCamera(){
-
-  document.getElementById(
-    "cameraInput"
-  ).click();
-
-}
-
-document.getElementById(
-  "cameraInput"
-).addEventListener("change", sendCameraPhoto);
 
 // ================= SEND CAMERA PHOTO =================
 
@@ -1200,22 +1023,31 @@ console.log("VIDEO:", post.video);
   }
 
 }
-async function getProfilePic(user) {
+async function getProfilePic(user){
 
-  try {
+  if(userProfiles[user]){
+    return userProfiles[user];
+  }
+
+  try{
 
     const res =
-      await fetch(
-        `${API}/api/user/${encodeURIComponent(user)}`
-      );
+    await fetch(
+      `${API}/api/user/${encodeURIComponent(user)}`
+    );
 
     const data =
-      await res.json();
+    await res.json();
 
-    return data.profilePic ||
+    userProfiles[user] =
+      data.profilePic ||
       "https://i.imgur.com/HeIi0wU.png";
 
-  } catch (err) {
+    return userProfiles[user];
+
+  }
+
+  catch(err){
 
     return "https://i.imgur.com/HeIi0wU.png";
 
