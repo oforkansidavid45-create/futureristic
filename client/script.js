@@ -158,18 +158,6 @@ let seconds = 0;
 
 
 // STOP RECORDING
-function stopRecording() {
-
-  if (!mediaRecorder) return;
-
-  mediaRecorder.stop();
-
-  clearInterval(timer);
-
-  recordingUI.style.display = "none";
-
-  document.getElementById("normalChatUI").style.display = "flex";
-}
 
 
 function sendVoiceMessage(audioURL){
@@ -422,23 +410,7 @@ document
 
 // ================= STOP RECORDING =================
 
-function stopRecording() {
 
-  if(!mediaRecorder) return;
-
-  mediaRecorder.stop();
-
-  clearInterval(timer);
-
-  document
-  .getElementById("normalChatUI")
-  .classList.remove("hide-input");
-
-  document
-  .getElementById("recordingUI")
-  .classList.remove("show-recording");
-
-}
 // ================= CAMERA =================
 
 
@@ -1252,13 +1224,33 @@ async function openProfile(user) {
 
   postsBox.innerHTML = userPosts.map(post => `
 
-    <div class="post">
+<div class="post">
 
-      <div class="post-text">
-        ${post.text}
-      </div>
+  <div class="post-text">
+    ${post.text || ""}
+  </div>
 
-    </div>
+  ${
+    post.image
+    ?
+    `<img src="${post.image}" class="post-media">`
+    :
+    ""
+  }
+
+  ${
+    post.video
+    ?
+    `
+    <video controls class="post-media">
+      <source src="${post.video}">
+    </video>
+    `
+    :
+    ""
+  }
+
+</div>
 
   `).join("");
 
@@ -1603,7 +1595,7 @@ function showView(view) {
   }
 
 }
-let isRecording = false;
+
 
 function handleMainAction(){
 
@@ -1900,6 +1892,15 @@ class="reel-avatar"
 
 }
 socket.on("profileUpdated",()=>{
+  setInterval(() => {
+
+  if(username){
+
+    loadPosts();
+
+  }
+
+}, 10000);
 
 loadPosts();
 
@@ -1962,10 +1963,11 @@ reader.readAsDataURL(file);
 
 async function searchUsersMain() {
 
-  const value =
-    document.getElementById("mainSearch")
-    .value
-    .trim();
+const value =
+cleanName(
+document.getElementById("mainSearch")
+.value
+);
 
   const box =
     document.getElementById("searchResults");

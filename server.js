@@ -798,6 +798,33 @@ app.put("/api/posts/like/:id", async (req, res) => {
 
 });
 
+app.delete("/api/posts/:id", async (req, res) => {
+
+  try {
+
+    await Post.findByIdAndDelete(
+      req.params.id
+    );
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.log(
+      "DELETE ERROR:",
+      err
+    );
+
+    res.status(500).json({
+      error: "Delete failed"
+    });
+
+  }
+
+});
+
 // ================= PROFILE UPLOAD =================
 app.post(
 "/api/upload-profile",
