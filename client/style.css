@@ -1944,7 +1944,26 @@ border-top:1px solid rgba(255,255,255,0.08);
 
 }
 
+#chatInput{
 
+flex:1;
+
+height:45px;
+
+border:none;
+outline:none;
+
+border-radius:30px;
+
+padding:0 18px;
+
+background:#1e293b;
+
+color:white;
+
+font-size:15px;
+
+}
 
 .chat-icon-btn,
 .send-btn{
@@ -2879,7 +2898,20 @@ color:white;
   border-top:1px solid rgba(255,255,255,0.06);
 }
 
+#chatInput{
+  flex:1;
+  height:45px;
 
+  border:none;
+  outline:none;
+
+  border-radius:25px;
+
+  padding:0 16px;
+
+  background:#1e293b;
+  color:white;
+}
 
 /* ICON BUTTONS */
 .chat-action-btn{
@@ -3321,6 +3353,29 @@ flex-shrink:0;
 background:#2563eb;
 }
 
+/* RECORDING UI */
+
+#recordingUI{
+
+display:none;
+
+align-items:center;
+gap:14px;
+
+background:#1e293b;
+
+padding:12px 18px;
+
+border-radius:30px;
+
+height:52px;
+
+position:relative;
+
+animation:fadeIn .2s ease;
+
+}
+
 /* LEFT */
 
 .recording-left{
@@ -3543,6 +3598,25 @@ outline:none;
   color:white;
 }
 
+/* ================= RECORDING UI ================= */
+
+#recordingUI{
+  display:none;
+
+  width:100%;
+  height:48px;
+
+  align-items:center;
+  gap:12px;
+
+  padding:0 12px;
+
+  border-radius:24px;
+
+  background:#111827;
+
+  border:1px solid rgba(255,255,255,0.06);
+}
 
 /* RED DOT + TIMER */
 .recording-left{
@@ -3661,6 +3735,8 @@ outline:none;
   background: #1877f2;
   transform: scale(1.05);
 }
+
+
 
 /* ================= IPHONE CHAT BAR ================= */
 
@@ -3950,12 +4026,4 @@ opacity:0.3;
 opacity:1;
 }
 
-}
-* {
-  will-change: transform, opacity;
-}
-.post,
-.messenger-layout,
-.chat-input-area {
-  transform: translateZ(0);
 }
