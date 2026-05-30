@@ -357,7 +357,9 @@ if(isMe){
       message
     });
 
-    input.value = "";
+input.value = "";
+
+toggleSendButton();
   }
   
 
@@ -499,22 +501,20 @@ function toggleSendButton(){
 
 function handleMainAction(){
 
-  const icon =
-    document.getElementById("mainActionIcon");
+const input =
+document.getElementById("chatInput");
 
-  if(
-    icon.classList.contains(
-      "fa-paper-plane"
-    )
-  ){
+if(input.value.trim()){
 
-    sendMessage();
+sendMessage();
 
-  } else {
+toggleSendButton();
 
-    startRecording();
+}else{
 
-  }
+startRecording();
+
+}
 
 }
 
@@ -1603,6 +1603,36 @@ function showView(view) {
   }
 
 }
+let isRecording = false;
+
+function handleMainAction(){
+
+  const input =
+    document.getElementById("chatInput");
+
+  if(input.value.trim()){
+
+    sendMessage();
+
+    return;
+
+  }
+
+  if(!isRecording){
+
+    isRecording = true;
+
+    startRecording();
+
+  }else{
+
+    isRecording = false;
+
+    stopRecording();
+
+  }
+
+}
 
   function searchFriends() {
 
@@ -2205,7 +2235,66 @@ class="future-preview-media"
 }
 
 }
+document
+.getElementById("galleryInput")
+.addEventListener("change", function(e){
 
+const file = e.target.files[0];
+
+if(!file) return;
+
+const reader = new FileReader();
+
+reader.onload = () => {
+
+if(file.type.startsWith("image")){
+
+addImageMessage(
+username,
+reader.result
+);
+
+socket.emit("privateMessage",{
+from:username,
+to:currentChatUser,
+image:reader.result
+});
+
+}
+else{
+
+addFileMessage(
+username,
+{
+name:file.name,
+data:reader.result
+}
+);
+
+socket.emit("privateMessage",{
+from:username,
+to:currentChatUser,
+file:{
+name:file.name,
+data:reader.result
+}
+});
+
+}
+
+};
+
+reader.readAsDataURL(file);
+
+});
+
+function openGallery(){
+
+document
+.getElementById("galleryInput")
+.click();
+
+}
 async function deletePost(id){
 
   const sure = confirm(

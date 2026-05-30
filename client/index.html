@@ -272,78 +272,81 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         <!-- INPUT -->
 
 <!-- CHAT INPUT -->
-<div id="chatInputArea" class="chat-input-area">
 
-  <!-- CAMERA -->
-  <button
-    onclick="openCamera()"
-    class="media-btn"
-  >
-    <i class="fa-solid fa-camera"></i>
+<div class="wa-chat-bar">
+<!-- PLUS BUTTON -->
+<button onclick="openGallery()" class="wa-plus-btn">
+  <i class="fa-solid fa-plus"></i>
+</button>
+
+<!-- CAMERA BUTTON -->
+<button onclick="openCamera()" class="wa-plus-btn">
+  <i class="fa-solid fa-camera"></i>
+</button>
+
+  <button onclick="openFiles()" class="wa-icon-btn">
+    <i class="fa-solid fa-plus"></i>
   </button>
 
-  <!-- NORMAL INPUT -->
-  <div id="normalChatUI" class="normal-chat-ui">
+  <div class="wa-input-wrap">
 
     <input
       type="text"
       id="chatInput"
       placeholder="Message"
-      oninput="toggleSendMic(); handleTyping()"
+      oninput="toggleSendButton();handleTyping()"
     >
 
   </div>
 
-  <!-- SEND / MIC -->
   <button
-    id="sendMicBtn"
-    class="send-btn"
-    onclick="
-    document.getElementById('sendMicIcon')
-    .classList.contains('fa-paper-plane')
-    ? handleSendMic()
-    : stopRecording()
-    "
+    id="mainActionBtn"
+    onclick="handleMainAction()"
+    class="wa-send-btn"
   >
 
     <i
-      id="sendMicIcon"
+      id="mainActionIcon"
       class="fa-solid fa-microphone"
     ></i>
 
   </button>
 
-  <!-- HIDDEN CAMERA INPUT -->
-  <input
-    type="file"
-    id="cameraInput"
-    accept="image/*"
-    capture="environment"
-    hidden
-  >
-
+</div>
   <!-- RECORDING UI -->
-  <div id="recordingUI">
+  <div id="recordingUI" style="display:none;">
 
-    <div class="recording-left">
+    <div class="recording-box">
 
       <div class="record-dot"></div>
 
-      <span id="recordingTime">
-        0:00
+      <span id="recordingTime">0:00</span>
+
+      <span class="recording-text">
+        Recording...
       </span>
-
-    </div>
-
-    <div class="recording-center">
-
-      Recording voice message...
 
     </div>
 
   </div>
 
+  <!-- CAMERA INPUT -->
+<input
+type="file"
+id="cameraInput"
+accept="image/*"
+capture="camera"
+hidden
+>
+  <input
+type="file"
+id="galleryInput"
+accept="image/*,video/*,.pdf,.doc,.docx"
+hidden
+>
+
 </div>
+
 
 
         
