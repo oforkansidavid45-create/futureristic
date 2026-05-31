@@ -624,7 +624,7 @@ const text = req.body.text || "";
     res.status(500).json({ error: "Server error" });
   }
 });
-aapp.post("/api/friend-request", (req, res) => {
+app.post("/api/friend-request", (req, res) => {
 
   try {
 
@@ -665,7 +665,8 @@ aapp.post("/api/friend-request", (req, res) => {
 
   }
 
-});app.get("/api/friends/:user", (req, res) => {
+});
+app.get("/api/friends/:user", (req, res) => {
   const user = cleanName(req.params.user);
 
   res.json(friends[user] || []);
