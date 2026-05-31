@@ -446,9 +446,8 @@ io.on("connection", (socket) => {
 
   try {
 
-    const from = cleanName(data.from);
-    const to = cleanName(data.to);
-
+   let from = cleanName(req.body.from);
+let to = cleanName(req.body.to);
 // ensure arrays exist
 if (!friends[from]) friends[from] = [];
 if (!friends[to]) friends[to] = [];
