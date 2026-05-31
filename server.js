@@ -642,7 +642,9 @@ app.post("/api/friend-request", (req, res) => {
     });
   }
 
-  ensureUser(requests, to);
+ to = cleanName(to);
+from = cleanName(from);
+ensureUser(requests, to);
 
   if (!requests[to].includes(from)) {
     requests[to].push(from);

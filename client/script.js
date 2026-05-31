@@ -84,7 +84,9 @@
         body: JSON.stringify({ username: name, password: pass })
       });
 
-      const data = await res.json();
+      const data = Array.isArray(await res.json())
+  ? await res.json()
+  : [];
 
 console.log("NOTIFICATION DATA:", data);
       if (data.error) return alert(data.error);
