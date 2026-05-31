@@ -1365,6 +1365,7 @@ async function acceptRequest(fromUser) {
       );
 
       const data = await res.json();
+      console.log("NOTIFICATION DATA:", data);
 
       const box =
         document.getElementById("notificationList");
@@ -1599,34 +1600,7 @@ function showView(view) {
 }
 
 
-function handleMainAction(){
 
-  const input =
-    document.getElementById("chatInput");
-
-  if(input.value.trim()){
-
-    sendMessage();
-
-    return;
-
-  }
-
-  if(!isRecording){
-
-    isRecording = true;
-
-    startRecording();
-
-  }else{
-
-    isRecording = false;
-
-    stopRecording();
-
-  }
-
-}
 
   function searchFriends() {
 
@@ -1893,20 +1867,7 @@ class="reel-avatar"
 `).join("");
 
 }
-socket.on("profileUpdated",()=>{
-  setInterval(() => {
 
-  if(username){
-
-    loadPosts();
-
-  }
-
-}, 10000);
-
-loadPosts();
-
-});
 
 document.getElementById(
 "profilePicInput"
