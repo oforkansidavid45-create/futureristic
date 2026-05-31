@@ -446,8 +446,9 @@ io.on("connection", (socket) => {
 
   try {
 
-   let from = cleanName(req.body.from);
-let to = cleanName(req.body.to);
+    const from = cleanName(data.from);
+    const to = cleanName(data.to);
+
 // ensure arrays exist
 if (!friends[from]) friends[from] = [];
 if (!friends[to]) friends[to] = [];
@@ -623,52 +624,48 @@ const text = req.body.text || "";
     res.status(500).json({ error: "Server error" });
   }
 });
-app.post("/api/friend-request", (req, res) => {
+aapp.post("/api/friend-request", (req, res) => {
 
-  const from = cleanName(req.body.from);
-  const to = cleanName(req.body.to);
-  
+  try {
 
-  if (!from || !to) {
-    return res.status(400).json({
-      error: "Missing users"
-    });
-  }
+    console.log("FRIEND REQUEST HIT");
+    console.log(req.body);
 
-  if (from === to) {
-    return res.status(400).json({
-      error: "Cannot add yourself"
-    });
-  }
+    const from = cleanName(req.body.from);
+    const to = cleanName(req.body.to);
 
- to = cleanName(to);
-from = cleanName(from);
-ensureUser(requests, to);
+    console.log("FROM:", from);
+    console.log("TO:", to);
 
-  if (!requests[to].includes(from)) {
-    requests[to].push(from);
-    console.log("REQUESTS:", requests);
-  }
-
-  // REALTIME
-  if (users[to]) {
-
-    users[to].forEach(id => {
-
-      io.to(id).emit("friendRequest", {
-        from
+    if (!from || !to) {
+      return res.status(400).json({
+        error: "Missing users"
       });
+    }
 
+    if (!requests[to]) {
+      requests[to] = [];
+    }
+
+    requests[to].push(from);
+
+    console.log("REQUESTS:", requests);
+
+    return res.json({
+      success: true
+    });
+
+  } catch(err) {
+
+    console.log("FRIEND REQUEST ERROR:", err);
+
+    return res.status(500).json({
+      error: err.message
     });
 
   }
 
-  res.json({
-    message: "Request sent"
-  });
-
-});;
-app.get("/api/friends/:user", (req, res) => {
+});app.get("/api/friends/:user", (req, res) => {
   const user = cleanName(req.params.user);
 
   res.json(friends[user] || []);
