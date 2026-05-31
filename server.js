@@ -50,6 +50,11 @@ let requests = {};       // pending requests
 app.get("/api/friend-requests/:user", (req, res) => {
   const user = cleanName(req.params.user);
 
+  console.log(
+  "LOADING REQUESTS FOR:",
+  user,
+  requests[user]
+);
   if (!user) {
     return res.status(400).json({ error: "Missing user" });
   }
@@ -456,6 +461,8 @@ const isFriend =
   if (!isFriend) {
   return;
 }
+
+console.log("FRIENDS OBJECT:", friends);
 console.log("FRIEND CHECK:", isFriend);
 
     const payload = {
@@ -621,6 +628,7 @@ app.post("/api/friend-request", (req, res) => {
 
   const from = cleanName(req.body.from);
   const to = cleanName(req.body.to);
+  
 
   if (!from || !to) {
     return res.status(400).json({
@@ -638,6 +646,7 @@ app.post("/api/friend-request", (req, res) => {
 
   if (!requests[to].includes(from)) {
     requests[to].push(from);
+    console.log("REQUESTS:", requests);
   }
 
   // REALTIME

@@ -85,6 +85,8 @@
       });
 
       const data = await res.json();
+
+console.log("NOTIFICATION DATA:", data);
       if (data.error) return alert(data.error);
 
       alert("Account created! Now login");
